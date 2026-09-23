@@ -1,10 +1,12 @@
 # 词海工具箱
 
-![Node](https://img.shields.io/badge/node-%3E%3D14-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue) ![API](https://img.shields.io/badge/open--api-6%20endpoints-orange) ![Rate Limit](https://img.shields.io/badge/rate%20limit-100%2Fday%2FIP-red)
+![Node](https://img.shields.io/badge/node-%3E%3D14-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue) ![API](https://img.shields.io/badge/open--api-6%20endpoints-orange) ![Rate Limit](https://img.shields.io/badge/rate%20limit-100%2Fday%2FIP-red) ![Status](https://img.shields.io/badge/status-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%E4%B8%AD-success)
 
-> 简单实用的免费在线工具大全 · 零依赖 · 纯前端本地处理 · 附开放 API
+> 简单实用的免费在线工具大全 · 零依赖 · 纯前端本地处理 · 附开放 API · **每天持续更新**
 
-84+ 款在线小工具：图片处理、文本转换、加密编码、日期计算、生活查询等。所有工具在浏览器本地完成，不上传用户数据。
+85 款在线小工具：图片处理、文本转换、加密编码、日期计算、生活查询等。所有工具在浏览器本地完成，不上传用户数据。
+
+🔥 **本项目持续更新中**：不定期新增工具与 API 接口，点右上角 **Star** 关注，不错过每一次更新。最新动态见[更新日志](https://tools.hdemba.cn/tools/changelog.html)。
 
 ---
 

@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.1"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -55,13 +55,20 @@ html.dark .chg-item:first-child .chg-dot { box-shadow: 0 0 0 3px #16352c; }
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.5.1"></script>
-<script src="../assets/chrome.js?v=1.5.1"></script>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.5.2", date: "2026-09-24",
+    items: [
+      ["new", "整站开源：85 款工具 + 开放 API 服务完整代码托管于 GitHub（hexiaofu666/free-api），MIT 协议"],
+      ["opt", "全站共享资源版本号升级，修复浏览器缓存导致的更新不生效问题"],
+    ]
+  },
   {
     ver: "v1.5.1", date: "2026-09-24",
     items: [

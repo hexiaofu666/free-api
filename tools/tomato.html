@@ -96,6 +96,7 @@
 <script>
 const ring = document.getElementById("ring"), C = 2 * Math.PI * 100;
 ring.setAttribute("stroke-dasharray", C);
+const BASE_TITLE = document.title; /* SEO 标题，非计时状态恢复用 */
 let WORK = 25 * 60, BREAK = 5 * 60, total = WORK, left = WORK;
 let timer = null, isWork = true, done = 0;
 const display = document.getElementById("display");
@@ -108,7 +109,7 @@ function show() {
   display.textContent = `${m}:${s}`;
   ring.setAttribute("stroke-dashoffset", C * (1 - left / total));
   ring.setAttribute("stroke", isWork ? "#4CAF50" : "#2196F3");
-  document.title = `${m}:${s} · 番茄时钟`;
+  document.title = timer ? `${m}:${s} · ${isWork ? "工作时间" : "休息时间"} - 词海工具箱` : BASE_TITLE;
 }
 /* ---------- 铃声（Web Audio 合成，无需音频文件） ---------- */
 let audioCtx = null;
@@ -161,7 +162,7 @@ function tick() {
   show();
 }
 startBtn.onclick = () => {
-  if (timer) { clearInterval(timer); timer = null; startBtn.textContent = "继续"; }
+  if (timer) { clearInterval(timer); timer = null; startBtn.textContent = "继续"; document.title = BASE_TITLE; }
   else { if (left === total && total === 0) setMode(isWork); timer = setInterval(tick, 1000); startBtn.textContent = "暂停"; }
 };
 document.getElementById("testRingBtn").onclick = playRing;

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本在线去重 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="textuniq" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>对比模式</label>
+        <select id="mode">
+          <option value="line">按行去重</option>
+          <option value="all">整段文本去重（按整行）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>附加处理</label>
+        <select id="extra" multiple size="4" style="height:auto;padding:6px 10px;">
+          <option value="sort">排序（去重后）</option>
+          <option value="trim">去除行首尾空格</option>
+          <option value="skipempty">删除空行</option>
+          <option value="reverse">倒序排列</option>
+        </select>
+      </div>
+      <div class="fitem"><label>序号格式</label>
+        <select id="numFmt">
+          <option value="">不加序号</option>
+          <option value="n">1. 2. 3.</option>
+          <option value="cn">一、二、三、</option>
+          <option value="dash">- 列表</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">去重处理</button>
+      <button class="fbtn brown" id="swapBtn">结果→输入</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vin" style="margin-top:0;">
+      <textarea id="input" placeholder="在此粘贴文本，每行一条…" spellcheck="false"></textarea>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>处理结果（<span id="stat"></span>）</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本去重介绍：</h4>
+    <ol>
+      <li>按行去除重复内容，保留首次出现的行，常用于名单、关键词、日志清洗。</li>
+      <li>可叠加排序、去空格、删空行、倒序等处理，一步到位。</li>
+      <li>支持输出时自动加序号：阿拉伯数字、中文序号或 Markdown 列表符号。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const CN="零一二三四五六七八九十";
+function cnNum(n){
+  if(n<=10)return CN[n]||String(n);
+  if(n<20)return "十"+(n%10?CN[n%10]:"");
+  return CN[Math.floor(n/10)]+"十"+(n%10?CN[n%10]:"");
+}
+$("runBtn").onclick=()=>{
+  const raw=$("input").value;
+  if(!raw.trim()){alert("请先粘贴文本");return;}
+  const extras=[...$("extra").selectedOptions].map(o=>o.value);
+  let lines=raw.split("\n");
+  if(extras.includes("trim"))lines=lines.map(l=>l.trim());
+  if(extras.includes("skipempty"))lines=lines.filter(l=>l!=="");
+  const seen=new Set(),uniq=[];
+  let dup=0;
+  for(const l of lines){if(seen.has(l)){dup++;continue;}seen.add(l);uniq.push(l);}
+  if(extras.includes("sort"))uniq.sort((a,b)=>a.localeCompare(b,"zh"));
+  if(extras.includes("reverse"))uniq.reverse();
+  const fmt=$("numFmt").value;
+  const out=uniq.map((l,i)=>{
+    if(fmt==="n")return (i+1)+". "+l;
+    if(fmt==="cn")return cnNum(i+1)+"、"+l;
+    if(fmt==="dash")return "- "+l;
+    return l;
+  });
+  $("output").value=out.join("\n");
+  $("stat").textContent=`共 ${lines.length} 行，去重 ${dup} 行，剩余 ${uniq.length} 行`;
+  $("outBox").classList.add("on");
+};
+$("swapBtn").onclick=()=>{if($("output").value){$("input").value=$("output").value;$("outBox").classList.remove("on");}};
+$("clearBtn").onclick=()=>{$("input").value="";$("output").value="";$("outBox").classList.remove("on");};
+$("copyBtn").onclick=()=>{$("output").select();document.execCommand("copy");};
+</script>
+</body>
+</html>

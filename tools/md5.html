@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MD5在线加密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="md5" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要加密的内容...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>输出格式</label>
+        <select id="fmt">
+          <option value="32x">32位小写</option>
+          <option value="32d">32位大写</option>
+          <option value="16x">16位小写</option>
+          <option value="16d">16位大写</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">点击加密</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>加密结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于MD5介绍：</h4>
+    <ol>
+      <li>MD5是一种广泛使用的散列函数，它可以将一个文件或一段文字，生成一个固定长度的散列值。</li>
+      <li>MD5无论输入的数据大小，都可以快速的进行计算。</li>
+      <li>由于MD5的算法相当简单，在各种语言中都可以简单的实现。</li>
+      <li>MD5一般用于密码的安全储存，以及一些文件的完整性校验。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+function md5hex(u8) {
+  const S=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+  const K=new Array(64);
+  for (let i=0;i<64;i++) K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296);
+  const bitLen=u8.length*8;
+  const newLen=(((u8.length+8)>>6)+1)*64;
+  const m=new Uint8Array(newLen); m.set(u8); m[u8.length]=0x80;
+  const dv=new DataView(m.buffer);
+  dv.setUint32(newLen-8, bitLen>>>0, true);
+  dv.setUint32(newLen-4, Math.floor(bitLen/4294967296), true);
+  let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;
+  for (let off=0; off<newLen; off+=64) {
+    const O=[]; for (let j=0;j<16;j++) O[j]=dv.getUint32(off+j*4,true);
+    let A=a0,B=b0,C=c0,D=d0;
+    for (let i=0;i<64;i++) {
+      let F,g;
+      if (i<16){F=(B&C)|(~B&D); g=i;}
+      else if (i<32){F=(D&B)|(~D&C); g=(5*i+1)%16;}
+      else if (i<48){F=B^C^D; g=(3*i+5)%16;}
+      else {F=C^(B|~D); g=(7*i)%16;}
+      F=(F+A+K[i]+O[g])|0;
+      A=D; D=C; C=B;
+      B=(B+((F<<S[i])|(F>>>(32-S[i]))))|0;
+    }
+    a0=(a0+A)|0; b0=(b0+B)|0; c0=(c0+C)|0; d0=(d0+D)|0;
+  }
+  const h=n=>{let s='';for(let i=0;i<4;i++)s+=((n>>>(i*8))&255).toString(16).padStart(2,'0');return s;};
+  return h(a0)+h(b0)+h(c0)+h(d0);
+}
+const $=id=>document.getElementById(id);
+$("runBtn").onclick = () => {
+  const s = $("input").value;
+  if (!s) return alert("请输入要加密的内容");
+  const full = md5hex(new TextEncoder().encode(s));
+  const f = $("fmt").value;
+  const r = f==="32x"?full : f==="32d"?full.toUpperCase() : f==="16x"?full.substring(8,24) : full.substring(8,24).toUpperCase();
+  $("output").value = r;
+  $("outBox").classList.add("on");
+};
+$("demoBtn").onclick = () => { $("input").value = "Hello, 词海工具箱!"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

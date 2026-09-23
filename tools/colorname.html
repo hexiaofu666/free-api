@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颜色名称在线查询 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="colorname" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索颜色</label><input type="text" id="kw" placeholder="输入中/英文名称或HEX值，如 红色、pink、#ff6500"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">搜索颜色</button>
+      <button class="fbtn brown" id="allBtn">显示全部</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on" id="outBox">
+      <div class="vhead"><strong>颜色列表（点击色块复制HEX值）</strong></div>
+      <div id="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:10px 5px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于颜色名称查询介绍：</h4>
+    <ol>
+      <li>收录了 CSS 标准颜色名称，支持中文名称、英文名称、HEX 值三种方式查询。</li>
+      <li>点击任意色块即可复制其 HEX 颜色值，直接粘贴到代码中使用。</li>
+      <li>这些颜色名称可直接用于 CSS，如 color: tomato; background: gold;。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const COLORS=[
+["黑色","black","#000000"],["白色","white","#ffffff"],["红色","red","#ff0000"],["绿色","green","#008000"],
+["蓝色","blue","#0000ff"],["黄色","yellow","#ffff00"],["橙色","orange","#ffa500"],["紫色","purple","#800080"],
+["粉色","pink","#ffc0cb"],["棕色","brown","#a52a2a"],["灰色","gray","#808080"],["金色","gold","#ffd700"],
+["银色","silver","#c0c0c0"],["深灰色","dimgray","#696969"],["暗灰色","darkgray","#a9a9a9"],["浅灰色","lightgray","#d3d3d3"],
+["暗红色","darkred","#8b0000"],["砖红色","firebrick","#b22222"],["印第安红","indianred","#cd5c5c"],["珊瑚色","coral","#ff7f50"],
+["番茄红","tomato","#ff6347"],["橙红色","orangered","#ff4500"],["深橙色","darkorange","#ff8c00"],["鹿皮色","tan","#d2b48c"],
+["暗金色","darkgoldenrod","#b8860b"],["秘鲁色","peru","#cd853f"],["巧克力色","chocolate","#d2691e"],["沙棕色","sandybrown","#f4a460"],
+["小麦色","wheat","#f5deb3"],["米色","beige","#f5f5dc"],["象牙白","ivory","#fffff0"],["亚麻色","linen","#faf0e6"],
+["雪白色","snow","#fffafa"],["幽灵白","ghostwhite","#f8f8ff"],["茶色","teal","#008080"],["青色","cyan","#00ffff"],
+["浅青色","lightcyan","#e0ffff"],["深青色","darkcyan","#008b8b"],["天蓝色","skyblue","#87ceeb"],["深天蓝","deepskyblue","#00bfff"],
+["道奇蓝","dodgerblue","#1e90ff"],["皇家蓝","royalblue","#4169e1"],["藏青色","navy","#000080"],["深蓝色","darkblue","#00008b"],
+["中蓝色","mediumblue","#0000cd"],["浅蓝色","lightblue","#add8e6"],["粉蓝色","powderblue","#b0e0e6"],["钢蓝色","steelblue","#4682b4"],
+["矢车菊蓝","cornflowerblue","#6495ed"],["薰衣草","lavender","#e6e6fa"],["深紫罗兰","darkviolet","#9400d3"],["紫罗兰","violet","#ee82ee"],
+["梅红色","plum","#dda0dd"],["洋红","magenta","#ff00ff"],["深洋红","darkmagenta","#8b008b"],["靛蓝色","indigo","#4b0082"],
+["藏红花","slateblue","#6a5acd"],["中紫","mediumpurple","#9370db"],["浅绿","lightgreen","#90ee90"],["森林绿","forestgreen","#228b22"],
+["海绿色","seagreen","#2e8b57"],["深绿色","darkgreen","#006400"],["黄绿色","yellowgreen","#9acd32"],["草绿色","lawngreen","#7cfc00"],
+["青柠色","lime","#00ff00"],["橄榄色","olive","#808000"],["橄榄褐","darkolivegreen","#556b2f"],["酸橙色","limegreen","#32cd32"],
+["薄荷色","mintcream","#f5fffa"],["蜂蜜色","honeydew","#f0fff0"],["卡其色","khaki","#f0e68c"],["深卡其","darkkhaki","#bdb76b"],
+["热粉","hotpink","#ff69b4"],["深粉","deeppink","#ff1493"],["浅粉","lightpink","#ffb6c1"],["玫瑰褐","rosybrown","#bc8f8f"]];
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function render(list){
+  $("grid").innerHTML=list.map(([cn,en,hex])=>
+    `<div class="swatch" data-hex="${hex}" style="cursor:pointer;border:1px solid #eee;border-radius:6px;overflow:hidden;font-size:12px;text-align:center;">
+      <div style="height:52px;background:${hex};"></div>
+      <div style="padding:5px;line-height:1.6;color:#333;">${esc(cn)}<br><span style="color:#999;">${en}</span><br><strong style="color:#ff6500;">${hex}</strong></div>
+    </div>`).join("")||'<div style="color:#999;padding:20px;">没有匹配的颜色</div>';
+  [...document.querySelectorAll(".swatch")].forEach(el=>el.onclick=()=>{
+    const hex=el.dataset.hex;
+    const ta=document.createElement("textarea");ta.value=hex;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();
+    el.querySelector("strong").textContent="已复制!";setTimeout(()=>el.querySelector("strong").textContent=hex,800);
+  });
+}
+function search(){
+  const kw=$("kw").value.trim().toLowerCase();
+  if(!kw){render(COLORS);return;}
+  render(COLORS.filter(c=>c[0].includes(kw)||c[1].toLowerCase().includes(kw)||c[2].toLowerCase().includes(kw)));
+}
+$("runBtn").onclick=search;
+$("allBtn").onclick=()=>{$("kw").value="";render(COLORS);};
+$("clearBtn").onclick=()=>{$("kw").value="";render(COLORS);};
+$("kw").addEventListener("input",search);
+render(COLORS);
+</script>
+</body>
+</html>

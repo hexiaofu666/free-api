@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>站点更新日志 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.chg-wrap { max-width: 760px; margin: 5px auto 0; }
+.chg-item { position: relative; padding: 0 0 26px 30px; }
+.chg-item::before {
+  content: ""; position: absolute; left: 6px; top: 8px; bottom: -4px;
+  width: 2px; background: #eee;
+}
+.chg-item:last-child::before { display: none; }
+.chg-dot {
+  position: absolute; left: 0; top: 4px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #ff6500; box-shadow: 0 0 0 3px #ffe3d1;
+}
+.chg-item:first-child .chg-dot { background: #00b277; box-shadow: 0 0 0 3px #d1f3e6; }
+.chg-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.chg-head h3 { font-size: 15px; font-weight: 700; color: #333; }
+.chg-date { font-size: 12px; color: #999; }
+.chg-tag {
+  font-size: 11px; line-height: 1; padding: 4px 8px;
+  border-radius: 3px; color: #fff; font-style: normal;
+}
+.chg-tag.new  { background: #ff6500; }
+.chg-tag.fix  { background: #e74c3c; }
+.chg-tag.opt  { background: #2196F3; }
+.chg-tag.api  { background: #00b277; }
+.chg-body { margin-top: 9px; border: 1px solid #eee; border-radius: 6px; background: #fafbfc; padding: 12px 15px; }
+.chg-body ul { list-style: none; }
+.chg-body li { font-size: 13px; color: #555; line-height: 2; position: relative; padding-left: 14px; }
+.chg-body li::before {
+  content: ""; position: absolute; left: 0; top: .95em;
+  width: 5px; height: 5px; background: #ff9136;
+}
+html.dark .chg-item::before { background: #2c2f33; }
+html.dark .chg-head h3 { color: #f0f2f5; }
+html.dark .chg-body { background: #1f2224; border-color: #2c2f33; }
+html.dark .chg-body li { color: #a8adb8; }
+html.dark .chg-dot { box-shadow: 0 0 0 3px #3a2b1f; }
+html.dark .chg-item:first-child .chg-dot { box-shadow: 0 0 0 3px #16352c; }
+@media (max-width: 768px) { .chg-wrap { margin-top: 0; } }
+</style>
+</head>
+<body data-tool="changelog" data-cat="office">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="chg-wrap" id="chgList"></div>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+
+/* 版本记录：新版本往数组最前面加即可 */
+const LOGS = [
+  {
+    ver: "v1.5.1", date: "2026-09-24",
+    items: [
+      ["api", "开放 API 开源文档发布：GitHub 仓库 hexiaofu666/free-api，含完整接口文档与多语言调用示例"],
+      ["opt",  "站点右上角新增「更新日志」入口，GitHub 图标指向开源仓库"],
+    ]
+  },
+  {
+    ver: "v1.5.0", date: "2026-09-24",
+    items: [
+      ["new", "平台体验升级：分享功能（二维码/复制链接/系统分享）、桌面端导航收缩、全站夜间模式"],
+      ["api", "开放 API 上线：md5 / sha256 / base64 / url / timestamp / uuid 共 6 个接口，每 IP 每日 100 次"],
+      ["opt",  "全站 SEO：首页与 84 个工具页 title 按搜索词模板重写，品牌升级为「词海工具箱」"],
+      ["opt",  "服务端支持 ETag 协商缓存，资源更新即时生效"],
+    ]
+  },
+  {
+    ver: "v1.4.0", date: "2026-09-23",
+    items: [
+      ["new", "新增 8 款工具：生辰八字、GPS 坐标转换、图片加水印、图片圆角、IP 查询、网速测试、人民币大写、九宫格拼图"],
+      ["fix", "修复部分工具页布局异常（侧栏缺失）问题"],
+      ["opt",  "工具总数达到 84 款，全站结构检查通过"],
+    ]
+  },
+  {
+    ver: "v1.3.0", date: "2026-09-23",
+    items: [
+      ["new", "新增日期生活类工具：农历公历转换、二十四节气查询、十二时辰转换"],
+      ["opt",  "农历算法经权威历法库 400 例对照验证；节气采用 1901-2099 预生成数据表，精度可靠"],
+      ["fix", "番茄时钟补齐结束铃声（WebAudio 合成，无需下载音频文件）"],
+    ]
+  },
+  {
+    ver: "v1.2.0", date: "2026-09-23",
+    items: [
+      ["new", "编码转换类工具批量上线：Base16/32/58/64/100、Unicode、摩斯密码、ROT、凯撒密码、Escape、Punycode 等 20+ 款"],
+      ["opt",  "上线竖版工具布局（深色输入区 + 三色操作按钮），与主流工具站一致"],
+    ]
+  },
+  {
+    ver: "v1.1.0", date: "2026-09-23",
+    items: [
+      ["opt",  "工具内页 1:1 对齐：信息条、评分、橙色说明区、相关推荐、页脚"],
+      ["new", "新增 MD5、SHA、时间戳、JSON 格式化、正则测试、二维码生成等开发类工具"],
+    ]
+  },
+  {
+    ver: "v1.0.0", date: "2026-09-23",
+    items: [
+      ["new", "首版上线：首页框架（分类导航 / 搜索 / 卡片墙）+ 8 款生活效率工具"],
+      ["opt",  "layui 同款图标字体本地化，纯静态零依赖，移动端自适应"],
+    ]
+  },
+];
+
+$("chgList").innerHTML = LOGS.map(l => `
+  <div class="chg-item">
+    <i class="chg-dot"></i>
+    <div class="chg-head">
+      <h3>${l.ver}</h3>
+      <span class="chg-date">${l.date}</span>
+    </div>
+    <div class="chg-body">
+      <ul>${l.items.map(([tag, txt]) =>
+        `<li><i class="chg-tag ${tag}">${({new:"新增",fix:"修复",opt:"优化",api:"API"})[tag]}</i> ${txt}</li>`
+      ).join("")}</ul>
+    </div>
+  </div>`).join("");
+</script>
+</body>
+</html>

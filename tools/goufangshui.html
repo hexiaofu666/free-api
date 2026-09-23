@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新房税费在线计算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.tax-result { font-size: 13px; line-height: 2.2; }
+.tax-result b { color: #ff6500; font-size: 15px; }
+.tax-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; }
+</style>
+</head>
+<body data-tool="goufangshui" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>房屋总价</label><input type="number" id="price" value="1500000" min="1"> <span style="font-size:12px;color:#999;">元</span></div>
+      <div class="fitem"><label>建筑面积</label><input type="number" id="area" value="100" min="1"> <span style="font-size:12px;color:#999;">㎡</span></div>
+      <div class="fitem"><label>购房套数</label>
+        <select id="count"><option value="1">首套</option><option value="2">二套</option></select>
+      </div>
+      <div class="fitem"><label>维修基金</label><input type="number" id="fund" value="100" min="0"> <span style="font-size:12px;color:#999;">元/㎡</span></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始计算</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on" id="outBox">
+      <div class="vhead"><strong>税费明细</strong></div>
+      <div class="tax-result" id="result">填写上方参数后点击「开始计算」。</div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于新房税费介绍：</h4>
+    <ol>
+      <li>契税（2024 年新政）：首套及二套 140㎡ 及以下按 1%；首套 140㎡ 以上 1.5%；二套 140㎡ 以上 2%。</li>
+      <li>住宅类房屋免征印花税；非住宅按 0.05% 计算。</li>
+      <li>维修基金各地标准不同（常见 50-150 元/㎡），可在上方自行修改。</li>
+      <li>另可能有登记费 80 元/套、工本费等小额费用，各地略有差异。</li>
+      <li>计算结果仅供参考，实际以当地税务与住建部门核定为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const f=n=>n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+$("runBtn").onclick=()=>{
+  const price=+$("price").value, area=+$("area").value;
+  if(price<=0||area<=0) return alert("请输入有效的总价和面积");
+  const big=area>140, first=$("count").value==="1";
+  const rate=big?(first?0.015:0.02):0.01;
+  const deed=price*rate;
+  const fund=area*+$("fund").value;
+  const stamp=price*0.0005; /* 住宅免征，列出供参考 */
+  const reg=80;
+  const total=deed+fund+reg;
+  $("result").innerHTML=`
+    <div class="tax-row"><span>契税（${(rate*100)}%，${first?"首套":"二套"}${big?">":"≤"}140㎡）</span><b>${f(deed)} 元</b></div>
+    <div class="tax-row"><span>住宅专项维修基金（${f(+$("fund").value)} 元/㎡）</span><b>${f(fund)} 元</b></div>
+    <div class="tax-row"><span>印花税（住宅免征，非住宅 0.05%）</span><span>${f(stamp)} 元</span></div>
+    <div class="tax-row"><span>不动产登记费</span><span>80.00 元</span></div>
+    <div class="tax-row"><span>合计（不含印花税）</span><b>${f(total)} 元</b></div>`;
+};
+$("clearBtn").onclick=()=>{$("result").innerHTML="填写上方参数后点击「开始计算」。";};
+</script>
+</body>
+</html>

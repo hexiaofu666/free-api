@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>车贷在线计算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.loan-result { font-size: 13px; line-height: 2.2; }
+.loan-result b { color: #ff6500; font-size: 15px; }
+.loan-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; }
+</style>
+</head>
+<body data-tool="calc_chedai" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>贷款金额</label><input type="number" id="amount" value="100000" min="1000"> <span style="font-size:12px;color:#999;">元</span></div>
+      <div class="fitem"><label>年利率</label><input type="number" id="rate" value="4.5" step="0.01" min="0.01"> <span style="font-size:12px;color:#999;">%</span></div>
+      <div class="fitem"><label>贷款期限</label>
+        <select id="months">
+          <option value="12">1 年（12 期）</option>
+          <option value="24">2 年（24 期）</option>
+          <option value="36" selected>3 年（36 期）</option>
+          <option value="48">4 年（48 期）</option>
+          <option value="60">5 年（60 期）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>还款方式</label>
+        <select id="type">
+          <option value="dbx">等额本息（月供固定）</option>
+          <option value="dbj">等额本金（月供递减）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始计算</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on" id="outBox">
+      <div class="vhead"><strong>计算结果</strong></div>
+      <div class="loan-result" id="result">填写上方参数后点击「开始计算」。</div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于车贷计算器介绍：</h4>
+    <ol>
+      <li>等额本息：每月还款额固定，前期利息占比高，适合收入稳定的人群。</li>
+      <li>等额本金：每月本金相同、利息递减，前期月供高、总利息更少。</li>
+      <li>计算公式（等额本息）：月供 = 贷款额 × 月利率 × (1+月利率)^期数 ÷ ((1+月利率)^期数 − 1)。</li>
+      <li>计算结果仅供参考，实际以银行/金融机构给出的还款计划为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const f2=n=>n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+$("runBtn").onclick=()=>{
+  const P=+$("amount").value, yr=+$("rate").value/100, n=+$("months").value, r=yr/12;
+  if(P<=0||r<=0) return alert("请输入有效的贷款金额和利率");
+  let html;
+  if($("type").value==="dbx"){
+    const m=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+    const total=m*n, interest=total-P;
+    html=`<div class="loan-row"><span>每月月供</span><b>${f2(m)} 元</b></div>
+          <div class="loan-row"><span>还款总额</span><b>${f2(total)} 元</b></div>
+          <div class="loan-row"><span>支付利息</span><b>${f2(interest)} 元</b></div>
+          <div class="loan-row"><span>贷款期数</span><span>${n} 期</span></div>`;
+  }else{
+    const mp=P/n;
+    const first=mp+P*r, last=mp+(P-(n-1)*mp)*r;
+    const interest=(n+1)*P*r/2, total=P+interest;
+    html=`<div class="loan-row"><span>首月月供</span><b>${f2(first)} 元</b></div>
+          <div class="loan-row"><span>末月月供</span><b>${f2(last)} 元</b></div>
+          <div class="loan-row"><span>每月递减</span><span>${f2(mp*r)} 元</span></div>
+          <div class="loan-row"><span>还款总额</span><b>${f2(total)} 元</b></div>
+          <div class="loan-row"><span>支付利息</span><b>${f2(interest)} 元</b></div>`;
+  }
+  $("result").innerHTML=html;
+};
+$("clearBtn").onclick=()=>{$("result").innerHTML="填写上方参数后点击「开始计算」。";};
+</script>
+</body>
+</html>

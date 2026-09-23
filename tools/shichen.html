@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>十二时辰在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.sc-result { text-align: center; margin: 10px 0 18px; }
+.sc-name { font-size: 56px; font-weight: 700; color: #ff6500; }
+.sc-time { font-size: 14px; color: #888ea2; margin-top: 4px; }
+.sc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.sc-cell { text-align: center; background: #f8f9fb; border-radius: 6px; padding: 10px 4px; font-size: 12px; color: #888ea2; }
+.sc-cell b { display: block; font-size: 17px; color: #34495e; margin-bottom: 3px; }
+.sc-cell.now { background: #fff3ea; }
+.sc-cell.now b { color: #ff6500; }
+</style>
+</head>
+<body data-tool="shichen" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="sc-result">
+          <div class="sc-name" id="scName">--</div>
+          <div class="sc-time" id="scTime"></div>
+        </div>
+        <div class="sc-grid" id="scGrid"></div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>选择时间</label><input type="time" id="timeInput"></div>
+        </div>
+        <p style="font-size:12px;color:#bbb;line-height:2;">默认显示当前时间对应的时辰，也可手动选择任意时间查询。</p>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于十二时辰转换工具介绍：</h4>
+    <p>十二时辰制是我国古代的计时方法，一个时辰等于现代的两个小时。本工具可将任意现代时间转换为对应的十二时辰。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const pad = n => String(n).padStart(2, "0");
+const SC = [
+  ["子时", "23:00-01:00"], ["丑时", "01:00-03:00"], ["寅时", "03:00-05:00"],
+  ["卯时", "05:00-07:00"], ["辰时", "07:00-09:00"], ["巳时", "09:00-11:00"],
+  ["午时", "11:00-13:00"], ["未时", "13:00-15:00"], ["申时", "15:00-17:00"],
+  ["酉时", "17:00-19:00"], ["戌时", "19:00-21:00"], ["亥时", "21:00-23:00"],
+];
+function toShichen(h) {
+  const idx = h >= 23 ? 0 : Math.floor((h + 1) / 2);
+  return SC[idx];
+}
+function render(h, m) {
+  const [name, range] = toShichen(h);
+  document.getElementById("scName").textContent = name;
+  document.getElementById("scTime").textContent = `${pad(h)}:${pad(m)} → ${range}`;
+  document.getElementById("scGrid").innerHTML = SC.map(([n, r]) =>
+    `<div class="sc-cell ${n === name ? "now" : ""}"><b>${n}</b>${r}</div>`).join("");
+}
+document.getElementById("timeInput").addEventListener("input", e => {
+  const [h, m] = e.target.value.split(":").map(Number);
+  if (!isNaN(h)) render(h, m || 0);
+});
+const now = new Date();
+document.getElementById("timeInput").value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+render(now.getHours(), now.getMinutes());
+</script>
+</body>
+</html>

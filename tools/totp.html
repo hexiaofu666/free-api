@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动态口令在线生成 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="totp" data-cat="dev">
+<style>
+.totp-box { text-align:center; margin-top:0; }
+.totp-code { font-size: 40px; font-weight: 700; letter-spacing: 6px; font-variant-numeric: tabular-nums; color: #ff6500; }
+.totp-left { font-size: 13px; color: #888ea2; margin-top: 6px; }
+.totp-progress { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; margin: 12px auto 0; max-width: 280px; }
+.totp-progress i { display: block; height: 100%; background: #06b672; width: 0; }
+</style>
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="totp-box">
+      <div class="totp-code" id="code">------</div>
+      <div class="totp-left">剩余 <span id="left">--</span> 秒刷新</div>
+      <div class="totp-progress"><i id="prog"></i></div>
+    </div>
+    <div class="vsetup">
+      <div class="fitem"><label>密钥(Base32)</label><input id="secret" placeholder="如 JBSWY3DPEHPK3PXP" value="JBSWY3DPEHPK3PXP"></div>
+      <div class="fitem"><label>位数</label>
+        <select id="digits"><option value="6">6 位</option><option value="8">8 位</option></select>
+      </div>
+      <div class="fitem"><label>周期</label>
+        <select id="period"><option value="30">30 秒</option><option value="60">60 秒</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成口令</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于TOTP动态口令介绍：</h4>
+    <ol>
+      <li>TOTP（基于时间的一次性密码）是两步验证的通用标准（RFC 6238）。</li>
+      <li>客户端与服务器共享密钥，按当前时间各自计算 6 位数字，30 秒变化一次。</li>
+      <li>Google Authenticator、微信等验证器使用的就是该算法，本工具与其兼容。</li>
+      <li>密钥请输入 Base32 格式（绑定验证器时扫码得到的那串字母数字）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const A32="ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function b32dec(s){
+  s=s.toUpperCase().replace(/=+$/,"").replace(/\s/g,"");
+  const bytes=[];let bits=0,val=0;
+  for(const c of s){val=(val<<5)|A32.indexOf(c);bits+=5;
+    if(bits>=8){bytes.push((val>>>(bits-8))&255);bits-=8;}}
+  return new Uint8Array(bytes);
+}
+function hmacSha1(key,msg){
+  const block=64;let k=key;
+  if(k.length>block)k=sha1Bytes(k);
+  k=new Uint8Array([...k,...new Uint8Array(block-k.length)]);
+  const oKey=new Uint8Array([...k].map(b=>b^0x5c));
+  const iKey=new Uint8Array([...k].map(b=>b^0x36));
+  return sha1Bytes(new Uint8Array([...oKey,...sha1Bytes(new Uint8Array([...iKey,...msg]))]));
+}
+function sha1Bytes(u8){
+  const bitLen=u8.length*8;
+  const newLen=(((u8.length+8)>>6)+1)*64;
+  const m=new Uint8Array(newLen);m.set(u8);m[u8.length]=0x80;
+  const dv=new DataView(m.buffer);
+  dv.setUint32(newLen-4,bitLen>>>0);
+  let h0=0x67452301,h1=0xefcdab89,h2=0x98badcfe,h3=0x10325476,h4=0xc3d2e1f0;
+  const w=new Array(80);
+  for(let off=0;off<newLen;off+=64){
+    for(let j=0;j<16;j++)w[j]=dv.getUint32(off+j*4);
+    for(let j=16;j<80;j++){const x=w[j-3]^w[j-8]^w[j-14]^w[j-16];w[j]=(x<<1)|(x>>>31);}
+    let a=h0,b=h1,c=h2,d=h3,e=h4;
+    for(let j=0;j<80;j++){
+      let f,k;
+      if(j<20){f=(b&c)|(~b&d);k=0x5a827999;}
+      else if(j<40){f=b^c^d;k=0x6ed9eba1;}
+      else if(j<60){f=(b&c)|(b&d)|(c&d);k=0x8f1bbcdc;}
+      else{f=b^c^d;k=0xca62c1d6;}
+      const t=(((a<<5)|(a>>>27))+f+e+k+w[j])|0;
+      e=d;d=c;c=(b<<30)|(b>>>2);b=a;a=t;
+    }
+    h0=(h0+a)|0;h1=(h1+b)|0;h2=(h2+c)|0;h3=(h3+d)|0;h4=(h4+e)|0;
+  }
+  const out=new Uint8Array(20);
+  new DataView(out.buffer).setUint32(0,h0>>>0);
+  new DataView(out.buffer).setUint32(4,h1>>>0);
+  new DataView(out.buffer).setUint32(8,h2>>>0);
+  new DataView(out.buffer).setUint32(12,h3>>>0);
+  new DataView(out.buffer).setUint32(16,h4>>>0);
+  return out;
+}
+let timer=null;
+function gen(){
+  const secret=$("secret").value.trim();
+  if(!secret){$("code").textContent="------";return;}
+  const digits=+$("digits").value, period=+$("period").value;
+  const counter=Math.floor(Date.now()/1000/period);
+  const msg=new Uint8Array(8);
+  new DataView(msg.buffer).setUint32(4,counter);
+  const key=b32dec(secret);
+  if(!key.length){$("code").textContent="密钥格式错误";return;}
+  const hmac=hmacSha1(key,msg);
+  const off=hmac[19]&0xf;
+  const bin=((hmac[off]&0x7f)<<24|hmac[off+1]<<16|hmac[off+2]<<8|hmac[off+3])>>>0;
+  $("code").textContent=String(bin%(10**digits)).padStart(digits,"0");
+}
+function tick(){
+  const period=+$("period").value;
+  const left=period-(Math.floor(Date.now()/1000)%period);
+  $("left").textContent=left;
+  $("prog").style.width=(100-left/period*100)+"%";
+  if(left===period)gen();
+}
+$("runBtn").onclick=()=>{
+  gen();
+  if(!timer){timer=setInterval(tick,1000);}
+};
+$("clearBtn").onclick=()=>{$("code").textContent="------";};
+</script>
+</body>
+</html>

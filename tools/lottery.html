@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>号码在线抽奖 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.lotto-display {
+  font-size: 72px; font-weight: 700; text-align: center;
+  min-height: 110px; line-height: 110px; color: #dc2626;
+  font-variant-numeric: tabular-nums;
+}
+.lotto-history { margin-top: 14px; font-size: 13px; color: #888ea2; line-height: 2; border-top: 1px dashed #eee; padding-top: 12px; }
+</style>
+</head>
+<body data-tool="lottery" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="display:flex;flex-direction:column;justify-content:center;">
+        <div class="lotto-display" id="display">?</div>
+        <div class="lotto-history" id="history"></div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>号码从</label><input type="number" id="min" value="1" min="1"></div>
+          <div class="fitem"><label>号码到</label><input type="number" id="max" value="100" min="1"></div>
+        </div>
+        <button class="fbtn orange" id="drawBtn">🎁 开始抽奖</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于号码抽奖工具工具介绍：</h4>
+    <p>设置号码范围后开始滚动抽奖，点击停止即开出幸运号码，已抽中的号码不会重复。适用于年会抽奖、课堂点名、活动开奖等场景。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+let rolling = null;
+const display = document.getElementById("display");
+const drawBtn = document.getElementById("drawBtn");
+const history = [];
+const used = new Set();
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+drawBtn.onclick = () => {
+  const min = parseInt(document.getElementById("min").value) || 1;
+  const max = parseInt(document.getElementById("max").value) || 100;
+  if (rolling) {
+    clearInterval(rolling); rolling = null;
+    drawBtn.textContent = "🎁 开始抽奖";
+    history.unshift(display.textContent);
+    used.add(+display.textContent);
+    document.getElementById("history").innerHTML = "已抽出：" + history.join("、");
+    return;
+  }
+  if (used.size >= max - min + 1) { alert("号码已全部抽完！"); return; }
+  drawBtn.textContent = "⏹ 停止";
+  rolling = setInterval(() => {
+    let n;
+    do { n = rand(min, max); } while (used.has(n));
+    display.textContent = n;
+  }, 60);
+};
+</script>
+</body>
+</html>

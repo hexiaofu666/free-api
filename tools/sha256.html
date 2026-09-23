@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHA在线加密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="sha256" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要加密的内容...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>算法</label>
+        <select id="algo">
+          <option value="sha1">SHA-1</option>
+          <option value="sha256" selected>SHA-256</option>
+          <option value="sha224">SHA-224</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">点击加密</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>加密结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于SHA加密介绍：</h4>
+    <ol>
+      <li>SHA（安全散列算法）是一系列密码散列函数，能将任意长度数据映射为固定长度的散列值。</li>
+      <li>SHA-1 生成 160 位散列值；SHA-256 生成 256 位；SHA-224 是 SHA-256 的截短版本。</li>
+      <li>相比 MD5，SHA-2 系列具有更高的安全强度，被广泛用于证书签名、文件校验等场景。</li>
+      <li>散列是单向过程，无法从散列值还原出原始内容。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+/* SHA-1 / SHA-224 / SHA-256 纯 JS 实现（常量由素数开/立方根生成） */
+function primes(n){const ps=[];for(let x=2;ps.length<n;x++){let ok=true;for(const p of ps){if(p*p>x)break;if(x%p===0){ok=false;break;}}if(ok)ps.push(x);}return ps;}
+const P=primes(64);
+function sha256core(u8,is224){
+  const H=(is224?[0xc1059ed8,0x367cd507,0x3070dd17,0xf70e5939,0xffc00b31,0x68581511,0x64f98fa7,0xbefa4fa4]
+                :[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]).map(v=>v|0);
+  const K=P.map(p=>Math.floor((Math.cbrt(p)%1)*4294967296));
+  const bitLen=u8.length*8;
+  const newLen=(((u8.length+8)>>6)+1)*64;
+  const m=new Uint8Array(newLen); m.set(u8); m[u8.length]=0x80;
+  const dv=new DataView(m.buffer);
+  dv.setUint32(newLen-8, Math.floor(bitLen/4294967296)); dv.setUint32(newLen-4, bitLen>>>0);
+  const rr=x=>(x>>>0).toString(2).padStart(32,'0');
+  const rotr=(x,n)=>((x>>>n)|(x<<(32-n)))>>>0;
+  for (let off=0; off<newLen; off+=64) {
+    const W=[];
+    for (let j=0;j<16;j++) W[j]=dv.getUint32(off+j*4);
+    for (let j=16;j<64;j++) {
+      const s0=rotr(W[j-15],7)^rotr(W[j-15],18)^(W[j-15]>>>3);
+      const s1=rotr(W[j-2],17)^rotr(W[j-2],19)^(W[j-2]>>>10);
+      W[j]=(W[j-16]+s0+W[j-7]+s1)|0;
+    }
+    let [a,b,c,d,e,f,g,h]=H;
+    for (let j=0;j<64;j++) {
+      const S1=rotr(e,6)^rotr(e,11)^rotr(e,25);
+      const ch=(e&f)^(~e&g);
+      const t1=(h+S1+ch+K[j]+W[j])|0;
+      const S0=rotr(a,2)^rotr(a,13)^rotr(a,22);
+      const mj=(a&b)^(a&c)^(b&c);
+      const t2=(S0+mj)|0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
+    }
+    const upd=[(H[0]+a)|0,(H[1]+b)|0,(H[2]+c)|0,(H[3]+d)|0,(H[4]+e)|0,(H[5]+f)|0,(H[6]+g)|0,(H[7]+h)|0];
+    for (let i=0;i<8;i++) H[i]=upd[i];
+  }
+  return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('').substring(0, is224?56:64);
+}
+function sha1hex(u8){
+  const bitLen=u8.length*8;
+  const newLen=(((u8.length+8)>>6)+1)*64;
+  const m=new Uint8Array(newLen); m.set(u8); m[u8.length]=0x80;
+  const dv=new DataView(m.buffer);
+  dv.setUint32(newLen-4, bitLen>>>0);
+  let h0=0x67452301,h1=0xefcdab89,h2=0x98badcfe,h3=0x10325476,h4=0xc3d2e1f0;
+  const w=new Array(80);
+  for (let off=0; off<newLen; off+=64) {
+    for (let j=0;j<16;j++) w[j]=dv.getUint32(off+j*4);
+    for (let j=16;j<80;j++) w[j]=((w[j-3]^w[j-8]^w[j-14]^w[j-16])<<1)|((w[j-3]^w[j-8]^w[j-14]^w[j-16])>>>31);
+    let a=h0,b=h1,c=h2,d=h3,e=h4;
+    for (let j=0;j<80;j++) {
+      let f,k;
+      if (j<20){f=(b&c)|(~b&d); k=0x5a827999;}
+      else if (j<40){f=b^c^d; k=0x6ed9eba1;}
+      else if (j<60){f=(b&c)|(b&d)|(c&d); k=0x8f1bbcdc;}
+      else {f=b^c^d; k=0xca62c1d6;}
+      const t=(((a<<5)|(a>>>27))+f+e+k+w[j])|0;
+      e=d; d=c; c=(b<<30)|(b>>>2); b=a; a=t;
+    }
+    h0=(h0+a)|0; h1=(h1+b)|0; h2=(h2+c)|0; h3=(h3+d)|0; h4=(h4+e)|0;
+  }
+  return [h0,h1,h2,h3,h4].map(x=>(x>>>0).toString(16).padStart(8,'0')).join('');
+}
+const $=id=>document.getElementById(id);
+$("runBtn").onclick = () => {
+  const s=$("input").value;
+  if (!s) return alert("请输入要加密的内容");
+  const u8=new TextEncoder().encode(s), a=$("algo").value;
+  $("output").value = a==="sha1"?sha1hex(u8):sha256core(u8,a==="sha224");
+  $("outBox").classList.add("on");
+};
+$("demoBtn").onclick = () => { $("input").value="Hello, 词海工具箱!"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

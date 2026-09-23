@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>记分板在线记分 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.score-board { display: flex; gap: 16px; }
+.score-team { flex: 1; text-align: center; background: #f8f9fb; border-radius: 6px; padding: 20px 12px; }
+.score-team input { border: none; background: transparent; text-align: center; font-size: 15px; font-weight: 600; color: #34495e; width: 90%; outline: none; }
+.score-num { font-size: 60px; font-weight: 700; color: #ff6500; font-variant-numeric: tabular-nums; margin: 8px 0 14px; }
+.score-btns { display: flex; gap: 8px; justify-content: center; }
+.score-btns button { width: 48px; height: 36px; border: none; border-radius: 4px; font-size: 17px; cursor: pointer; font-weight: 700; }
+.plus { background: #06b672; color: #fff; }
+.minus { background: #eee; color: #666; }
+</style>
+</head>
+<body data-tool="scoreboard" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="score-board" id="board"></div>
+      </div>
+      <div class="mlr">
+        <button class="fbtn plain" id="resetBtn">双方清零</button>
+        <p style="font-size:12px;color:#bbb;line-height:2;margin-top:10px;">可点击队名直接修改，比分一键加减。</p>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线记分板工具介绍：</h4>
+    <p>在线比赛记分板，支持自定义队名、一键加减双方比分，适用于乒乓球、羽毛球、篮球、桌游等各类比赛记分场景。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const TEAMS = [{ name: "队伍一", score: 0 }, { name: "队伍二", score: 0 }];
+function render() {
+  document.getElementById("board").innerHTML = TEAMS.map((t, i) => `
+    <div class="score-team">
+      <input value="${t.name}" oninput="TEAMS[${i}].name=this.value">
+      <div class="score-num">${t.score}</div>
+      <div class="score-btns">
+        <button class="minus" onclick="TEAMS[${i}].score--;render()">−</button>
+        <button class="plus" onclick="TEAMS[${i}].score++;render()">＋</button>
+      </div>
+    </div>`).join("");
+}
+document.getElementById("resetBtn").onclick = () => { TEAMS.forEach(t => t.score = 0); render(); };
+render();
+</script>
+</body>
+</html>

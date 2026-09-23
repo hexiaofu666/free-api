@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base100在线编码解码 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="base100" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入文本或 🤀 开头的 Emoji 编码...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>操作</label>
+        <select id="mode">
+          <option value="enc">编码（文本 → Emoji）</option>
+          <option value="dec">解码（Emoji → 文本）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Base100编码介绍：</h4>
+    <ol>
+      <li>Base100 是一个趣味编码方案，把每个字节映射为一个 Emoji 表情（起始于 🤀）。</li>
+      <li>编码结果全部由 Emoji 组成，常用于整蛊好友或社交平台娱乐。</li>
+      <li>解码时会把每个 Emoji 字符还原为对应的字节，再按 UTF-8 组装回文本。</li>
+      <li>注意：编码结果体积约为原文的 4 倍，请勿用于正式数据传输。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const BASE = 0x1F000;
+$("runBtn").onclick = () => {
+  try {
+    const s = $("input").value;
+    if (!s) return alert("请输入内容");
+    if ($("mode").value === "enc") {
+      const bytes = new TextEncoder().encode(s);
+      let out = "";
+      for (const b of bytes) out += String.fromCodePoint(BASE + b);
+      $("output").value = out;
+    } else {
+      const cps = [...s].map(c => c.codePointAt(0)).filter(cp => cp >= BASE && cp <= BASE + 255);
+      const bytes = new Uint8Array(cps.map(cp => cp - BASE));
+      $("output").value = new TextDecoder().decode(bytes);
+    }
+    $("outBox").classList.add("on");
+  } catch(e) { alert("转换失败：" + e); }
+};
+$("demoBtn").onclick = () => { $("input").value="词海工具箱"; $("mode").value="enc"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

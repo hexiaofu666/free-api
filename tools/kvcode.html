@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>键值对在线转代码 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="kvcode" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入键值对，每行一条，支持 name=value 或 name: value 格式...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>目标格式</label>
+        <select id="fmt">
+          <option value="json">JSON</option>
+          <option value="js">JS 对象</option>
+          <option value="env">环境变量（export）</option>
+          <option value="props">Java Properties</option>
+          <option value="py">Python 字典</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于键值对转代码介绍：</h4>
+    <ol>
+      <li>把纯文本的键值对一键转换为可用的代码配置格式。</li>
+      <li>支持 name=value、name: value、name value 三种常见写法，自动忽略注释行（# 或 // 开头）。</li>
+      <li>可转换为：JSON、JS 对象、环境变量 export、Java Properties、Python 字典。</li>
+      <li>转换后可直接复制到配置文件或代码中使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+function parse(s) {
+  const pairs = [];
+  for (let line of s.split("\n")) {
+    line = line.trim();
+    if (!line || line.startsWith("#") || line.startsWith("//")) continue;
+    const m = line.match(/^([\w.\-$]+)\s*[=:]\s*(.*)$/) || line.match(/^([\w.\-$]+)\s+(.+)$/);
+    if (m) pairs.push([m[1], m[2].replace(/^["']|["'],?$/g, "")]);
+  }
+  return pairs;
+}
+$("runBtn").onclick = () => {
+  const s=$("input").value;
+  if (!s.trim()) return alert("请输入键值对");
+  const kv = parse(s);
+  if (!kv.length) return alert("未解析到有效键值对");
+  const f = $("fmt").value;
+  let out = "";
+  if (f==="json") {
+    const o={}; kv.forEach(([k,v])=>o[k]=v);
+    out = JSON.stringify(o, null, 2);
+  } else if (f==="js") {
+    out = "{\n" + kv.map(([k,v])=>`  ${k}: "${v}"`).join(",\n") + "\n}";
+  } else if (f==="env") {
+    out = kv.map(([k,v])=>`export ${k.toUpperCase().replace(/[.\-]/g,"_")}="${v}"`).join("\n");
+  } else if (f==="props") {
+    out = kv.map(([k,v])=>`${k}=${v}`).join("\n");
+  } else if (f==="py") {
+    out = "{\n" + kv.map(([k,v])=>`    "${k}": "${v}"`).join(",\n") + "\n}";
+  }
+  $("output").value = out;
+  $("outBox").classList.add("on");
+};
+$("demoBtn").onclick = () => { $("input").value="# 数据库配置\nhost=127.0.0.1\nport: 3306\nusername root"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

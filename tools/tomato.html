@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>番茄钟在线计时 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.ring-box { text-align: center; }
+.ring-wrap { width: 230px; height: 230px; position: relative; margin: 0 auto; }
+.ring-wrap svg { width: 100%; height: 100%; }
+.ring-time { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); font-size: 40px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ring-name { position: absolute; left: 50%; top: 62%; transform: translate(-50%,-50%); font-size: 12px; color: #888ea2; }
+.done-count { text-align: center; margin-top: 16px; font-size: 13px; color: #888ea2; }
+.done-count span { color: #ff6500; font-weight: 700; }
+</style>
+</head>
+<body data-tool="tomato" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf ring-box">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 250 250">
+            <circle cx="125" cy="125" r="100" fill="none" stroke="#eee" stroke-width="12"/>
+            <circle id="ring" cx="125" cy="125" r="100" fill="none" stroke="#4CAF50" stroke-width="12"
+              stroke-linecap="round" transform="rotate(-90 125 125)"
+              stroke-dasharray="628" stroke-dashoffset="0"/>
+          </svg>
+          <div class="ring-time" id="display">25:00</div>
+          <div class="ring-name" id="modeText">工作时间</div>
+        </div>
+        <div class="done-count">完成次数：<span id="doneNum">0</span>次</div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>工作时长</label><input type="number" id="workMin" value="25" min="1"></div>
+          <div class="fitem"><label>休息时长</label><input type="number" id="breakMin" value="5" min="1"></div>
+          <div class="fitem"><label>提示铃声</label>
+            <select id="ringSel">
+              <option value="">不选择</option>
+              <option value="1">铃声1（叮）</option>
+              <option value="2">铃声2（叮叮）</option>
+              <option value="3">铃声3（升高音）</option>
+              <option value="4">铃声4（鸟鸣）</option>
+            </select>
+          </div>
+          <div class="fitem"><label>自动运行</label>
+            <select id="autoRun">
+              <option value="0">不开启</option>
+              <option value="1">开启</option>
+            </select>
+          </div>
+        </div>
+        <button class="fbtn green" id="startBtn">开始工作</button>
+        <button class="fbtn plain" id="testRingBtn">试听铃声</button>
+        <button class="fbtn plain" id="resetBtn">清空数据</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于番茄时钟工具介绍：</h4>
+    <ol>
+      <li>番茄时钟，也常被称作番茄工作法（Pomodoro Technique），是一种时间管理方法。</li>
+      <li>番茄工作法旨在提高工作效率，减少拖延，并通过定时专注和休息来增强工作与学习的动力。</li>
+      <li><b>番茄时钟基本原则：</b>
+        <ul>
+          <li>选择任务：首先，选择一个你想要完成的任务。</li>
+          <li>设定番茄钟：将计时器设定为25分钟。</li>
+          <li>专注工作：在这25分钟内，全神贯注地工作，不允许任何干扰。</li>
+          <li>短暂休息：25分钟后，计时器响起，标记一个番茄钟，然后休息5分钟。</li>
+          <li>重复循环：每完成四个番茄钟后，进行一次较长的休息，通常为15-30分钟。</li>
+        </ul>
+      </li>
+      <li><b>番茄时钟优点：</b>
+        <ul>
+          <li>增强专注力：通过设定明确的时间段，帮助人们集中注意力，减少分心。</li>
+          <li>增强动力：每个番茄钟的完成都带来成就感，激励继续工作。</li>
+          <li>合理休息：定时的休息有助于恢复精力，避免过度疲劳。</li>
+          <li>易于执行：方法简单，不需要复杂的工具或准备。</li>
+        </ul>
+      </li>
+      <li><b>工具使用方法：</b>
+        <ul>
+          <li>提示铃声：工作时间结束或休息时间结束时，播放的铃声，不选择则不会响铃。</li>
+          <li>自动运行：开启后，会自动在工作时间与休息时间循环倒计时；如不开启，则工作时间或休息时间结束时手动开始下一轮。</li>
+          <li>工作时长/休息时长：单位为分钟，可自定义。</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const ring = document.getElementById("ring"), C = 2 * Math.PI * 100;
+ring.setAttribute("stroke-dasharray", C);
+let WORK = 25 * 60, BREAK = 5 * 60, total = WORK, left = WORK;
+let timer = null, isWork = true, done = 0;
+const display = document.getElementById("display");
+const modeText = document.getElementById("modeText");
+const startBtn = document.getElementById("startBtn");
+
+function show() {
+  const m = String(Math.floor(left / 60)).padStart(2, "0");
+  const s = String(left % 60).padStart(2, "0");
+  display.textContent = `${m}:${s}`;
+  ring.setAttribute("stroke-dashoffset", C * (1 - left / total));
+  ring.setAttribute("stroke", isWork ? "#4CAF50" : "#2196F3");
+  document.title = `${m}:${s} · 番茄时钟`;
+}
+/* ---------- 铃声（Web Audio 合成，无需音频文件） ---------- */
+let audioCtx = null;
+function tone(freq, start, dur, vol = 0.3, type = "sine") {
+  const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+  osc.type = type; osc.frequency.value = freq;
+  g.gain.setValueAtTime(vol, audioCtx.currentTime + start);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + start + dur);
+  osc.connect(g); g.connect(audioCtx.destination);
+  osc.start(audioCtx.currentTime + start);
+  osc.stop(audioCtx.currentTime + start + dur + 0.05);
+}
+function playRing() {
+  const sel = document.getElementById("ringSel").value;
+  if (!sel) return; /* 不选择则不会响铃 */
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    if (sel === "1") { tone(880, 0, 0.6); }
+    else if (sel === "2") { tone(880, 0, 0.35); tone(880, 0.45, 0.35); }
+    else if (sel === "3") { tone(660, 0, 0.25); tone(880, 0.3, 0.25); tone(1175, 0.6, 0.45); }
+    else if (sel === "4") { tone(1200, 0, 0.12, 0.25, "triangle"); tone(1600, 0.15, 0.1, 0.2, "triangle"); tone(1200, 0.3, 0.12, 0.25, "triangle"); tone(1800, 0.48, 0.14, 0.2, "triangle"); }
+  } catch (e) {}
+}
+function setMode(work) {
+  isWork = work;
+  total = work ? (+document.getElementById("workMin").value || 25) * 60
+               : (+document.getElementById("breakMin").value || 5) * 60;
+  left = total;
+  modeText.textContent = work ? "工作时间" : "休息时间";
+  show();
+}
+function tick() {
+  left--;
+  if (left <= 0) {
+    clearInterval(timer); timer = null;
+    playRing(); /* 阶段结束响铃 */
+    if (isWork) { done++; document.getElementById("doneNum").textContent = done; }
+    setMode(!isWork);
+    if (document.getElementById("autoRun").value === "1") {
+      /* 自动运行：自动开始下一轮循环 */
+      timer = setInterval(tick, 1000);
+      startBtn.textContent = "暂停";
+    } else {
+      /* 手动模式：等用户点按钮开始下一轮 */
+      startBtn.textContent = isWork ? "开始工作" : "开始休息";
+    }
+    return;
+  }
+  show();
+}
+startBtn.onclick = () => {
+  if (timer) { clearInterval(timer); timer = null; startBtn.textContent = "继续"; }
+  else { if (left === total && total === 0) setMode(isWork); timer = setInterval(tick, 1000); startBtn.textContent = "暂停"; }
+};
+document.getElementById("testRingBtn").onclick = playRing;
+document.getElementById("resetBtn").onclick = () => {
+  clearInterval(timer); timer = null; done = 0;
+  document.getElementById("doneNum").textContent = 0;
+  setMode(true); startBtn.textContent = "开始工作";
+};
+document.getElementById("workMin").onchange = () => { if (!timer && isWork) setMode(true); };
+document.getElementById("breakMin").onchange = () => { if (!timer && !isWork) setMode(false); };
+setMode(true);
+</script>
+</body>
+</html>

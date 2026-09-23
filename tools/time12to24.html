@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>12/24小时制在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="time12to24" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><input id="input" placeholder="输入时间，如 19:30 或 7:30 PM" style="width:100%;box-sizing:border-box;height:44px;border:1px solid #eee;padding:0 12px;font-size:14px;border-radius:0 0 3px 3px;outline:none;"></div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">自动转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于12/24小时制介绍：</h4>
+    <ol>
+      <li>24 小时制从 0:00 到 23:59；12 小时制用 AM（上午）/ PM（下午）区分两个 12 小时段。</li>
+      <li>换算规则：PM 时间 +12 小时（12:xx PM 除外）；24 小时制大于 12 点的时间 -12 并加 PM。</li>
+      <li>本工具自动识别输入的是哪种格式，并同时给出两种制式的结果。</li>
+      <li>支持 19:30、7:30 PM、19点30分 等常见写法。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+$("runBtn").onclick = () => {
+  const s=$("input").value.trim();
+  if (!s) return alert("请输入时间");
+  let h, mi, pm = null;
+  let m = s.match(/(\d{1,2})\s*[:：点时]\s*(\d{1,2})?\s*(am|pm|上午|下午|早上|晚上)?/i);
+  if (!m) return alert("时间格式不正确，示例：19:30 或 7:30 PM");
+  h=+m[1]; mi=m[2]?+m[2]:0;
+  const tag=(m[3]||"").toLowerCase();
+  if (/pm|下午|晚上/.test(tag)) pm=true;
+  else if (/am|上午|早上/.test(tag)) pm=false;
+  if (h>24||mi>59) return alert("时间数值超出范围");
+  const pmStr = pm===null ? (h>=12?"PM":"AM") : (pm?"PM":"AM");
+  let h24 = h;
+  if (pm===true && h<12) h24=h+12;
+  if (pm===false && h===12) h24=0;
+  let h12 = h24%12; if (h12===0) h12=12;
+  const p2=n=>String(n).padStart(2,"0");
+  $("output").value = `24小时制：${p2(h24)}:${p2(mi)}\n12小时制：${h12}:${p2(mi)} ${h24<12?"AM":"PM"}\n（输入识别为：${pmStr}）`;
+  $("outBox").classList.add("on");
+};
+$("demoBtn").onclick = () => { $("input").value="7:30 PM"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

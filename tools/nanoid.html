@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NanoID在线生成 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="nanoid" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>ID 数量</label><input type="number" id="num" value="5" min="1" max="100"></div>
+      <div class="fitem"><label>ID 长度</label><input type="number" id="len" value="21" min="6" max="64"></div>
+      <div class="fitem"><label>字母表</label>
+        <select id="alphabet">
+          <option value="std">默认（A-Za-z0-9_-）</option>
+          <option value="alnum">字母+数字</option>
+          <option value="hex">十六进制</option>
+          <option value="digit">纯数字</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">批量生成</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>生成结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly style="min-height:160px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于NanoID介绍：</h4>
+    <ol>
+      <li>NanoID 是一个轻量、安全的唯一 ID 生成方案，默认长度 21 位。</li>
+      <li>与 UUID 相比，NanoID 更短、URL 友好，同时保持极低的碰撞概率。</li>
+      <li>使用密码学安全的随机源（crypto.getRandomValues），每次生成均为随机值。</li>
+      <li>常见用于数据库主键、短链 ID、前端组件 key 等场景。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const AL={std:"A-Za-z0-9_-",alnum:"A-Za-z0-9",hex:"0123456789abcdef",digit:"0123456789"};
+function expand(s){
+  if(s!=="std")return s;
+  return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+}
+function nanoId(alphabet,size){
+  const bytes=new Uint8Array(size);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map(b=>alphabet[b%alphabet.length]).join("");
+}
+$("runBtn").onclick=()=>{
+  const num=+$("num").value, len=+$("len").value;
+  const alphabet=expand(AL[$("alphabet").value]);
+  const out=[];
+  for(let i=0;i<num;i++)out.push(nanoId(alphabet,len));
+  $("output").value=out.join("\n");
+  $("outBox").classList.add("on");
+};
+$("clearBtn").onclick=()=>{$("output").value="";$("outBox").classList.remove("on");};
+$("copyBtn").onclick=()=>{$("output").select();document.execCommand("copy");};
+</script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>GPS坐标在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+
+
+</head>
+<body data-tool="coordconv">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="vin">
+          <textarea id="input" placeholder="输入坐标（一行一个，支持「纬度,经度」或「经度,纬度」，请与上方坐标顺序选项一致）&#10;例：39.9087,116.3975"></textarea>
+        </div>
+        <div class="vout on" style="margin-top:15px;">
+          <div class="vhead">转换结果<span id="copyBtn"><i class="layui-icon layui-icon-file"></i> 复制</span></div>
+          <textarea id="output" readonly placeholder="转换后的坐标将显示在这里..."></textarea>
+        </div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>坐标顺序</label>
+            <select id="order"><option value="latlng">纬度,经度</option><option value="lnglat">经度,纬度</option></select>
+          </div>
+          <div class="fitem"><label>原始坐标</label>
+            <select id="from">
+              <option value="wgs84">WGS-84（GPS原始）</option>
+              <option value="gcj02">GCJ-02（火星/高德）</option>
+              <option value="bd09">BD-09（百度）</option>
+            </select>
+          </div>
+          <div class="fitem"><label>目标坐标</label>
+            <select id="to">
+              <option value="gcj02">GCJ-02（火星/高德）</option>
+              <option value="wgs84">WGS-84（GPS原始）</option>
+              <option value="bd09">BD-09（百度）</option>
+            </select>
+          </div>
+          <div class="fitem"><label>保留位数</label><input type="number" id="fix" value="6" min="1" max="10"></div>
+        </div>
+        <button class="fbtn green" id="runBtn">开始转换</button>
+        <button class="fbtn gray" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于GPS坐标转换工具介绍：</h4>
+    <ol>
+      <li><strong>为什么需要转换：</strong>出于测绘法规要求，中国大陆的地图产品（高德/腾讯等）使用加偏后的 <strong>GCJ-02</strong>（俗称火星坐标），百度地图在 GCJ-02 基础上二次加偏为 <strong>BD-09</strong>，而 GPS 设备、国际地图输出的是 <strong>WGS-84</strong> 原始坐标。混用会导致点位偏移数百米。</li>
+      <li><strong>坐标系说明：</strong>
+        <ul>
+          <li>WGS-84：国际标准，GPS 模块、Google Earth（国际版）使用；</li>
+          <li>GCJ-02：国测局标准，高德、腾讯、谷歌中国使用；</li>
+          <li>BD-09：百度特有，百度地图使用。</li>
+        </ul>
+      </li>
+      <li><strong>支持任意两种坐标系互转</strong>，批量转换时一行一个坐标，输出顺序与输入一致。</li>
+      <li><strong>精度说明：</strong>GCJ-02 的加偏算法为非线性近似，误差一般在 1-2 米内，满足开发调试用途。</li>
+    </ol>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const PI=Math.PI,A=6378245.0,EE=0.00669342162296594323;
+const inCN=(lat,lng)=>lng>=72.004&&lng<=137.8347&&lat>=0.8293&&lat<=55.8271;
+function tLat(x,y){let r=-100+2*x+3*y+0.2*y*y+0.1*x*y+0.2*Math.sqrt(Math.abs(x));r+=(20*Math.sin(6*x*PI)+20*Math.sin(2*x*PI))*2/3;r+=(20*Math.sin(y*PI)+40*Math.sin(y/3*PI))*2/3;r+=(160*Math.sin(y/12*PI)+320*Math.sin(y*PI/30))*2/3;return r;}
+function tLng(x,y){let r=300+x+2*y+0.1*x*x+0.1*x*y+0.1*Math.sqrt(Math.abs(x));r+=(20*Math.sin(6*x*PI)+20*Math.sin(2*x*PI))*2/3;r+=(20*Math.sin(x*PI)+40*Math.sin(x/3*PI))*2/3;r+=(150*Math.sin(x/12*PI)+300*Math.sin(x/30*PI))*2/3;return r;}
+function wgs2gcj(lat,lng){
+  if(!inCN(lat,lng))return[lat,lng];
+  let dlat=tLat(lng-105,lat-35),dlng=tLng(lng-105,lat-35);
+  const radlat=lat/180*PI;let magic=Math.sin(radlat);magic=1-EE*magic*magic;
+  const sq=Math.sqrt(magic);
+  dlat=(dlat*180)/((A*(1-EE))/(magic*sq)*PI);dlng=(dlng*180)/(A/sq*Math.cos(radlat)*PI);
+  return[lat+dlat,lng+dlng];
+}
+function gcj2wgs(lat,lng){
+  const g=wgs2gcj(lat,lng);
+  return[lat*2-g[0],lng*2-g[1]];
+}
+function gcj2bd(lat,lng){const z=Math.hypot(lng,lat)+0.00002*Math.sin(lat*Math.PI*3000/180);const t=Math.atan2(lat,lng)+0.000003*Math.cos(lng*Math.PI*3000/180);return[z*Math.sin(t)+0.006,z*Math.cos(t)+0.0065];}
+function bd2gcj(lat,lng){const x=lng-0.0065,y=lat-0.006;const z=Math.hypot(x,y)-0.00002*Math.sin(y*Math.PI*3000/180);const t=Math.atan2(y,x)-0.000003*Math.cos(x*Math.PI*3000/180);return[z*Math.sin(t),z*Math.cos(t)];}
+const CONV={
+  "wgs84>gcj02":wgs2gcj,
+  "gcj02>wgs84":gcj2wgs,
+  "gcj02>bd09":gcj2bd,
+  "bd09>gcj02":bd2gcj,
+  "wgs84>bd09":(a,b)=>gcj2bd(...wgs2gcj(a,b)),
+  "bd09>wgs84":(a,b)=>gcj2wgs(...bd2gcj(a,b))
+};
+$("runBtn").onclick=()=>{
+  const f=$("from").value,t=$("to").value,fix=+$("fix").value||6;
+  if(f===t){$("output").value="原始坐标系与目标坐标系相同，无需转换";return;}
+  const fn=CONV[f+">"+t];
+  const swap=$("order").value==="lnglat";
+  const lines=$("input").value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const out=lines.map(l=>{
+    const p=l.split(/[,，\s]+/).map(Number);
+    if(p.length<2||p.some(isNaN))return l+"  ← 格式错误";
+    let lat=swap?p[1]:p[0],lng=swap?p[0]:p[1];
+    const[rLat,rLng]=fn(lat,lng);
+    const pair=[rLat,rLng];
+    return(swap?pair.slice().reverse():pair).map(v=>v.toFixed(fix)).join(",");
+  });
+  $("output").value=out.join("\n");
+};
+$("clearBtn").onclick=()=>{$("input").value="";$("output").value="";};
+$("copyBtn").onclick=()=>{navigator.clipboard.writeText($("output").value);$("copyBtn").innerHTML='<i class="layui-icon layui-icon-ok"></i> 已复制';setTimeout(()=>$("copyBtn").innerHTML='<i class="layui-icon layui-icon-file"></i> 复制',1500);};
+</script>
+</body>
+</html>

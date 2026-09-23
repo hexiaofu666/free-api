@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL在线格式化 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="sqlfmt" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>缩进风格</label>
+        <select id="indent">
+          <option value="2">2 空格缩进</option>
+          <option value="4" selected>4 空格缩进</option>
+          <option value="tab">Tab 缩进</option>
+        </select>
+      </div>
+      <div class="fitem"><label>关键字</label>
+        <select id="kwCase">
+          <option value="upper" selected>大写 SELECT</option>
+          <option value="keep">保持原样</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">格式化</button>
+      <button class="fbtn brown" id="demoBtn">填充示例</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vin" style="margin-top:0;">
+      <textarea id="input" placeholder="在此粘贴 SQL 语句…" spellcheck="false"></textarea>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>格式化结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于SQL格式化介绍：</h4>
+    <ol>
+      <li>把压缩成一行的 SQL 语句格式化为层级清晰的缩进排版，便于阅读和审查。</li>
+      <li>支持 SELECT / FROM / WHERE / JOIN / GROUP BY / ORDER BY / INSERT / UPDATE 等常用子句换行缩进。</li>
+      <li>字符串字面量与括号内内容原样保留，不会被错误换行。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const MAJOR=["SELECT","FROM","WHERE","GROUP BY","ORDER BY","HAVING","INSERT INTO","VALUES","UPDATE","SET","DELETE FROM","LEFT JOIN","RIGHT JOIN","INNER JOIN","FULL JOIN","JOIN","ON","UNION ALL","UNION","LIMIT","OFFSET"];
+const SIBLING=["AND","OR"];
+function fmt(sql,indentUnit,upper){
+  /* 分词：保留字符串 */
+  const tokens=[];let cur="";
+  let inS=false,inD=false;
+  for(let i=0;i<sql.length;i++){
+    const c=sql[i];
+    if(inS){cur+=c;if(c==="'"){inS=false;}continue;}
+    if(inD){cur+=c;if(c==='"'){inD=false;}continue;}
+    if(c==="'"){cur+=c;inS=true;continue;}
+    if(c==='"'){cur+=c;inD=true;continue;}
+    if(/[\s,();]/.test(c)){
+      if(cur)tokens.push(cur),cur="";
+      if(c===","||c===";"||c==="("||c===")")tokens.push(c);
+      if(c===",")tokens.push("·COMMA");
+      continue;
+    }
+    cur+=c;
+  }
+  if(cur)tokens.push(cur);
+  const out=[];let indent=0;
+  const nl=()=>out.push("\n"+indentUnit.repeat(indent));
+  let first=true;
+  for(let i=0;i<tokens.length;i++){
+    let t=tokens[i];
+    if(t==="·COMMA"){out.push(",");continue;}
+    let U=t.toUpperCase();
+    if(t===";"){out.push(";");nl();first=true;continue;}
+    if(t==="("){out.push(t);indent++;nl();continue;}
+    if(t===")"){indent=Math.max(0,indent-1);nl();out.push(t);continue;}
+    const isMajor=MAJOR.includes(U);
+    const isSibling=SIBLING.includes(U)&&indent>0;
+    if(upper&&(isMajor||isSibling||["AND","OR","NOT","IN","AS","IS","NULL","LIKE","BETWEEN","ASC","DESC","DISTINCT","COUNT","SUM","AVG","MAX","MIN","CASE","WHEN","THEN","ELSE","END"].includes(U)))t=U;
+    if((isMajor||isSibling)&&!first){
+      if(isMajor&&indent>0&&U!=="ON")indent=0;
+      nl();
+    }
+    first=false;
+    out.push(t);
+  }
+  return out.join("").replace(/\n{2,}/g,"\n");
+}
+$("runBtn").onclick=()=>{
+  const sql=$("input").value.trim();
+  if(!sql){alert("请输入 SQL 语句");return;}
+  const unit=$("indent").value==="tab"?"\t":" ".repeat(+$("indent").value);
+  try{
+    $("output").value=fmt(sql,unit,$("kwCase").value==="upper");
+    $("outBox").classList.add("on");
+  }catch(e){alert("格式化失败："+e.message);}
+};
+$("demoBtn").onclick=()=>{
+  $("input").value="select u.id,u.name,count(o.id) as order_count from users u left join orders o on u.id = o.user_id where u.status = 'active' and u.created_at >= '2026-01-01' group by u.id,u.name having count(o.id) > 5 order by order_count desc limit 20";
+  $("runBtn").click();
+};
+$("clearBtn").onclick=()=>{$("input").value="";$("output").value="";$("outBox").classList.remove("on");};
+$("copyBtn").onclick=()=>{$("output").select();document.execCommand("copy");};
+</script>
+</body>
+</html>

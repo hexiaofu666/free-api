@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>农历公历在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="lunar" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>公历日期</label><input type="date" id="solar" min="1901-02-19" max="2099-12-31">
+        <button class="fbtn teal" id="s2lBtn" style="width:90px;flex-shrink:0;margin-left:8px;">转农历</button></div>
+    </div>
+    <div class="vsetup" style="margin-top:10px;">
+      <div class="fitem"><label>农历年</label><input type="number" id="lYear" min="1901" max="2099" placeholder="如 2025"></div>
+      <div class="fitem"><label>农历月</label><select id="lMonth"></select></div>
+      <div class="fitem"><label>农历日</label><select id="lDay"></select></div>
+      <div class="fitem"><label>操作</label>
+        <button class="fbtn teal" id="l2sBtn" style="width:90px;">转公历</button>
+        <button class="fbtn brown" id="todayBtn" style="width:90px;margin-left:8px;">今天</button>
+      </div>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly style="min-height:150px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于农历公历转换介绍：</h4>
+    <ol>
+      <li>支持 1901-2099 年公历与农历双向转换，自动处理闰月（如闰二月、闰四月）。</li>
+      <li>公历转农历时一并显示当年的天干地支纪年与生肖。</li>
+      <li>农历数据由天文历法算法预生成，与《中国天文年历》一致。</li>
+      <li>注意：农历"年"以正月初一为界，公历 1 月的日期可能属于上一个农历年。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/lunar-data.js"></script>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const GAN="甲乙丙丁戊己庚辛壬癸", ZHI="子丑寅卯辰巳午未申酉戌亥";
+const SXO="鼠牛虎兔龙蛇马羊猴鸡狗猪";
+const MNAME=["正月","二月","三月","四月","五月","六月","七月","八月","九月","十月","冬月","腊月"];
+const DNAME=["初一","初二","初三","初四","初五","初六","初七","初八","初九","初十",
+  "十一","十二","十三","十四","十五","十六","十七","十八","十九","二十",
+  "廿一","廿二","廿三","廿四","廿五","廿六","廿七","廿八","廿九","三十"];
+function monthName(m){return (m<0?"闰":"")+MNAME[Math.abs(m)-1];}
+/* 该农历年月序列（含闰月，负数=闰）与天数 */
+function yearInfo(ly){
+  const it=LUNAR_YEARS[ly]; if(!it)return null;
+  const [sm,sd,leap,enc]=it, months=[];
+  for(let m=1;m<=12;m++){
+    months.push(m);
+    if(leap===m)months.push(-m);
+  }
+  const days=[...enc].map(c=>c==="a"?30:29);
+  return {sm,sd,months,days};
+}
+function springFest(ly){
+  const it=LUNAR_YEARS[ly]; if(!it)return null;
+  return new Date(ly,it[0]-1,it[1]);
+}
+/* 公历 -> 农历 */
+function s2l(y,m,d){
+  for(const ly of [y,y-1]){
+    const info=yearInfo(ly); if(!info)continue;
+    const sf=springFest(ly);
+    if(!sf)continue;
+    /* 用 UTC 归一化算天数差，避免夏令时干扰 */
+    const cur=Date.UTC(y,m-1,d), sfc=Date.UTC(sf.getFullYear(),sf.getMonth(),sf.getDate());
+    if(cur<sfc)continue;
+    let rest=Math.floor((cur-sfc)/864e5);
+    for(let i=0;i<info.months.length;i++){
+      if(rest<info.days[i])return {ly,month:info.months[i],day:rest+1};
+      rest-=info.days[i];
+    }
+  }
+  return null;
+}
+/* 农历 -> 公历 */
+function l2s(ly,lm,ld){
+  const info=yearInfo(ly); if(!info)return null;
+  const idx=info.months.indexOf(lm);
+  if(idx<0||ld<1||ld>info.days[idx])return null;
+  let off=0;
+  for(let i=0;i<idx;i++)off+=info.days[i];
+  const sf=springFest(ly);
+  const dt=new Date(Date.UTC(ly,sf.getMonth(),sf.getDate())+(off+ld-1)*864e5);
+  return {y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()};
+}
+function ganzhi(ly){const g=(ly-4)%10,z=(ly-4)%12;return GAN[g]+ZHI[z];}
+/* 月/日下拉 */
+function fillMonths(){
+  const ly=+$("lYear").value; const sel=$("lMonth");
+  const info=ly?yearInfo(ly):null;
+  const list=info?info.months.map((m,i)=>({m,name:monthName(m)})):MNAME.map((n,i)=>({m:i+1,name:n}));
+  sel.innerHTML=list.map(o=>`<option value="${o.m}">${o.name}</option>`).join("");
+}
+function fillDays(){
+  const ly=+$("lYear").value,lm=+$("lMonth").value;
+  const info=ly?yearInfo(ly):null;
+  let n=30;
+  if(info){const idx=info.months.indexOf(lm);if(idx>=0)n=info.days[idx];}
+  $("lDay").innerHTML=Array.from({length:n},(_,i)=>`<option value="${i+1}">${DNAME[i]}</option>`).join("");
+}
+$("lYear").addEventListener("change",()=>{fillMonths();fillDays();});
+$("lMonth").addEventListener("change",fillDays);
+$("s2lBtn").onclick=()=>{
+  const v=$("solar").value;
+  if(!v){alert("请选择公历日期");return;}
+  const [y,m,d]=v.split("-").map(Number);
+  const r=s2l(y,m,d);
+  if(!r){alert("超出支持范围（1901-2099）");return;}
+  $("output").value=`公历 ${y}年${m}月${d}日\n\n农历 ${r.ly}年（${ganzhi(r.ly)}年 · ${SXO[(r.ly-4)%12]}年）\n${monthName(r.month)}${DNAME[r.day-1]}${r.month<0?"（闰月）":""}`;
+  $("outBox").classList.add("on");
+};
+$("l2sBtn").onclick=()=>{
+  const ly=+$("lYear").value,lm=+$("lMonth").value,ld=+$("lDay").value;
+  if(!ly){alert("请输入农历年份");return;}
+  const dt=l2s(ly,lm,ld);
+  if(!dt){alert("转换失败：该农历月不存在或日期超出当月天数");return;}
+  $("output").value=`农历 ${ly}年 ${monthName(lm)}${DNAME[ld-1]}\n\n公历 ${dt.y}年${dt.m}月${dt.d}日\n（${ganzhi(ly)}年 · ${SXO[(ly-4)%12]}年）`;
+  $("outBox").classList.add("on");
+};
+$("todayBtn").onclick=()=>{
+  const t=new Date();
+  $("solar").value=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
+  $("s2lBtn").click();
+  $("lYear").value=t.getFullYear();fillMonths();fillDays();
+};
+$("copyBtn").onclick=()=>{$("output").select();document.execCommand("copy");};
+fillMonths();fillDays();
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebSocket在线测试 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="websocket" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>服务地址</label><input type="text" id="url" placeholder="ws:// 或 wss:// 开头，如 wss://echo.websocket.events" style="height:38px;"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="connBtn">连接</button>
+      <button class="fbtn orange" id="discBtn" disabled>断开</button>
+      <button class="fbtn gray" id="clearBtn">清空日志</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="font-size:12px;padding:0 0 6px;">通信日志</div>
+      <textarea id="log" readonly style="min-height:220px;font-family:Consolas,monospace;"></textarea>
+    </div>
+    <div class="abar">
+      <input type="text" id="msg" placeholder="输入要发送的消息…" style="flex:1;height:36px;border:1px solid #eee;border-radius:4px;padding:0 10px;font-size:13px;outline:none;">
+      <button class="fbtn teal" id="sendBtn" disabled style="margin-left:8px;">发送</button>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于WebSocket测试介绍：</h4>
+    <ol>
+      <li>输入 ws:// 或 wss:// 地址，测试 WebSocket 服务是否可连接、收发消息是否正常。</li>
+      <li>通信日志实时显示连接状态、发送内容与服务器返回，时间精确到毫秒。</li>
+      <li>测试示例地址：wss://echo.websocket.events（回声服务，发什么回什么）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let ws=null,logLines=[];
+function log(tag,text){
+  const t=new Date();
+  const ts=t.toTimeString().slice(0,8)+"."+String(t.getMilliseconds()).padStart(3,"0");
+  logLines.push("["+ts+"] "+tag+"  "+text);
+  $("log").value=logLines.join("\n");
+  $("log").scrollTop=$("log").scrollHeight;
+}
+$("connBtn").onclick=()=>{
+  const url=$("url").value.trim();
+  if(!/^wss?:\/\//.test(url)){alert("地址必须以 ws:// 或 wss:// 开头");return;}
+  if(ws){ws.close();}
+  log("SYS","连接 "+url+" …");
+  try{ ws=new WebSocket(url); }
+  catch(e){ log("ERR",e.message); return; }
+  ws.onopen=()=>{ log("OPEN","连接成功"); $("sendBtn").disabled=false;$("discBtn").disabled=false;$("connBtn").disabled=true; };
+  ws.onmessage=e=>log("RECV",e.data);
+  ws.onerror=()=>log("ERR","连接出错");
+  ws.onclose=e=>{ log("CLOSE","已断开（代码 "+e.code+" "+(e.reason||"")+"）"); $("sendBtn").disabled=true;$("discBtn").disabled=true;$("connBtn").disabled=false; };
+};
+$("discBtn").onclick=()=>{ if(ws)ws.close(); };
+$("sendBtn").onclick=send;
+$("msg").addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+function send(){
+  const m=$("msg").value;
+  if(!m||!ws||ws.readyState!==1)return;
+  ws.send(m); log("SEND",m); $("msg").value="";
+}
+$("clearBtn").onclick=()=>{logLines=[];$("log").value="";};
+</script>
+</body>
+</html>

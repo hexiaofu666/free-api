@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL在线编码解码 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.io-area { width: 100%; height: 160px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.io-label:first-child { margin-top: 0; }
+</style>
+</head>
+<body data-tool="urlcodec" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <p class="io-label">输入内容</p>
+        <textarea class="io-area" id="input" placeholder="输入要编码或解码的 URL / 文本..."></textarea>
+        <p class="io-label" style="margin-top:14px;">转换结果</p>
+        <textarea class="io-area" id="output" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="encBtn">URL 编码</button>
+        <button class="fbtn green" id="decBtn">URL 解码</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于URL编码/解码工具介绍：</h4>
+    <p>URL 在线编码（encodeURIComponent）与解码工具，可将中文、特殊字符转为 URL 安全格式，或还原被编码的链接。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const input = document.getElementById("input");
+const output = document.getElementById("output");
+document.getElementById("encBtn").onclick = () => {
+  try { output.value = encodeURIComponent(input.value); }
+  catch (e) { output.value = "❌ 编码失败：" + e.message; }
+};
+document.getElementById("decBtn").onclick = () => {
+  try { output.value = decodeURIComponent(input.value); }
+  catch (e) { output.value = "❌ 解码失败：不是有效的 URL 编码字符串"; }
+};
+document.getElementById("copyBtn").onclick = () => {
+  if (!output.value) return alert("还没有转换结果");
+  navigator.clipboard.writeText(output.value).then(() => alert("✅ 已复制到剪贴板"));
+};
+document.getElementById("clearBtn").onclick = () => { input.value = ""; output.value = ""; };
+</script>
+</body>
+</html>

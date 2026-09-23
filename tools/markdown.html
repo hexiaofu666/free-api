@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown在线编辑 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.md-wrap{display:flex;gap:12px;min-height:360px;}
+.md-wrap textarea{flex:1;min-height:360px;background:#181a1b;border:1px solid #444;color:#eee;font-size:13px;padding:10px;line-height:1.7;border-radius:3px;outline:none;resize:vertical;font-family:Consolas,monospace;}
+.md-prev{flex:1;border:1px solid #eee;border-radius:3px;padding:12px 16px;overflow:auto;line-height:1.8;font-size:14px;color:rgba(0,0,0,.85);background:#fff;}
+.md-prev h1,.md-prev h2,.md-prev h3{border-bottom:1px solid #eee;padding-bottom:4px;margin:14px 0 8px;}
+.md-prev code{background:#f5f5f5;padding:2px 5px;border-radius:3px;font-size:13px;color:#e96900;}
+.md-prev pre{background:#f6f8fa;border:1px solid #eee;border-radius:4px;padding:10px;overflow:auto;}
+.md-prev pre code{background:none;padding:0;}
+.md-prev blockquote{border-left:4px solid #ff6500;background:#fdf6ec;margin:8px 0;padding:6px 12px;color:#8a6d3b;}
+.md-prev table{border-collapse:collapse;margin:8px 0;}
+.md-prev th,.md-prev td{border:1px solid #ddd;padding:5px 10px;font-size:13px;}
+.md-prev th{background:#f5f5f5;}
+@media (max-width:768px){.md-wrap{flex-direction:column;}}
+</style>
+</head>
+<body data-tool="markdown" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="abar" style="border:1px solid #eee;border-radius:3px;margin-bottom:12px;">
+      <button class="fbtn teal" id="demoBtn">加载示例</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+      <span style="font-size:12px;color:#999;margin-left:8px;">左侧输入 Markdown，右侧实时预览</span>
+    </div>
+    <div class="md-wrap">
+      <textarea id="src" placeholder="# 在这里输入 Markdown 文本…" spellcheck="false"></textarea>
+      <div class="md-prev" id="prev"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Markdown编辑器介绍：</h4>
+    <ol>
+      <li>支持常用 Markdown 语法：标题、粗体、斜体、删除线、行内代码、代码块、引用、链接、图片、有序/无序列表、表格、分割线。</li>
+      <li>左侧编辑右侧实时预览，无需点击刷新。</li>
+      <li>所有内容仅在本地解析渲染，不会上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function inline(s){
+  s=esc(s);
+  s=s.replace(/`([^`]+)`/g,"<code>$1</code>");
+  s=s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g,'<img src="$2" alt="$1" style="max-width:100%;">');
+  s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" style="color:#ff6500;">$1</a>');
+  s=s.replace(/\*\*\*([^*]+)\*\*\*/g,"<strong><em>$1</em></strong>");
+  s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  s=s.replace(/\*([^*]+)\*/g,"<em>$1</em>");
+  s=s.replace(/~~([^~]+)~~/g,"<del>$1</del>");
+  return s;
+}
+function render(src){
+  const lines=src.split("\n");
+  let html="",i=0,inUl=false,inOl=false;
+  const closeUl=()=>{if(inUl){html+="</ul>";inUl=false;}};
+  const closeOl=()=>{if(inOl){html+="</ol>";inOl=false;}};
+  const closeAll=()=>{closeUl();closeOl();};
+  while(i<lines.length){
+    let L=lines[i];
+    /* 代码块 */
+    if(/^```/.test(L)){
+      closeAll();
+      const buf=[];i++;
+      while(i<lines.length&&!/^```/.test(lines[i])){buf.push(lines[i]);i++;}
+      i++;
+      html+=`<pre><code>${esc(buf.join("\n"))}</code></pre>`;
+      continue;
+    }
+    /* 标题 */
+    const h=L.match(/^(#{1,6})\s+(.*)/);
+    if(h){
+      closeAll();
+      const lv=h[1].length;
+      html+=`<h${lv}>${inline(h[2])}</h${lv}>`;i++;continue;
+    }
+    /* 分割线 */
+    if(/^(\s*)(-{3,}|\*{3,})\s*$/.test(L)){closeAll();html+="<hr>";i++;continue;}
+    /* 引用 */
+    if(/^>\s?/.test(L)){
+      closeAll();
+      const buf=[];
+      while(i<lines.length&&/^>\s?/.test(lines[i])){buf.push(lines[i].replace(/^>\s?/,""));i++;}
+      html+=`<blockquote>${buf.map(b=>inline(b)).join("<br>")}</blockquote>`;continue;
+    }
+    /* 表格 */
+    if(i+1<lines.length&&/\|/.test(L)&&/^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(lines[i+1])&&/-/.test(lines[i+1])){
+      closeAll();
+      const parseRow=r=>r.replace(/^\s*\|/,"").replace(/\|\s*$/,"").split("|").map(c=>c.trim());
+      const head=parseRow(L);i+=2;
+      let rows=[];
+      while(i<lines.length&&/\|/.test(lines[i])&&lines[i].trim()){rows.push(parseRow(lines[i]));i++;}
+      html+="<table><thead><tr>"+head.map(c=>`<th>${inline(c)}</th>`).join("")+"</tr></thead><tbody>"+
+        rows.map(r=>"<tr>"+r.map(c=>`<td>${inline(c)}</td>`).join("")+"</tr>").join("")+"</tbody></table>";
+      continue;
+    }
+    /* 无序列表 */
+    if(/^\s*[-*+]\s+/.test(L)){
+      closeOl();
+      if(!inUl){html+="<ul>";inUl=true;}
+      html+=`<li>${inline(L.replace(/^\s*[-*+]\s+/,""))}</li>`;i++;continue;
+    }
+    /* 有序列表 */
+    if(/^\s*\d+\.\s+/.test(L)){
+      closeUl();
+      if(!inOl){html+="<ol>";inOl=true;}
+      html+=`<li>${inline(L.replace(/^\s*\d+\.\s+/,""))}</li>`;i++;continue;
+    }
+    /* 空行 */
+    if(!L.trim()){closeAll();i++;continue;}
+    /* 普通段落 */
+    closeAll();
+    html+=`<p>${inline(L)}</p>`;i++;
+  }
+  closeAll();
+  return html;
+}
+let t=null;
+$("src").addEventListener("input",()=>{
+  clearTimeout(t);
+  t=setTimeout(()=>{$("prev").innerHTML=render($("src").value);},150);
+});
+$("demoBtn").onclick=()=>{
+  $("src").value=`# Markdown 编辑器示例
+
+## 常用语法演示
+
+这是 **粗体**、*斜体*、***粗斜体***、~~删除线~~、\`行内代码\`。
+
+> 这是一段引用文字
+> 第二行引用
+
+### 列表
+
+- 无序列表项 1
+- 无序列表项 2
+1. 有序列表项 1
+2. 有序列表项 2
+
+### 表格
+
+| 姓名 | 分数 |
+| --- | --- |
+| 词海 | 98 |
+| 工具箱 | 100 |
+
+\`\`\`
+// 代码块示例
+console.log("Hello 词海工具箱!");
+\`\`\`
+
+[这是一个链接](https://www.example.com)
+
+---`;
+  $("prev").innerHTML=render($("src").value);
+};
+$("clearBtn").onclick=()=>{$("src").value="";$("prev").innerHTML="";};
+</script>
+</body>
+</html>

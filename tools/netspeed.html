@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>网速在线测试 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+
+
+</head>
+<body data-tool="netspeed">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div style="text-align:center;padding:30px 0;">
+          <div id="speedBig" style="font-size:52px;font-weight:700;color:#ff6500;font-variant-numeric:tabular-nums;">--</div>
+          <div style="font-size:13px;color:#999;margin-top:4px;">Mbps（下载）</div>
+          <div style="margin:22px auto 0;max-width:340px;height:8px;background:#eee;border-radius:4px;overflow:hidden;">
+            <div id="bar" style="height:100%;width:0;background:linear-gradient(90deg,#ffb27a,#ff6500);transition:width .3s;"></div>
+          </div>
+          <div style="margin-top:16px;font-size:13px;color:#666;line-height:2;" id="detail">
+            点击右侧「开始测速」<br>将下载测试文件测量带宽
+          </div>
+        </div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>测试时长</label>
+            <select id="dur"><option value="5">5 秒（快速）</option><option value="10" selected>10 秒（标准）</option><option value="15">15 秒（精准）</option></select>
+          </div>
+        </div>
+        <button class="fbtn green" id="runBtn">开始测速</button>
+        <button class="fbtn gray" id="clearBtn">重置</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线网速测试工具介绍：</h4>
+    <ol>
+      <li><strong>测试原理：</strong>从 Cloudflare 全球节点并行下载测试数据，按"已接收字节数 ÷ 用时"计算下载带宽，与 Speedtest 等专业工具原理一致。</li>
+      <li><strong>结果解读：</strong>
+        <ul>
+          <li>1 Mbps ≈ 0.125 MB/s，100M 宽带理论下载速度约 12.5 MB/s；</li>
+          <li>结果受 Wi-Fi 信号、路由器、跨网传输影响，通常略低于宽带套餐标称值；</li>
+          <li>本工具测的是<strong>下载带宽</strong>，不含延迟与丢包测试。</li>
+        </ul>
+      </li>
+      <li><strong>小提示：</strong>测速时暂停下载、视频等占用带宽的应用，多次测试取平均值更准确。</li>
+    </ol>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let running=false;
+$("runBtn").onclick=async()=>{
+  if(running)return;
+  running=true;$("runBtn").textContent="测速中...";$("runBtn").disabled=true;
+  const dur=+$("dur").value*1000;
+  const start=performance.now();
+  let bytes=0;
+  const worker=async()=>{
+    while(performance.now()-start<dur){
+      try{
+        const r=await fetch(`https://speed.cloudflare.com/__down?bytes=8000000&r=${Math.random()}`,{cache:"no-store",signal:AbortSignal.timeout(20000)});
+        const buf=await r.arrayBuffer();
+        bytes+=buf.byteLength;
+      }catch(e){break;}
+    }
+  };
+  const w1=worker(),w2=worker(),w3=worker();
+  /* 实时刷新 */
+  const upd=setInterval(()=>{
+    const el=(performance.now()-start)/1000;
+    const mbps=(bytes*8/1e6)/Math.max(el,0.3);
+    $("speedBig").textContent=mbps.toFixed(1);
+    $("bar").style.width=Math.min(100,mbps/100*100)+"%";
+    $("detail").textContent=`已下载 ${(bytes/1e6).toFixed(1)} MB · 进行中...`;
+  },300);
+  await Promise.all([w1,w2,w3]);
+  clearInterval(upd);
+  const el=(performance.now()-start)/1000;
+  const mbps=(bytes*8/1e6)/el;
+  $("speedBig").textContent=mbps.toFixed(1);
+  $("bar").style.width=Math.min(100,mbps/100*100)+"%";
+  $("detail").innerHTML=`平均下载速度：<b style="color:#ff6500;">${mbps.toFixed(1)} Mbps</b>（≈ ${(mbps/8).toFixed(1)} MB/s）<br>用时 ${el.toFixed(1)} 秒 · 下载 ${(bytes/1e6).toFixed(1)} MB`;
+  running=false;$("runBtn").textContent="开始测速";$("runBtn").disabled=false;
+};
+$("clearBtn").onclick=()=>{$("speedBig").textContent="--";$("bar").style.width=0;$("detail").textContent="点击右侧「开始测速」";};
+</script>
+</body>
+</html>

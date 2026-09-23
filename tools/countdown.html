@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>倒计时器在线使用 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.cd-display { font-size: 88px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; color: #ff6500; margin: 30px 0; }
+</style>
+</head>
+<body data-tool="countdown" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="display:flex;align-items:center;justify-content:center;">
+        <div class="cd-display" id="display">10:00</div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>倒计时</label><input type="number" id="mins" value="10" min="0"><span style="margin-left:8px;font-size:13px;color:#888;">分钟</span></div>
+        </div>
+        <button class="fbtn blue" id="startBtn">开始</button>
+        <button class="fbtn plain" id="resetBtn">重置</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线倒计时器工具介绍：</h4>
+    <p>输入分钟数开始倒计时，时间结束后自动响铃提醒。适用于厨房计时、工作提醒、课堂活动等场景。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+let total = 600, left = 600, timer = null;
+const display = document.getElementById("display");
+const startBtn = document.getElementById("startBtn");
+function show() {
+  const m = String(Math.floor(left / 60)).padStart(2, "0");
+  const s = String(left % 60).padStart(2, "0");
+  display.textContent = `${m}:${s}`;
+}
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.frequency.value = 990; g.gain.value = 0.3;
+    osc.start(); osc.stop(ctx.currentTime + 0.8);
+  } catch (e) {}
+}
+document.getElementById("mins").oninput = e => {
+  if (timer) return;
+  total = Math.max(0, Math.floor((+e.target.value || 0) * 60));
+  left = total; show();
+};
+startBtn.onclick = () => {
+  if (timer) { clearInterval(timer); timer = null; startBtn.textContent = "继续"; return; }
+  if (left <= 0) { left = total; show(); }
+  timer = setInterval(() => {
+    left--;
+    if (left <= 0) {
+      clearInterval(timer); timer = null;
+      display.textContent = "00:00";
+      beep(); alert("⏰ 时间到！");
+      startBtn.textContent = "开始";
+      return;
+    }
+    show();
+  }, 1000);
+  startBtn.textContent = "暂停";
+};
+document.getElementById("resetBtn").onclick = () => {
+  clearInterval(timer); timer = null;
+  left = total; show(); startBtn.textContent = "开始";
+};
+show();
+</script>
+</body>
+</html>

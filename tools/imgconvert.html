@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片格式在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="imgconvert" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>选择图片</label><input type="file" id="file" accept="image/*" style="height:38px;padding:6px 10px;"></div>
+      <div class="fitem"><label>目标格式</label>
+        <select id="fmt">
+          <option value="image/png">PNG（无损透明）</option>
+          <option value="image/jpeg">JPG（体积小）</option>
+          <option value="image/webp">WebP（更小体积）</option>
+        </select>
+      </div>
+      <div class="fitem" id="qRow" style="display:none;"><label>输出质量</label>
+        <select id="quality">
+          <option value="0.95">95%</option>
+          <option value="0.85" selected>85%</option>
+          <option value="0.7">70%</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="dlBtn">下载图片</span></div>
+      <div style="text-align:center;padding:10px;">
+        <img id="preview" style="max-width:100%;border:1px solid #eee;border-radius:6px;">
+        <div id="info" style="font-size:13px;color:#666;margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于图片格式转换介绍：</h4>
+    <ol>
+      <li>支持 PNG / JPG / WebP 三种主流格式互相转换。</li>
+      <li>转 JPG / WebP 时可选择输出质量；转 PNG 无损且保留透明通道。</li>
+      <li>转换通过浏览器 Canvas 本地完成，图片不会上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let img=null;
+const EXT={"image/png":"png","image/jpeg":"jpg","image/webp":"webp"};
+$("fmt").onchange=()=>{$("qRow").style.display=$("fmt").value==="image/png"?"none":"flex";};
+$("file").onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  img=new Image(); img.onload=()=>{$("runBtn").click();}; img.src=URL.createObjectURL(f);
+};
+$("runBtn").onclick=()=>{
+  if(!img){alert("请先选择图片");return;}
+  const fmt=$("fmt").value;
+  const cv=document.createElement("canvas");
+  cv.width=img.width; cv.height=img.height;
+  const ctx=cv.getContext("2d");
+  if(fmt==="image/jpeg"){ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);}
+  ctx.drawImage(img,0,0);
+  const dataUrl=cv.toDataURL(fmt,+$("quality").value||undefined);
+  $("preview").src=dataUrl;
+  const kb=(dataUrl.length*0.75/1024).toFixed(1);
+  $("info").innerHTML=`已转换为 <strong style="color:#ff6500;">${EXT[fmt].toUpperCase()}</strong> 格式，${img.width}×${img.height}，约 ${kb} KB`;
+  $("dlBtn").onclick=()=>{const a=document.createElement("a");a.download="converted."+EXT[fmt];a.href=dataUrl;a.click();};
+  $("outBox").classList.add("on");
+};
+$("clearBtn").onclick=()=>{$("outBox").classList.remove("on");};
+</script>
+</body>
+</html>

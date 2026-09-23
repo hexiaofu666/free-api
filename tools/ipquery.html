@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>IP地址在线查询 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+
+
+</head>
+<body data-tool="ipquery">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="vin">
+          <textarea id="input" placeholder="输入要查询的 IP 地址，一行一个（支持 IPv4 / IPv6）&#10;留空则查询本机公网 IP"></textarea>
+        </div>
+        <div class="vout on" style="margin-top:15px;">
+          <div class="vhead">查询结果<span id="copyBtn"><i class="layui-icon layui-icon-file"></i> 复制</span></div>
+          <textarea id="output" readonly placeholder="归属地信息将显示在这里..."></textarea>
+        </div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>结果语言</label>
+            <select id="lang"><option value="zh-CN">中文</option><option value="en">English</option></select>
+          </div>
+        </div>
+        <button class="fbtn green" id="runBtn">开始查询</button>
+        <button class="fbtn blue" id="myBtn">查询本机IP</button>
+        <button class="fbtn gray" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于IP地址查询工具介绍：</h4>
+    <ol>
+      <li><strong>用途：</strong>查询 IP 地址的归属地（国家/省市）、运营商（ISP）、经纬度等信息，可用于日志分析、风控、访问来源统计等。</li>
+      <li><strong>支持内容：</strong>
+        <ul>
+          <li>IPv4 与 IPv6 地址查询；</li>
+          <li>留空输入框点"查询本机IP"可直接获取你的公网出口 IP 及归属地；</li>
+          <li>支持批量查询，一行一个，逐条显示结果。</li>
+        </ul>
+      </li>
+      <li><strong>数据来源：</strong>通过公共免费 IP 归属地接口（ipapi.co / ip-api 等）在线查询，需要联网；单次查询之间有短暂间隔以免触发限流。</li>
+      <li><strong>说明：</strong>IP 归属地精确到城市级，运营商数据仅供参考；查询结果由第三方接口提供，本工具不存储任何查询记录。</li>
+    </ol>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function lookup(ip,lang){
+  /* 依次尝试多个免费接口 */
+  const urls=[
+    `https://ipapi.co/${ip}/json/`,
+    `http://ip-api.com/json/${ip}?lang=${lang==="zh-CN"?"zh-CN":"en"}`
+  ];
+  for(const u of urls){
+    try{
+      const r=await fetch(u,{signal:AbortSignal.timeout(8000)});
+      if(!r.ok)continue;
+      const j=await r.json();
+      if(j.error||j.success===false)continue;
+      if(j.country_name||j.country){
+        return `${ip}\n  国家/地区：${j.country_name||j.country}${j.region?` (${j.region}${j.city?" "+j.city:""})`:""}\n  运营商：${j.org||j.isp||"未知"}\n  经纬度：${j.latitude??j.lat??"?"}, ${j.longitude??j.lon??"?"}\n  时区：${j.timezone||"未知"}`;
+      }
+    }catch(e){}
+  }
+  return `${ip}\n  查询失败（接口限流或该 IP 无归属信息）`;
+}
+$("runBtn").onclick=async()=>{
+  const list=$("input").value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const lang=$("lang").value;
+  if(list.length===0){$("output").value="请输入 IP 地址，或直接点「查询本机IP」";return;}
+  $("output").value="查询中...";
+  const out=[];
+  for(const ip of list){
+    out.push(await lookup(ip,lang));
+    if(list.length>1)await sleep(1200);   /* 避免限流 */
+    $("output").value=out.join("\n\n")+(out.length<list.length?"\n\n（查询中...）":"");
+  }
+};
+$("myBtn").onclick=async()=>{
+  $("output").value="正在获取本机公网 IP...";
+  try{
+    const r=await fetch("https://api.ipify.org?format=json",{signal:AbortSignal.timeout(8000)});
+    const j=await r.json();
+    $("input").value=j.ip;
+    $("output").value=await lookup(j.ip,$("lang").value);
+  }catch(e){$("output").value="获取失败：网络不可用或被浏览器拦截";}
+};
+$("clearBtn").onclick=()=>{$("input").value="";$("output").value="";};
+$("copyBtn").onclick=()=>{navigator.clipboard.writeText($("output").value);$("copyBtn").innerHTML='<i class="layui-icon layui-icon-ok"></i> 已复制';setTimeout(()=>$("copyBtn").innerHTML='<i class="layui-icon layui-icon-file"></i> 复制',1500);};
+</script>
+</body>
+</html>

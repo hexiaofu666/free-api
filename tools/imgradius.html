@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>图片圆角在线制作 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+
+
+</head>
+<body data-tool="imgradius">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div id="drop" style="border:2px dashed #ddd;border-radius:8px;padding:40px 20px;text-align:center;color:#999;font-size:14px;cursor:pointer;">
+          <i class="layui-icon layui-icon-picture-fine" style="font-size:36px;color:#ffb27a;display:block;margin-bottom:8px;"></i>
+          点击选择图片 或 拖拽图片到此处
+        </div>
+        <input type="file" id="file" accept="image/*" style="display:none;">
+        <div style="text-align:center;margin-top:14px;display:none;" id="prevWrap">
+          <img id="prev" style="max-width:100%;max-height:340px;">
+        </div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>圆角半径</label><input type="number" id="r" value="40" min="0"></div>
+          <div class="fitem"><label>背景</label>
+            <select id="bg">
+              <option value="transparent">透明（PNG）</option>
+              <option value="#ffffff">白色</option>
+              <option value="#000000">黑色</option>
+              <option value="custom">自定义颜色</option>
+            </select>
+          </div>
+          <div class="fitem"><label>颜色值</label><input type="text" id="bgc" value="#ff6500" placeholder="#ff6500"></div>
+        </div>
+        <button class="fbtn green" id="runBtn">生成圆角图</button>
+        <button class="fbtn orange" id="dlBtn" disabled>下载 PNG</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于图片圆角制作工具介绍：</h4>
+    <ol>
+      <li><strong>用途：</strong>把方形图片的四个角裁成圆角，常用于 App 图标、头像、名片、公众号封面等。</li>
+      <li><strong>功能特点：</strong>
+        <ul>
+          <li>圆角半径像素级自定义；</li>
+          <li>可输出<strong>透明背景 PNG</strong>，或指定白色/黑色/任意颜色背景；</li>
+          <li>纯浏览器本地处理，图片不上传服务器。</li>
+        </ul>
+      </li>
+      <li><strong>建议：</strong>头像类常用半径为宽度的 1/2（正圆）；界面切图常用 8-16px；需要叠在其他图上时选透明背景。</li>
+    </ol>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let img=null,outUrl=null;
+function load(f){
+  const r=new FileReader();
+  r.onload=e=>{img=new Image();img.onload=()=>{$("prev").src=e.target.result;$("prevWrap").style.display="block";};img.src=e.target.result;};
+  r.readAsDataURL(f);
+}
+$("drop").onclick=()=>$("file").click();
+$("file").onchange=e=>{if(e.target.files[0])load(e.target.files[0]);};
+$("drop").ondragover=e=>{e.preventDefault();$("drop").style.borderColor="#ff6500";};
+$("drop").ondragleave=()=>$("drop").style.borderColor="#ddd";
+$("drop").ondrop=e=>{e.preventDefault();$("drop").style.borderColor="#ddd";if(e.dataTransfer.files[0])load(e.dataTransfer.files[0]);};
+$("runBtn").onclick=()=>{
+  if(!img){alert("请先选择图片");return;}
+  const w=img.naturalWidth,h=img.naturalHeight;
+  const r=Math.min(+$("r").value,w/2,h/2);
+  const c=document.createElement("canvas");c.width=w;c.height=h;
+  const ctx=c.getContext("2d");
+  const bgSel=$("bg").value;
+  if(bgSel!=="transparent"){ctx.fillStyle=bgSel==="custom"?($("bgc").value||"#fff"):bgSel;ctx.fillRect(0,0,w,h);}
+  ctx.beginPath();
+  ctx.moveTo(r,0);ctx.arcTo(w,0,w,h,r);ctx.arcTo(w,h,0,h,r);ctx.arcTo(0,h,0,0,r);ctx.arcTo(0,0,w,0,r);
+  ctx.closePath();ctx.clip();
+  ctx.drawImage(img,0,0);
+  outUrl=c.toDataURL("image/png");
+  $("prev").src=outUrl;
+  $("dlBtn").disabled=false;
+};
+$("dlBtn").onclick=()=>{
+  const a=document.createElement("a");
+  a.href=outUrl;a.download="rounded.png";a.click();
+};
+</script>
+</body>
+</html>

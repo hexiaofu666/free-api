@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>九宫格拼图在线玩 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+
+
+<style>
+.pz-wrap{display:flex;gap:24px;align-items:flex-start;}
+.pz{width:320px;height:320px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#e8e8e8;padding:6px;border-radius:8px;user-select:none;}
+.pz div{background:#ff6500;color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;border-radius:6px;cursor:pointer;transition:transform .12s;}
+.pz div.blank{background:#dcdcdc;cursor:default;}
+.pz div:hover:not(.blank){filter:brightness(1.1);}
+.pz-info{font-size:14px;line-height:2.2;color:#555;}
+.pz-info b{color:#ff6500;font-size:18px;}
+</style>
+</head>
+<body data-tool="slidingpuzzle">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="pz-wrap">
+          <div class="pz" id="pz"></div>
+          <div class="pz-info">
+            <div>步数：<b id="moves">0</b></div>
+            <div>用时：<b id="time">0</b> 秒</div>
+            <div id="winMsg" style="color:#06b672;font-weight:600;display:none;">🎉 拼图完成！</div>
+            <div style="color:#999;font-size:12px;margin-top:8px;">点击与空格相邻的<br>数字块进行移动<br>（支持键盘方向键）</div>
+          </div>
+        </div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>难度</label>
+            <select id="size">
+              <option value="3" selected>3×3 九宫格</option>
+              <option value="4">4×4 十六宫格</option>
+              <option value="5">5×5 二十五宫格</option>
+            </select>
+          </div>
+        </div>
+        <button class="fbtn green" id="runBtn">开始新游戏</button>
+        <button class="fbtn plain" id="solveBtn">显示答案</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于九宫格拼图游戏介绍：</h4>
+    <ol>
+      <li><strong>玩法：</strong>棋盘上有 N×N-1 个数字块和一个空格，点击与空格相邻的数字块即可滑入空格。将所有数字按 1、2、3…顺序排列（空格在右下角）即获胜。</li>
+      <li><strong>功能说明：</strong>
+        <ul>
+          <li>支持 3×3、4×4、5×5 三种难度；</li>
+          <li>支持键盘方向键操作；</li>
+          <li>自动统计步数与用时；</li>
+          <li>开局打乱采用随机合法走位，保证一定有解（不会出现无解布局）。</li>
+        </ul>
+      </li>
+      <li><strong>小技巧：</strong>先排好第一行和第一列，剩下的用"转圈"方式归位。</li>
+    </ol>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let N=3,board=[],blank=0,moves=0,timer=null,sec=0,playing=false;
+function shuffle(){
+  board=[...Array(N*N-1).keys()].map(i=>i+1);board.push(0);blank=N*N-1;
+  /* 随机合法走位打乱，保证有解 */
+  let last=-1;
+  for(let i=0;i<N*N*40;i++){
+    const nb=neighbors(blank).filter(x=>x!==last);
+    const p=nb[Math.floor(Math.random()*nb.length)];
+    last=blank;
+    [board[blank],board[p]]=[board[p],board[blank]];blank=p;
+  }
+}
+function neighbors(i){
+  const r=Math.floor(i/N),c=i%N,out=[];
+  if(r>0)out.push(i-N);if(r<N-1)out.push(i+N);
+  if(c>0)out.push(i-1);if(c<N-1)out.push(i+1);
+  return out;
+}
+function render(){
+  $("pz").style.gridTemplateColumns=`repeat(${N},1fr)`;
+  $("pz").innerHTML=board.map((v,i)=>
+    v===0?`<div class="blank" data-i="${i}"></div>`
+         :`<div data-i="${i}">${v}</div>`).join("");
+}
+function clickTile(i){
+  if(!playing&&i>=0)return;
+  if(neighbors(blank).includes(i)){
+    [board[blank],board[i]]=[board[i],board[blank]];blank=i;
+    moves++;$("moves").textContent=moves;render();checkWin();
+  }
+}
+function checkWin(){
+  for(let i=0;i<N*N-1;i++)if(board[i]!==i+1)return;
+  playing=false;clearInterval(timer);
+  $("winMsg").style.display="block";
+}
+function start(){
+  N=+$("size").value;shuffle();render();
+  moves=0;sec=0;$("moves").textContent=0;$("time").textContent=0;
+  $("winMsg").style.display="none";playing=true;
+  clearInterval(timer);
+  timer=setInterval(()=>{sec++;$("time").textContent=sec;},1000);
+}
+$("pz").addEventListener("click",e=>{const i=+e.target.dataset.i;if(!isNaN(i))clickTile(i);});
+document.addEventListener("keydown",e=>{
+  if(!playing)return;
+  const r=Math.floor(blank/N),c=blank%N;
+  let t=-1;
+  if(e.key==="ArrowUp"&&r<N-1)t=blank+N;
+  if(e.key==="ArrowDown"&&r>0)t=blank-N;
+  if(e.key==="ArrowLeft"&&c<N-1)t=blank+1;
+  if(e.key==="ArrowRight"&&c>0)t=blank-1;
+  if(t>=0){e.preventDefault();clickTile(t);}
+});
+$("runBtn").onclick=start;
+$("solveBtn").onclick=()=>{board=[...Array(N*N-1).keys()].map(i=>i+1);board.push(0);blank=N*N-1;render();playing=false;clearInterval(timer);};
+start();
+</script>
+</body>
+</html>

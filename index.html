@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>词海工具箱 - 好用的免费在线工具大全</title>
+<link rel="stylesheet" href="assets/layui/icon.css">
+<link rel="stylesheet" href="assets/style.css?v=1.5.1">
+<script src="assets/theme.js?v=1.5.1"></script>
+<script>const GITHUB_URL = "https://github.com/hexiaofu666/free-api"; </script>
+</head>
+<body>
+
+<!-- 左侧导航 -->
+<div class="left-nav" id="leftNav">
+  <div class="logo"><a href="index.html">词海工具箱</a></div>
+  <ul class="nav" id="navList"></ul>
+</div>
+
+<!-- 顶部栏 -->
+<div class="head_div">
+  <i class="headerbut menu-btn" id="menuBtn"><i class="layui-icon layui-icon-spread-left"></i></i>
+  <div class="search_div">
+    <div class="search" id="searchBox">
+      <span class="search-tip">共<strong id="toolCount">0</strong>款工具，持续更新中</span>
+      <input type="text" id="searchInput" title="工具搜索">
+      <i class="search-icon"><i class="layui-icon layui-icon-search"></i></i>
+    </div>
+  </div>
+  <div class="headbut">
+    <i class="headerbut" title="夜间模式" id="nightBtn"><i class="layui-icon layui-icon-moon"></i></i>
+    <a class="headerbut" title="更新日志" href="tools/changelog.html"><i class="layui-icon layui-icon-log"></i></a>
+    <a class="headerbut" title="GitHub 仓库" href="#" id="githubBtn" target="_blank" rel="noopener"></a>
+  </div>
+</div>
+
+<!-- 主体 -->
+<div class="main">
+  <div class="center" id="toolArea"></div>
+  <div class="empty-tip" id="emptyTip">😅 没有找到相关工具，换个关键词试试</div>
+</div>
+
+<footer class="footer">词海工具箱 · 简单实用的免费在线工具</footer>
+
+<script src="assets/tools-data.js?v=1.5.1"></script>
+<script>
+let activeCat = "all";
+
+/* 支持 ?kw= 搜索（工具页搜索跳转过来） */
+(function () {
+  const kw = new URLSearchParams(location.search).get("kw");
+  const hash = location.hash.replace("#", "");
+  if (kw) document.getElementById("searchInput").value = kw;
+  if (hash && CATS.some(c => c.id === hash)) activeCat = hash;
+})();
+
+/* 左侧分类导航（图标与 udtool 同款 layui 字体） */
+function renderNav() {
+  const box = document.getElementById("navList");
+  box.innerHTML = CATS.map(c =>
+    `<li><a class="${c.id === activeCat ? "act" : ""}" href="javascript:void(0)" data-cat="${c.id}">
+      <i class="ico layui-icon ${NAV_ICONS[c.id] || "layui-icon-app"}"></i><span>${c.name}</span></a></li>`
+  ).join("");
+  box.querySelectorAll("a").forEach(a => {
+    a.onclick = () => {
+      activeCat = a.dataset.cat;
+      renderNav();
+      renderTools();
+      // 移动端点完自动收起菜单
+      document.getElementById("leftNav").classList.remove("open");
+    };
+  });
+}
+
+/* 工具列表：按分类分组，三列卡片 */
+function renderTools() {
+  const kw = document.getElementById("searchInput").value.trim().toLowerCase();
+  const area = document.getElementById("toolArea");
+  const list = TOOLS.filter(t =>
+    (activeCat === "all" || t.cat === activeCat) &&
+    (!kw || t.name.toLowerCase().includes(kw) || t.desc.toLowerCase().includes(kw))
+  );
+
+  document.getElementById("emptyTip").style.display = list.length ? "none" : "block";
+
+  let html = "";
+  CATS.slice(1).forEach(c => {
+    const items = list.filter(t => t.cat === c.id);
+    if (!items.length) return;
+    html += `<h1 class="moder_h2"><i>●</i>${c.name}</h1><ul class="moder">` +
+      items.map(t => `
+        <li><a href="tools/${t.id}.html">
+          <i class="imgs layui-icon ${t.ico || "layui-icon-app"}" style="background:${t.color || "#ff6500"}"></i>
+          <div><h3>${t.name}</h3><p>${t.desc}</p></div>
+        </a></li>`).join("") + `</ul>`;
+  });
+  area.innerHTML = html;
+}
+
+/* 搜索框：聚焦时隐藏统计文字 */
+const searchBox = document.getElementById("searchBox");
+const searchInput = document.getElementById("searchInput");
+searchInput.addEventListener("focus", () => searchBox.classList.add("focused"));
+searchInput.addEventListener("blur", () => {
+  if (!searchInput.value) searchBox.classList.remove("focused");
+});
+searchInput.addEventListener("input", () => {
+  searchBox.classList.toggle("hasval", !!searchInput.value);
+  renderTools();
+});
+
+/* 夜间模式（theme.js + localStorage 记忆） */
+const nightBtn = document.getElementById("nightBtn");
+const setNightIcon = () => {
+  nightBtn.firstElementChild.className = "layui-icon " +
+    (XFTheme.isDark() ? "layui-icon-light" : "layui-icon-moon");
+};
+nightBtn.onclick = () => { XFTheme.toggle(); setNightIcon(); };
+setNightIcon();
+
+/* GitHub 仓库按钮（内联 SVG 图标） */
+document.getElementById("githubBtn").innerHTML =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>';
+document.getElementById("githubBtn").href = GITHUB_URL;
+
+/* 移动端菜单 */
+document.getElementById("menuBtn").onclick = () =>
+  document.getElementById("leftNav").classList.toggle("open");
+
+document.getElementById("toolCount").textContent = TOOLS.length;
+renderNav();
+renderTools();
+</script>
+</body>
+</html>

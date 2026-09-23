@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>凯撒密码在线加解密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="caesar" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要加密/解密的内容...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>位移位数</label><input type="number" id="shift" value="3" min="1" max="25"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="encBtn">加密</button>
+      <button class="fbtn blue" id="decBtn">解密</button>
+      <button class="fbtn brown" id="bruteBtn">暴力破解</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于凯撒密码介绍：</h4>
+    <ol>
+      <li>凯撒密码（Caesar Cipher）是最古老、最简单的加密方式之一，得名于罗马的凯撒大帝。</li>
+      <li>原理：把每个字母在字母表中循环位移固定的位数，如位移 3 位时 A→D、B→E。</li>
+      <li>解密时反向位移即可；也可用「暴力破解」列出全部 25 种位移结果逐个辨认。</li>
+      <li>仅对英文字母生效，数字、汉字、标点保持不变，安全性极低。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+function shiftStr(s, k) {
+  return [...s].map(c => {
+    const cp = c.codePointAt(0);
+    if (cp >= 65 && cp <= 90) return String.fromCharCode((cp - 65 + k + 26) % 26 + 65);
+    if (cp >= 97 && cp <= 122) return String.fromCharCode((cp - 97 + k + 26) % 26 + 97);
+    return c;
+  }).join("");
+}
+function show(res) {
+  $("output").value = res;
+  $("outBox").classList.add("on");
+}
+$("encBtn").onclick = () => {
+  const s=$("input").value;
+  if (!s) return alert("请输入内容");
+  show(shiftStr(s, +$("shift").value || 3));
+};
+$("decBtn").onclick = () => {
+  const s=$("input").value;
+  if (!s) return alert("请输入内容");
+  show(shiftStr(s, -(+$("shift").value || 3)));
+};
+$("bruteBtn").onclick = () => {
+  const s=$("input").value;
+  if (!s) return alert("请输入内容");
+  show([...Array(25)].map((_, i) =>
+    `位移 ${String(i+1).padStart(2," ")}：${shiftStr(s, i+1)}`).join("\n"));
+};
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

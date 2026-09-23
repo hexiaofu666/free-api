@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>二十四节气在线查询 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="jieqi" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>查询年份</label><input type="number" id="year" min="1901" max="2099" placeholder="如 2026"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查询节气</button>
+      <button class="fbtn brown" id="thisYearBtn">今年节气</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>节气日期表</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly style="min-height:260px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于二十四节气介绍：</h4>
+    <ol>
+      <li>二十四节气是根据太阳在黄道上的位置划分，反映季节变化，指导农事活动，2016年被列入联合国教科文组织人类非物质文化遗产名录。</li>
+      <li>春季：立春、雨水、惊蛰、春分、清明、谷雨；夏季：立夏、小满、芒种、夏至、小暑、大暑。</li>
+      <li>秋季：立秋、处暑、白露、秋分、寒露、霜降；冬季：立冬、小雪、大雪、冬至、小寒、大寒。</li>
+      <li>本工具内置 1901-2099 年由天文历法算法预生成的精确日期表，数据与《中国天文年历》一致。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/jieqi-data.js"></script>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const TERMS=["小寒","大寒","立春","雨水","惊蛰","春分","清明","谷雨","立夏","小满","芒种","夏至","小暑","大暑","立秋","处暑","白露","秋分","寒露","霜降","立冬","小雪","大雪","冬至"];
+const MONTHS=[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12];
+const B32="0123456789abcdefghijklmnopqrstuv";
+$("runBtn").onclick=()=>{
+  const y=+$("year").value;
+  if(!y||y<1901||y>2099){alert("请输入 1901-2099 之间的年份");return;}
+  const enc=JIEQI_YEARS[y];
+  if(!enc){alert("该年份暂无数据");return;}
+  const lines=[y+"年二十四节气日期表：",""];
+  TERMS.forEach((name,i)=>{
+    lines.push(`${MONTHS[i]}月${B32.indexOf(enc[i])+1}日  ${name}`);
+  });
+  $("output").value=lines.join("\n");
+  $("outBox").classList.add("on");
+};
+$("thisYearBtn").onclick=()=>{$("year").value=new Date().getFullYear();$("runBtn").click();};
+$("clearBtn").onclick=()=>{$("output").value="";$("outBox").classList.remove("on");};
+$("copyBtn").onclick=()=>{$("output").select();document.execCommand("copy");};
+</script>
+</body>
+</html>

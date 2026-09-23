@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕坏点在线检测 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="deadpixel" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>纯色选择</label>
+        <select id="color">
+          <option value="#ff0000">纯红（查坏点/亮点）</option>
+          <option value="#00ff00">纯绿</option>
+          <option value="#0000ff">纯蓝</option>
+          <option value="#ffffff">纯白</option>
+          <option value="#000000">纯黑</option>
+          <option value="#808080">中灰</option>
+        </select>
+      </div>
+      <div class="fitem"><label>自动轮播</label>
+        <select id="interval">
+          <option value="0">不轮播（手动切换）</option>
+          <option value="3">每 3 秒切换</option>
+          <option value="5" selected>每 5 秒切换</option>
+          <option value="10">每 10 秒切换</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="startBtn">进入全屏检测</button>
+      <button class="fbtn orange" id="fsBtn" style="display:none;">切换颜色</button>
+      <button class="fbtn gray" id="exitBtn" style="display:none;">退出检测（Esc）</button>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于屏幕坏点检测介绍：</h4>
+    <ol>
+      <li>让屏幕依次显示红、绿、蓝、白、黑、灰纯色画面，肉眼检查是否有不发光的坏点或常亮的亮点。</li>
+      <li>检测技巧：与屏幕保持 30cm 距离，重点观察四角与中心；纯色下任何异色小点即为坏点。</li>
+      <li>按 Esc 或点击“退出检测”随时退出；检测过程不会改动任何系统设置。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const COLORS=["#ff0000","#00ff00","#0000ff","#ffffff","#000000","#808080"];
+let idx=0,timerId=null,testing=false;
+function show(){
+  document.body.style.background=COLORS[idx];
+  $("fsBtn").style.background=COLORS[idx];
+  document.querySelector(".main").style.visibility="hidden";
+  $("fsBtn").style.display="block";$("exitBtn").style.display="block";
+  testing=true;
+}
+function stop(){
+  testing=false;
+  clearInterval(timerId);
+  document.body.style.background="";
+  document.querySelector(".main").style.visibility="";
+  $("fsBtn").style.display="none";$("exitBtn").style.display="none";
+  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+}
+$("startBtn").onclick=async()=>{
+  idx=0;show();
+  try{await document.documentElement.requestFullscreen();}catch(e){}
+  const iv=+$("interval").value;
+  clearInterval(timerId);
+  if(iv)timerId=setInterval(()=>{idx=(idx+1)%COLORS.length;show();},iv*1000);
+};
+$("fsBtn").onclick=()=>{idx=(idx+1)%COLORS.length;show();};
+$("exitBtn").onclick=stop;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&testing)stop();});
+document.addEventListener("fullscreenchange",()=>{
+  if(!document.fullscreenElement&&testing)stop();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单位在线换算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.unit-out { margin-top: 14px; }
+.unit-item { display: flex; border: 1px solid #eee; border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+.unit-item label { width: 110px; flex-shrink: 0; background: #f8f8f8; border-right: 1px solid #eee; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #555; }
+.unit-item span { flex: 1; padding: 10px 12px; font-size: 14px; font-variant-numeric: tabular-nums; color: #34495e; word-break: break-all; }
+</style>
+</head>
+<body data-tool="unitconv" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="unit-out" id="out"></div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>类别</label>
+            <select id="cat">
+              <option value="length">长度</option>
+              <option value="weight">重量</option>
+              <option value="temp">温度</option>
+            </select>
+          </div>
+          <div class="fitem"><label>数值</label><input type="number" id="val" value="1"></div>
+          <div class="fitem"><label>单位</label><select id="unit"></select></div>
+        </div>
+        <button class="fbtn blue" id="convBtn">换算</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于单位换算工具介绍：</h4>
+    <p>常用单位在线换算工具，支持长度（米/千米/英尺/英寸/英里）、重量（千克/克/斤/磅/盎司/吨）、温度（摄氏度/华氏度/开尔文）三类常用单位。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const UNITS = {
+  length: {
+    m: ["米", 1], km: ["千米", 1000], dm: ["分米", 0.1], cm: ["厘米", 0.01], mm: ["毫米", 0.001],
+    ft: ["英尺", 0.3048], inch: ["英寸", 0.0254], mi: ["英里", 1609.344], li: ["市里", 500],
+  },
+  weight: {
+    kg: ["千克", 1], g: ["克", 0.001], t: ["吨", 1000], jin: ["斤", 0.5], liang: ["两", 0.05],
+    lb: ["磅", 0.45359237], oz: ["盎司", 0.028349523],
+  },
+  temp: { c: ["摄氏度 ℃"], f: ["华氏度 ℉"], k: ["开尔文 K"] },
+};
+const cat = document.getElementById("cat"), unit = document.getElementById("unit"), val = document.getElementById("val");
+function fillUnits() {
+  unit.innerHTML = Object.entries(UNITS[cat.value]).map(([k, v]) =>
+    `<option value="${k}">${v[0]}</option>`).join("");
+}
+cat.onchange = fillUnits;
+fillUnits();
+function toBase(v, u) { // 转为标准单位
+  if (cat.value === "temp") {
+    if (u === "c") return v;
+    if (u === "f") return (v - 32) * 5 / 9;
+    return v - 273.15;
+  }
+  return v * UNITS[cat.value][u][1];
+}
+function fromBase(b, u) {
+  if (cat.value === "temp") {
+    if (u === "c") return b;
+    if (u === "f") return b * 9 / 5 + 32;
+    return b + 273.15;
+  }
+  return b / UNITS[cat.value][u][1];
+}
+document.getElementById("convBtn").onclick = () => {
+  const v = +val.value, u = unit.value;
+  if (isNaN(v)) { document.getElementById("out").innerHTML = "❌ 请输入有效数值"; return; }
+  const base = toBase(v, u);
+  document.getElementById("out").innerHTML = Object.entries(UNITS[cat.value])
+    .filter(([k]) => k !== u)
+    .map(([k, def]) => {
+      const r = fromBase(base, k);
+      const show = cat.value === "temp" ? +r.toFixed(2) : +r.toPrecision(8);
+      return `<div class="unit-item"><label>${def[0]}</label><span>${show}</span></div>`;
+    }).join("");
+};
+</script>
+</body>
+</html>

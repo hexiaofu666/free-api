@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>摄像头麦克风在线测试 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="mediatest" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>测试项目</label>
+        <select id="kind">
+          <option value="camera">摄像头测试</option>
+          <option value="mic">麦克风测试</option>
+          <option value="both">摄像头 + 麦克风</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始测试</button>
+      <button class="fbtn gray" id="clearBtn">停止测试</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>测试画面（对麦克风说话观察音量条）</strong></div>
+      <div style="padding:10px;text-align:center;">
+        <video id="video" autoplay playsinline muted style="max-width:100%;border-radius:6px;border:1px solid #eee;display:none;"></video>
+        <div style="margin-top:10px;font-size:13px;color:#666;">麦克风音量</div>
+        <div style="height:14px;background:#f0f0f0;border-radius:7px;overflow:hidden;max-width:400px;margin:6px auto;">
+          <div id="level" style="height:100%;width:0;background:linear-gradient(90deg,#00b277,#ff6500);transition:width .08s;"></div>
+        </div>
+        <div id="status" style="font-size:13px;color:#999;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于摄像头麦克风测试介绍：</h4>
+    <ol>
+      <li>一键检测摄像头画面是否正常、麦克风是否收录声音，常用于网课、视频会议前的设备自检。</li>
+      <li>浏览器会请求设备权限，请点击“允许”；设备被其他程序占用时可能无法获取。</li>
+      <li>音量条随说话实时跳动说明麦克风工作正常；测试数据仅在本地处理，不会上传。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let stream=null,audioCtx=null,rafId=null;
+function stop(){
+  if(stream)stream.getTracks().forEach(t=>t.stop());
+  if(audioCtx)audioCtx.close();
+  if(rafId)cancelAnimationFrame(rafId);
+  stream=audioCtx=rafId=null;
+  $("video").style.display="none";$("level").style.width="0";$("status").textContent="已停止测试";
+}
+$("clearBtn").onclick=stop;
+$("runBtn").onclick=async()=>{
+  stop();
+  const k=$("kind").value;
+  const video=k!=="mic", audio=k!=="camera";
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video,audio});
+    $("outBox").classList.add("on");
+    if(video){
+      $("video").style.display="block";
+      $("video").srcObject=stream;
+    }
+    if(audio){
+      audioCtx=new AudioContext();
+      const src=audioCtx.createMediaStreamSource(stream);
+      const analyser=audioCtx.createAnalyser();
+      analyser.fftSize=512;
+      src.connect(analyser);
+      const buf=new Uint8Array(analyser.fftSize);
+      (function loop(){
+        analyser.getByteTimeDomainData(buf);
+        let sum=0;
+        for(let i=0;i<buf.length;i++){const v=(buf[i]-128)/128;sum+=v*v;}
+        const rms=Math.sqrt(sum/buf.length);
+        $("level").style.width=Math.min(100,Math.round(rms*300))+"%";
+        rafId=requestAnimationFrame(loop);
+      })();
+    }
+    $("status").textContent="测试进行中… "+(video?"画面正常显示说明摄像头可用 ":"")+""+(audio?"音量条跳动说明麦克风可用。":"");
+  }catch(e){
+    $("outBox").classList.add("on");
+    $("status").textContent="无法获取设备："+(e.name==="NotAllowedError"?"您拒绝了权限请求，请在浏览器设置中允许后重试。":e.message);
+  }
+};
+</script>
+</body>
+</html>

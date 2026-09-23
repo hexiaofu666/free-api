@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>九九乘法表在线查询 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.mul-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:8px;padding:15px 5px;}
+.mul-cell{background:#fff8f2;border:1px solid #ffe0c7;border-radius:8px;padding:12px 0;text-align:center;font-size:15px;color:#c05621;font-variant-numeric:tabular-nums;transition:transform .12s;}
+.mul-cell:hover{transform:scale(1.08);background:#ff6500;color:#fff;border-color:#ff6500;}
+.mul-cell b{color:#ff6500;}
+.mul-cell:hover b{color:#fff;}
+.mul-ans{display:block;font-size:12px;color:#999;margin-top:3px;}
+.mul-cell:hover .mul-ans{color:#ffe0c7;}
+.mul-out{background:linear-gradient(135deg,#fff7ed,#fffdf9);border:1px solid #ffe0c7;border-radius:8px;padding:18px;font-size:15px;line-height:2.1;color:#9a3412;white-space:pre-wrap;}
+@media (max-width:600px){.mul-grid{gap:5px;}.mul-cell{padding:8px 0;font-size:12px;}}
+</style>
+</head>
+<body data-tool="multiplication" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="abar" style="border:1px solid #eee;border-radius:3px;">
+      <button class="fbtn teal" id="gridBtn">卡片视图</button>
+      <button class="fbtn brown" id="textBtn">文本视图</button>
+      <button class="fbtn gray" id="clearBtn">清空</button>
+    </div>
+    <div id="stage"></div>
+  </div>
+  <div class="resttips">
+    <h4>关于九九乘法表介绍：</h4>
+    <ol>
+      <li>九九乘法表是我国古代筹算乘法经验的总结，距今已有两千多年历史，春秋战国时期已被广泛使用。</li>
+      <li>卡片视图：悬停高亮，方便逐格记忆；文本视图：传统阶梯排布，方便对照朗读。</li>
+      <li>口诀规律：一一得一，二二得四……每行乘数相同，结果依次递增。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+function gridView(){
+  let html='<div class="mul-grid">';
+  for(let i=1;i<=9;i++)for(let j=1;j<=9;j++){
+    html+=`<div class="mul-cell">${j}×${i}<b>=</b><span class="mul-ans">${i*j}</span></div>`;
+  }
+  $("stage").innerHTML=html+"</div>";
+}
+function textView(){
+  let lines=[];
+  for(let i=1;i<=9;i++){
+    let row="";
+    for(let j=1;j<=i;j++)row+=`${j}×${i}=${i*j}`.padEnd(9," ");
+    lines.push(row);
+  }
+  $("stage").innerHTML='<div class="mul-out">'+lines.join("\n")+"</div>";
+}
+$("gridBtn").onclick=gridView;
+$("textBtn").onclick=textView;
+$("clearBtn").onclick=()=>{$("stage").innerHTML="";};
+gridView();
+</script>
+</body>
+</html>

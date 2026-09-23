@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>开放API在线文档 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.api-tbl { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 13px; }
+.api-tbl th, .api-tbl td { border: 1px solid #eee; padding: 9px 12px; text-align: left; line-height: 1.6; }
+.api-tbl th { background: #f8f8f8; font-weight: 600; }
+.api-tbl code { background: #f4f4f4; padding: 1px 6px; border-radius: 3px; font-family: Consolas, Monaco, monospace; font-size: 12px; color: #c0392b; }
+.api-sec h3 { font-size: 14px; margin: 18px 0 8px; color: #ff6500; }
+.api-sec p { font-size: 13px; line-height: 1.9; color: #555; margin-bottom: 6px; }
+.api-sec pre { background: #181a1b; color: #d8dee9; border-radius: 6px; padding: 12px 14px; font-size: 12px; line-height: 1.7; overflow-x: auto; font-family: Consolas, Monaco, monospace; margin: 8px 0 14px; }
+</style>
+</head>
+<body data-tool="api" data-cat="dev">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="api-sec">
+      <h3>简介</h3>
+      <p>词海工具箱开放 API 为开发者提供常用的轻量计算接口，<b>免费开放</b>，无需注册。为保障服务质量，每个 IP 每天可调用 <b>100 次</b>（次日 0 点自动重置），超出将返回 429 状态码。</p>
+      <p>支持 GET 与 POST（POST 传 JSON body），响应统一为 JSON：<code style="background:#f4f4f4;padding:1px 6px;border-radius:3px;">{"ok":true,"data":{...}}</code>，出错时为 <code style="background:#f4f4f4;padding:1px 6px;border-radius:3px;">{"ok":false,"error":"原因"}</code>。已开启 CORS，可直接在浏览器前端调用。</p>
+
+      <h3>接口列表</h3>
+      <table class="api-tbl">
+        <tr><th style="width:230px;">接口</th><th>说明</th><th style="width:220px;">参数</th></tr>
+        <tr><td><code>/api/md5</code></td><td>MD5 加密（32位/16位）</td><td><code>text</code> 文本</td></tr>
+        <tr><td><code>/api/sha256</code></td><td>SHA 哈希（sha1/sha256/sha512）</td><td><code>text</code> 文本，<code>alg</code> 可选</td></tr>
+        <tr><td><code>/api/base64</code></td><td>Base64 编码 / 解码</td><td><code>text</code>，<code>mode</code>=encode|decode</td></tr>
+        <tr><td><code>/api/url</code></td><td>URL 编码 / 解码</td><td><code>text</code>，<code>mode</code>=encode|decode</td></tr>
+        <tr><td><code>/api/timestamp</code></td><td>时间戳转日期（缺省为当前时间）</td><td><code>ts</code> 秒级/毫秒级均可</td></tr>
+        <tr><td><code>/api/uuid</code></td><td>批量生成 UUID v4（1-50 个）</td><td><code>n</code> 数量</td></tr>
+      </table>
+
+      <h3>调用示例</h3>
+      <pre>GET https://你的域名/api/md5?text=hello
+
+响应：
+{
+  "ok": true,
+  "data": { "text": "hello", "md5": "5d41402abc4b2a76b9719d911017c592", "md5_16": "bc4b2a76b9719d91" }
+}</pre>
+      <pre>GET https://你的域名/api/timestamp?ts=1695456000
+
+响应：
+{
+  "ok": true,
+  "data": { "timestamp": 1695456000, "datetime": "2023-09-23 16:00:00", "iso": "...", "weekday": "六" }
+}</pre>
+
+      <h3>限流说明</h3>
+      <p>每次调用响应头会携带 <code style="background:#f4f4f4;padding:1px 6px;border-radius:3px;">X-RateLimit-Limit</code>（每日配额）、<code style="background:#f4f4f4;padding:1px 6px;border-radius:3px;">X-RateLimit-Remaining</code>（当日剩余次数）、<code style="background:#f4f4f4;padding:1px 6px;border-radius:3px;">X-RateLimit-Reset</code>（重置时间），请在客户端做好缓存，避免浪费配额。超限返回 <b>429</b>。</p>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>温馨提示：</h4>
+    <ol>
+      <li>本 API 免费开放，请勿用于非法用途或高频滥用。</li>
+      <li>MD5 / SHA 为单向哈希，仅用于校验，不可用于密码明文存储加密以外的安全场景。</li>
+      <li>接口后续会持续增加，如有需要欢迎通过 GitHub 提出。</li>
+    </ol>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+</body>
+</html>

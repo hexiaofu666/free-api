@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>随机密码在线生成 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="pass" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>密码长度</label><input type="number" id="len" value="16" min="4" max="64"></div>
+      <div class="fitem"><label>生成数量</label><input type="number" id="num" value="5" min="1" max="50"></div>
+      <div class="fitem"><label>字符类型</label>
+        <select id="chars" multiple size="4" style="height:auto;padding:6px 10px;">
+          <option value="lower" selected>小写字母 a-z</option>
+          <option value="upper" selected>大写字母 A-Z</option>
+          <option value="digit" selected>数字 0-9</option>
+          <option value="symbol" selected>符号 !@#$%</option>
+        </select>
+      </div>
+      <div class="fitem"><label>排除易混淆</label>
+        <select id="noAmb"><option value="1">排除（0O1lI）</option><option value="0">不排除</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">批量生成</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>生成结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly style="min-height:160px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于随机密码生成器介绍：</h4>
+    <ol>
+      <li>使用浏览器内置的安全随机数接口（crypto.getRandomValues）生成密码，非伪随机。</li>
+      <li>可选择包含小写、大写、数字、符号四类字符，自定义长度 4-64 位。</li>
+      <li>支持批量生成多个密码，并可排除 0O1lI 等易混淆字符。</li>
+      <li>密码仅在本页生成，不会上传到任何服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const SETS={lower:"abcdefghijklmnopqrstuvwxyz",upper:"ABCDEFGHIJKLMNOPQRSTUVWXYZ",digit:"0123456789",symbol:"!@#$%^&*()-_=+[]{};:,.<>?"};
+function randInt(max){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%max;}
+$("runBtn").onclick=()=>{
+  let pool="";
+  [...$("chars").selectedOptions].forEach(o=>pool+=SETS[o.value]);
+  if(!pool) return alert("请至少选择一种字符类型");
+  if($("noAmb").value==="1") pool=[...pool].filter(c=>!"0O1lI".includes(c)).join("");
+  const len=+$("len").value, num=+$("num").value, out=[];
+  for(let i=0;i<num;i++){
+    let s="";for(let j=0;j<len;j++)s+=pool[randInt(pool.length)];
+    out.push(s);
+  }
+  $("output").value=out.join("\n");
+  $("outBox").classList.add("on");
+};
+$("clearBtn").onclick=()=>{$("output").value="";$("outBox").classList.remove("on");};
+$("copyBtn").onclick=()=>{$("output").select();document.execCommand("copy");};
+</script>
+</body>
+</html>

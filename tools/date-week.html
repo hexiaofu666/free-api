@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星期几在线计算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="date-week" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><input id="input" placeholder="输入日期，如 2025-09-23" style="width:100%;box-sizing:border-box;height:44px;border:1px solid #eee;padding:0 12px;font-size:14px;border-radius:0 0 3px 3px;outline:none;"></div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始计算</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>计算结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于周几计算介绍：</h4>
+    <ol>
+      <li>输入任意公历日期，即可计算该日期是星期几。</li>
+      <li>同时给出：一年中的第几天、该年是否为闰年等信息。</li>
+      <li>计算结果基于公历（格里高利历）规则，适用于 1582 年之后的日期。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const WK=["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+const $=id=>document.getElementById(id);
+$("runBtn").onclick = () => {
+  const s=$("input").value.trim();
+  if (!s) return alert("请输入日期");
+  const d = new Date(s.replace(/[年月]/g,"/").replace(/日/,""));
+  if (isNaN(d)) return alert("日期格式不正确，示例：2025-09-23");
+  const y=d.getFullYear();
+  const start=new Date(y,0,0);
+  const dayOfYear=Math.floor((d-start)/86400000);
+  const leap=(y%4===0&&y%100!==0)||y%400===0;
+  $("output").value = `${s} 是 ${WK[d.getDay()]}\n一年中的第 ${dayOfYear} 天\n${y} 年${leap?"是":"不是"}闰年（共 ${leap?366:365} 天）`;
+  $("outBox").classList.add("on");
+};
+$("demoBtn").onclick = () => { $("input").value="2025-09-23"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

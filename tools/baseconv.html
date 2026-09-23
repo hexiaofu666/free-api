@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>进制在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.base-out { margin-top: 16px; }
+.base-item { display: flex; border: 1px solid #eee; border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+.base-item label { width: 96px; flex-shrink: 0; background: #f8f8f8; border-right: 1px solid #eee; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #555; }
+.base-item span { flex: 1; padding: 10px 12px; font-family: Consolas, Monaco, monospace; font-size: 14px; word-break: break-all; color: #34495e; }
+</style>
+</head>
+<body data-tool="baseconv" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="base-out" id="out">
+          <div class="base-item"><label>二进制</label><span id="b2">--</span></div>
+          <div class="base-item"><label>八进制</label><span id="b8">--</span></div>
+          <div class="base-item"><label>十进制</label><span id="b10">--</span></div>
+          <div class="base-item"><label>十六进制</label><span id="b16">--</span></div>
+        </div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>输入数值</label><input id="num" value="255" placeholder="如 255 / 1A"></div>
+          <div class="fitem"><label>原始进制</label>
+            <select id="from"><option value="10">十进制</option><option value="2">二进制</option><option value="8">八进制</option><option value="16">十六进制</option></select>
+          </div>
+        </div>
+        <button class="fbtn blue" id="convBtn">转换</button>
+        <p style="font-size:12px;color:#bbb;line-height:2;">二进制只能输入 0/1，十六进制可输入 0-9 与 A-F。</p>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于进制转换工具介绍：</h4>
+    <p>二进制、八进制、十进制、十六进制的在线互相转换工具，输入一个数值即可同时得到四种进制的表示结果，是计算机学习和开发调试的常用工具。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+document.getElementById("convBtn").onclick = () => {
+  const raw = document.getElementById("num").value.trim();
+  const from = +document.getElementById("from").value;
+  const n = parseInt(raw, from);
+  if (isNaN(n) || n < 0) {
+    ["b2","b8","b10","b16"].forEach(id => document.getElementById(id).textContent = "❌ 数值无效");
+    return;
+  }
+  document.getElementById("b2").textContent = n.toString(2);
+  document.getElementById("b8").textContent = n.toString(8);
+  document.getElementById("b10").textContent = n.toString(10);
+  document.getElementById("b16").textContent = n.toString(16).toUpperCase();
+};
+</script>
+</body>
+</html>

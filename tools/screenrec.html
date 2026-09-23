@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕在线录制 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="screenrec" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>录制内容</label>
+        <select id="src">
+          <option value="screen">整个屏幕</option>
+          <option value="window">应用窗口</option>
+          <option value="browser">浏览器标签页</option>
+        </select>
+      </div>
+      <div class="fitem"><label>是否录音</label>
+        <select id="audio"><option value="false">不录声音</option><option value="true">包含系统声音</option></select>
+      </div>
+      <div class="fitem"><label>帧率</label>
+        <select id="fps"><option value="30" selected>30 FPS</option><option value="60">60 FPS</option><option value="15">15 FPS（体积小）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="startBtn">开始录制</button>
+      <button class="fbtn orange" id="stopBtn" disabled>停止录制</button>
+      <span id="timer" style="font-size:14px;color:#666;margin-left:10px;font-variant-numeric:tabular-nums;"></span>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>录制预览</strong><span id="dlBtn">下载视频(WebM)</span></div>
+      <div style="text-align:center;padding:10px;"><video id="player" controls style="max-width:100%;border-radius:6px;border:1px solid #eee;"></video></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于屏幕录制介绍：</h4>
+    <ol>
+      <li>基于浏览器标准接口 Screen Capture 实现，可选择录制整屏、窗口或标签页。</li>
+      <li>点击开始后浏览器会弹出选择器，选中要录制的画面并点击“分享”。</li>
+      <li>录制在本地完成并生成 WebM 视频，不经过任何服务器，安全无水印。</li>
+      <li>导出的 WebM 可直接上传各平台，或用格式工具转换为 MP4。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let rec=null,chunks=[],t0=null,timerId=null;
+$("startBtn").onclick=async()=>{
+  const kind=$("src").value;
+  try{
+    const stream=await navigator.mediaDevices.getDisplayMedia({
+      video:{frameRate:+$("fps").value},
+      audio:$("audio").value==="true"
+    });
+    chunks=[];
+    rec=new MediaRecorder(stream);
+    rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+    rec.onstop=()=>{
+      const blob=new Blob(chunks,{type:"video/webm"});
+      $("player").src=URL.createObjectURL(blob);
+      $("outBox").classList.add("on");
+      stream.getTracks().forEach(t=>t.stop());
+      clearInterval(timerId);
+      $("startBtn").disabled=false;$("stopBtn").disabled=true;
+    };
+    stream.getVideoTracks()[0].addEventListener("ended",()=>{if(rec.state!=="inactive")rec.stop();});
+    rec.start(500);
+    t0=Date.now();
+    timerId=setInterval(()=>{
+      const s=Math.floor((Date.now()-t0)/1000);
+      $("timer").textContent="● 录制中 "+String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+      $("timer").style.color="#e53935";
+    },500);
+    $("startBtn").disabled=true;$("stopBtn").disabled=false;
+  }catch(e){
+    if(e.name!=="NotAllowedError")alert("无法开始录制："+e.message);
+  }
+};
+$("stopBtn").onclick=()=>{if(rec&&rec.state!=="inactive")rec.stop();};
+$("dlBtn").onclick=()=>{
+  const a=document.createElement("a");
+  a.download="screen-recording-"+new Date().toISOString().slice(0,19).replace(/[T:]/g,"-")+".webm";
+  a.href=$("player").src;a.click();
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星座配对在线测算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="xingzuopeidui" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>男生星座</label>
+        <select id="signA"></select>
+      </div>
+      <div class="fitem"><label>女生星座</label>
+        <select id="signB"></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始配对</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>配对结果</strong></div>
+      <div id="result" style="padding:10px 5px;font-size:14px;line-height:2;color:rgba(0,0,0,.85);"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于星座配对介绍：</h4>
+    <ol>
+      <li>星座配对是依据占星学中十二星座的元素属性（火、土、风、水）与相位关系得出的趣味参考。</li>
+      <li>一般同象星座（火象：白羊/狮子/射手；土象：金牛/处女/摩羯；风象：双子/天秤/水瓶；水象：巨蟹/天蝎/双鱼）相容性较高。</li>
+      <li>配对结果仅供娱乐参考，真正的感情需要双方共同经营。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const SIGNS=["白羊座","金牛座","双子座","巨蟹座","狮子座","处女座","天秤座","天蝎座","射手座","摩羯座","水瓶座","双鱼座"];
+/* 12x12 配对指数（满分100）与两两简评（同分对称） */
+const SCORE=[
+[80,60,90,40,100,50,70,50,90,60,70,50],
+[60,80,50,90,40,100,70,50,60,90,70,50],
+[90,50,80,60,90,40,100,50,70,50,90,60],
+[40,90,60,80,50,90,40,100,50,60,70,90],
+[100,40,90,50,80,60,90,40,100,50,70,50],
+[50,100,40,90,60,80,50,90,40,100,50,70],
+[70,70,100,40,90,50,80,60,90,40,100,50],
+[50,50,50,100,40,90,60,80,60,90,50,100],
+[90,60,70,50,100,40,90,60,80,50,90,40],
+[60,90,50,60,50,100,40,90,50,80,60,90],
+[70,70,90,70,70,50,100,50,90,60,80,60],
+[50,50,60,90,50,70,50,100,40,90,60,80]];
+const NOTES={
+"80":"相当理想的一对，彼此欣赏、默契十足。",
+"100":"天作之合，一拍即合的完美组合！",
+"90":"非常般配的一对，互补又互相吸引。",
+"70":"还不错的一对，用心经营可以长久。",
+"60":"中规中矩，需要多沟通、多包容。",
+"50":"缘分尚可，价值观需要慢慢磨合。",
+"40":"挑战较大的一对，学会换位思考很重要。"};
+const ELEMS=["火象","土象","风象","水象","火象","土象","风象","水象","火象","土象","风象","水象"];
+const opts=SIGNS.map((s,i)=>`<option value="${i}">${s}（${ELEMS[i]}）</option>`).join("");
+$("signA").innerHTML=opts; $("signB").innerHTML=opts;
+$("runBtn").onclick=()=>{
+  const a=+$("signA").value,b=+$("signB").value;
+  if(a===b){$("result").innerHTML=`${SIGNS[a]} × ${SIGNS[b]}：同一个星座，彼此最懂对方，指数 <strong style="color:#ff6500;">${SCORE[a][a]}</strong> 分。<br>${NOTES[SCORE[a][a]]}`;}
+  else{
+    const sc=Math.max(SCORE[a][b],SCORE[b][a]);
+    $("result").innerHTML=`${SIGNS[a]}（男）× ${SIGNS[b]}（女）<br>配对指数：<strong style="color:#ff6500;font-size:20px;">${sc} 分</strong><br>${NOTES[sc]||""}<br><span style="color:#999;font-size:12px;">${SIGNS[a]}属${ELEMS[a]}、${SIGNS[b]}属${ELEMS[b]}，${ELEMS[a]===ELEMS[b]?"同象星座天然亲近":"异象星座互补互吸"}</span>`;
+  }
+  $("outBox").classList.add("on");
+};
+$("clearBtn").onclick=()=>{$("result").innerHTML="";$("outBox").classList.remove("on");};
+</script>
+</body>
+</html>

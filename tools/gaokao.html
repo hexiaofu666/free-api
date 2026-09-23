@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高考倒计时在线查询 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.gk-box { text-align: center; padding: 10px 0; }
+.gk-date { font-size: 13px; color: #888ea2; margin-bottom: 10px; }
+.gk-days { font-size: 96px; font-weight: 700; color: #ff6500; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.gk-label { font-size: 14px; color: #34495e; margin-top: 2px; }
+.gk-hms { display: flex; justify-content: center; gap: 12px; margin-top: 22px; }
+.gk-hms div { background: #f8f9fb; border-radius: 6px; padding: 10px 0; width: 84px; }
+.gk-hms b { display: block; font-size: 24px; color: #ff6500; font-variant-numeric: tabular-nums; }
+.gk-hms span { font-size: 12px; color: #888ea2; }
+</style>
+</head>
+<body data-tool="gaokao" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mlf gk-box">
+      <div class="gk-date" id="gkDate"></div>
+      <div class="gk-days" id="days">--</div>
+      <div class="gk-label">距离高考还有</div>
+      <div class="gk-hms">
+        <div><b id="hh">00</b><span>时</span></div>
+        <div><b id="mm">00</b><span>分</span></div>
+        <div><b id="ss">00</b><span>秒</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于高考倒计时工具介绍：</h4>
+    <p>实时计算距离最近一次高考（每年 6 月 7 日开考）的剩余天数、小时、分钟与秒，为备考学子加油鼓劲。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+function nextGaokao() {
+  const now = new Date();
+  let d = new Date(now.getFullYear(), 5, 7, 9, 0, 0);
+  if (d <= now) d = new Date(now.getFullYear() + 1, 5, 7, 9, 0, 0);
+  return d;
+}
+const target = nextGaokao();
+document.getElementById("gkDate").textContent =
+  `${target.getFullYear()}年高考：${target.getFullYear()}年6月7日 09:00 开考`;
+function tick() {
+  const diff = Math.max(0, target - new Date());
+  const dayMs = 86400000;
+  document.getElementById("days").textContent = Math.floor(diff / dayMs);
+  document.getElementById("hh").textContent = String(Math.floor(diff % dayMs / 3600000)).padStart(2, "0");
+  document.getElementById("mm").textContent = String(Math.floor(diff % 3600000 / 60000)).padStart(2, "0");
+  document.getElementById("ss").textContent = String(Math.floor(diff % 60000 / 1000)).padStart(2, "0");
+}
+setInterval(tick, 1000); tick();
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水平仪在线使用 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.bubble-wrap{position:relative;width:260px;height:260px;margin:15px auto;border-radius:50%;background:radial-gradient(circle,#eef7ee 0%,#d6ecd6 100%);border:3px solid #7cb342;overflow:hidden;}
+.ring{position:absolute;border:2px solid rgba(76,175,80,.5);border-radius:50%;}
+.ring.r1{inset:18%;}.ring.r2{inset:34%;}
+.cross-h{position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(76,175,80,.4);}
+.cross-v{position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(76,175,80,.4);}
+.bubble{position:absolute;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff9a4d,#ff6500);box-shadow:0 2px 8px rgba(255,101,0,.5);left:50%;top:50%;transform:translate(-50%,-50%);}
+.angle-read{display:flex;justify-content:center;gap:26px;margin-top:12px;font-size:15px;color:#33691e;font-variant-numeric:tabular-nums;}
+.angle-read b{font-size:20px;color:#ff6500;}
+.no-sensor{text-align:center;color:#999;padding:30px 10px;font-size:13px;line-height:2;}
+</style>
+</head>
+<body data-tool="level" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>操作</label>
+        <button class="fbtn teal" id="calBtn" style="width:90px;">当前置零</button>
+        <button class="fbtn gray" id="resetBtn" style="width:90px;margin-left:8px;">重置校准</button>
+      </div>
+    </div>
+    <div class="bubble-wrap">
+      <div class="ring r1"></div><div class="ring r2"></div>
+      <div class="cross-h"></div><div class="cross-v"></div>
+      <div class="bubble" id="bubble"></div>
+    </div>
+    <div class="angle-read">
+      <div>左右倾角<br><b id="beta">--</b>°</div>
+      <div>前后倾角<br><b id="gamma">--</b>°</div>
+    </div>
+    <div class="no-sensor" id="hint">将手机平放在被测平面上即可读数；电脑没有重力传感器时此工具不可用。<br>说明：水平时气泡位于最中心，读数接近 0°。</div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线水平仪介绍：</h4>
+    <ol>
+      <li>利用手机内置的重力传感器模拟水平仪气泡，测量桌面、墙面等平面的倾斜角度。</li>
+      <li>“当前置零”以当前姿态为基准测量相对倾角，方便对比两个平面的高低差。</li>
+      <li>读数绝对值小于 0.5° 即可认为基本水平；电脑端无传感器时无法使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let base={b:0,g:0};
+function onOrient(e){
+  if(e.beta===null&&e.gamma===null)return;
+  $("hint").style.display="none";
+  const b=(e.beta||0)-base.b, g=(e.gamma||0)-base.g;
+  $("beta").textContent=(b>=0?"+":"")+b.toFixed(1);
+  $("gamma").textContent=(g>=0?"+":"")+g.toFixed(1);
+  const bx=Math.max(-100,Math.min(100,g*4));
+  const by=Math.max(-100,Math.min(100,b*4));
+  $("bubble").style.transform=`translate(calc(-50% + ${bx}px), calc(-50% + ${by}px))`;
+}
+window.addEventListener("deviceorientation",onOrient);
+$("calBtn").onclick=()=>{
+  const b=parseFloat($("beta").textContent)||0,g=parseFloat($("gamma").textContent)||0;
+  base={b:b+base.b,g:g+base.g};
+};
+$("resetBtn").onclick=()=>{base={b:0,g:0};};
+</script>
+</body>
+</html>

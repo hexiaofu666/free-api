@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUID在线生成 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.out-area {
+  width: 100%; height: 300px; resize: vertical; border: 1px solid #eee; border-radius: 4px;
+  padding: 12px; font-size: 13px; line-height: 2; outline: none;
+  font-family: Consolas, Monaco, monospace; color: #34495e; background: #f8f9fb;
+}
+</style>
+</head>
+<body data-tool="guid" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <textarea class="out-area" id="output" readonly placeholder="点击右侧『批量生成』按钮，生成的 GUID 将显示在这里..."></textarea>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>生成个数</label><input type="number" id="count" value="5" min="1" max="500"></div>
+          <div class="fitem"><label>大写</label>
+            <select id="upper"><option value="0">小写</option><option value="1">大写</option></select>
+          </div>
+          <div class="fitem"><label>连字符</label>
+            <select id="dash"><option value="1">保留 -</option><option value="0">去掉 -</option></select>
+          </div>
+        </div>
+        <button class="fbtn green" id="genBtn">批量生成</button>
+        <button class="fbtn plain" id="copyBtn">复制全部</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于GUID生成器工具介绍：</h4>
+    <p>GUID（UUID）是全局唯一标识符，广泛用于数据库主键、订单号、文件命名等场景。本工具支持批量生成，可自定义大小写与连字符格式。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+function genOne() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+document.getElementById("genBtn").onclick = () => {
+  const count = Math.min(500, Math.max(1, +document.getElementById("count").value || 5));
+  const upper = document.getElementById("upper").value === "1";
+  const dash = document.getElementById("dash").value === "1";
+  let list = Array.from({ length: count }, genOne);
+  if (!dash) list = list.map(s => s.replace(/-/g, ""));
+  if (upper) list = list.map(s => s.toUpperCase());
+  document.getElementById("output").value = list.join("\n");
+};
+document.getElementById("copyBtn").onclick = () => {
+  const v = document.getElementById("output").value;
+  if (!v) return alert("还没有生成结果");
+  navigator.clipboard.writeText(v).then(() => alert("✅ 已复制到剪贴板"));
+};
+</script>
+</body>
+</html>

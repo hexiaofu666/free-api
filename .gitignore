@@ -1,0 +1,13 @@
+# 运行时数据（API 调用计数），不上传
+data/
+
+# 日志与临时文件
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# 依赖与编辑器
+node_modules/
+.vscode/
+.idea/

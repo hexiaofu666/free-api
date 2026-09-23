@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base58在线编码解码 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="base58" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要编码/解码的内容...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>操作</label>
+        <select id="mode">
+          <option value="enc">编码（文本 → Base58）</option>
+          <option value="dec">解码（Base58 → 文本）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Base58编码介绍：</h4>
+    <ol>
+      <li>Base58 是一种用于表示大整数的编码方式，去掉了 Base64 中易混淆的字符。</li>
+      <li>不使用 0（零）、O（大写o）、I（大写i）、l（小写L），以及 + 和 / 两个符号。</li>
+      <li>最早用于比特币钱包地址的表示，现在广泛用于区块链领域。</li>
+      <li>Base58Check 是在其基础上增加了版本字节与校验和的变体。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const A58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+function b58enc(u8) {
+  let n = 0n;
+  for (const b of u8) n = (n << 8n) | BigInt(b);
+  let out = "";
+  while (n > 0n) { out = A58[Number(n % 58n)] + out; n /= 58n; }
+  for (const b of u8) { if (b === 0) out = "1" + out; else break; }
+  return out;
+}
+function b58dec(s) {
+  if (/[0OIl+/]/.test(s)) throw "包含非 Base58 字符（0OIl + /）";
+  let n = 0n;
+  for (const c of s) {
+    const i = A58.indexOf(c);
+    if (i < 0) throw "包含非法字符：" + c;
+    n = n * 58n + BigInt(i);
+  }
+  const hex = n.toString(16).padStart(n.toString(16).length + n.toString(16).length % 2, "0");
+  let bytes = new Uint8Array(hex.match(/../g).map(h => parseInt(h, 16)));
+  let lead = 0;
+  for (const c of s) { if (c === "1") lead++; else break; }
+  if (lead) { const z = new Uint8Array(lead); bytes = Uint8Array.from([...z, ...bytes]); }
+  return bytes;
+}
+const $=id=>document.getElementById(id);
+$("runBtn").onclick = () => {
+  try {
+    const s=$("input").value;
+    if (!s) return alert("请输入内容");
+    $("output").value = $("mode").value==="enc"
+      ? b58enc(new TextEncoder().encode(s))
+      : new TextDecoder().decode(b58dec(s.trim()));
+    $("outBox").classList.add("on");
+  } catch(e) { alert("转换失败：" + e); }
+};
+$("demoBtn").onclick = () => { $("input").value="Hello, 词海工具箱!"; $("mode").value="enc"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

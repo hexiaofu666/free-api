@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颜色在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.color-preview {
+  height: 120px; border-radius: 6px; background: #ff6500;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 18px; font-family: Consolas, monospace;
+  text-shadow: 0 1px 3px rgba(0,0,0,.3); margin-bottom: 16px;
+}
+.color-item { display: flex; border: 1px solid #eee; border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+.color-item label { width: 96px; flex-shrink: 0; background: #f8f8f8; border-right: 1px solid #eee; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #555; }
+.color-item span { flex: 1; padding: 10px 12px; font-family: Consolas, Monaco, monospace; font-size: 14px; color: #34495e; }
+</style>
+</head>
+<body data-tool="colorconv" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="color-preview" id="preview">#FF6500</div>
+        <div class="color-item"><label>HEX</label><span id="hexOut">#FF6500</span></div>
+        <div class="color-item"><label>RGB</label><span id="rgbOut">rgb(255, 101, 0)</span></div>
+        <div class="color-item"><label>取色器</label><span><input type="color" id="picker" value="#ff6500" style="height:30px;width:60px;border:none;background:none;cursor:pointer;"></span></div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>HEX / RGB</label><input id="input" placeholder="如 #ff6500 或 255,101,0"></div>
+        </div>
+        <button class="fbtn blue" id="convBtn">转换</button>
+        <p style="font-size:12px;color:#bbb;line-height:2;">支持 HEX（#RRGGBB）与 RGB（r,g,b）两种格式，也可直接用取色器选色。</p>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于颜色转换工具介绍：</h4>
+    <p>HEX 与 RGB 颜色格式在线互相转换，支持取色器直接选色，实时预览颜色效果，是网页设计与前端开发的常用小工具。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+function show(r, g, b) {
+  const hex = "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+  document.getElementById("preview").style.background = hex;
+  document.getElementById("preview").textContent = hex;
+  document.getElementById("hexOut").textContent = hex;
+  document.getElementById("rgbOut").textContent = `rgb(${r}, ${g}, ${b})`;
+  document.getElementById("picker").value = hex;
+}
+document.getElementById("convBtn").onclick = () => {
+  const v = document.getElementById("input").value.trim();
+  let m;
+  if ((m = v.match(/^#?([0-9a-fA-F]{6})$/))) {
+    const n = parseInt(m[1], 16);
+    show(n >> 16 & 255, n >> 8 & 255, n & 255);
+  } else if ((m = v.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/))) {
+    const [r, g, b] = [+m[1], +m[2], +m[3]];
+    if (r > 255 || g > 255 || b > 255) return alert("RGB 取值需在 0~255");
+    show(r, g, b);
+  } else alert("❌ 请输入 #RRGGBB 或 r,g,b 格式");
+};
+document.getElementById("picker").oninput = e => {
+  const n = parseInt(e.target.value.slice(1), 16);
+  show(n >> 16 & 255, n >> 8 & 255, n & 255);
+};
+</script>
+</body>
+</html>

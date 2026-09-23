@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escape在线编码解码 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="escape" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要编码/解码的内容...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>操作</label>
+        <select id="mode">
+          <option value="enc">编码（Escape 加密）</option>
+          <option value="dec">解码（Escape 解密）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Escape编码介绍：</h4>
+    <ol>
+      <li>Escape 编码是 JavaScript 早期提供的编码函数，将非 ASCII 字符转为 %XX 或 %uXXXX 形式。</li>
+      <li>编码后所有中文字符会变成 %u 开头的十六进制形式，英文与部分符号基本保持不变。</li>
+      <li>该编码已不推荐用于 URL 传输（建议 encodeURIComponent），但仍在部分老系统与混淆场景中使用。</li>
+      <li>解密时把 %uXXXX 与 %XX 还原为原字符即可。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+$("runBtn").onclick = () => {
+  try {
+    const s=$("input").value;
+    if (!s) return alert("请输入内容");
+    $("output").value = $("mode").value==="enc" ? escape(s) : unescape(s);
+    $("outBox").classList.add("on");
+  } catch(e) { alert("转换失败：" + e); }
+};
+$("demoBtn").onclick = () => { $("input").value="你好，词海工具箱 hello!"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

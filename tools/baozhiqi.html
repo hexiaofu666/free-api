@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食物保质期在线计算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.shelf-result { font-size: 13px; line-height: 2.2; }
+.shelf-result b { color: #ff6500; font-size: 15px; }
+.shelf-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; }
+.shelf-ok { color: #06b672; font-weight: 700; }
+.shelf-bad { color: #f44336; font-weight: 700; }
+</style>
+</head>
+<body data-tool="baozhiqi" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>生产日期</label><input id="prod" placeholder="如 2025-09-01" value="2025-09-01"></div>
+      <div class="fitem"><label>保质时长</label><input type="number" id="dur" value="180" min="1"></div>
+      <div class="fitem"><label>时间单位</label>
+        <select id="unit">
+          <option value="day">天</option>
+          <option value="month">月</option>
+          <option value="year">年</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始计算</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on" id="outBox">
+      <div class="vhead"><strong>计算结果</strong></div>
+      <div class="shelf-result" id="result">填写参数后点击「开始计算」。</div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于保质期计算介绍：</h4>
+    <ol>
+      <li>输入食品/药品的生产日期与保质时长，即可算出到期日期。</li>
+      <li>自动计算剩余保质天数与已消耗比例，过期会给出醒目提示。</li>
+      <li>保质期按月/年计算时，到期日为对应月/年数后的同一天。</li>
+      <li>开封后的实际保存期限通常短于标注保质期，请以实际状态判断。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const p2=n=>String(n).padStart(2,"0");
+const fmt=d=>`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+$("runBtn").onclick=()=>{
+  const d=new Date($("prod").value.trim().replace(/[年月]/g,"/").replace(/日/,""));
+  if(isNaN(d)) return alert("生产日期格式不正确，示例：2025-09-01");
+  const n=+$("dur").value;
+  if(n<=0) return alert("请输入有效保质时长");
+  const unit=$("unit").value;
+  const exp=new Date(d);
+  if(unit==="day")exp.setDate(exp.getDate()+n);
+  else if(unit==="month")exp.setMonth(exp.getMonth()+n);
+  else exp.setFullYear(exp.getFullYear()+n);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const left=Math.round((exp-today)/86400000);
+  const totalDays=Math.round((exp-d)/86400000);
+  const used=Math.max(0,Math.round((today-d)/86400000));
+  const status=left>0?`<span class="shelf-ok">未过期，剩余 ${left} 天</span>`:`<span class="shelf-bad">已过期 ${-left} 天</span>`;
+  $("result").innerHTML=`
+    <div class="shelf-row"><span>生产日期</span><span>${fmt(d)}</span></div>
+    <div class="shelf-row"><span>到期日期</span><b>${fmt(exp)}</b></div>
+    <div class="shelf-row"><span>总保质期</span><span>${totalDays} 天</span></div>
+    <div class="shelf-row"><span>当前状态</span>${status}</div>
+    <div class="shelf-row"><span>已消耗</span><span>${used}/${totalDays} 天（${Math.min(100,Math.round(used/totalDays*100))}%）</span></div>`;
+};
+$("clearBtn").onclick=()=>{$("result").innerHTML="填写参数后点击「开始计算」。";};
+</script>
+</body>
+</html>

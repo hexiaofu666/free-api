@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>人民币大写在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+
+
+</head>
+<body data-tool="rmbdx">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="vin">
+          <textarea id="input" placeholder="请输入人民币金额（数字），如：1234.56"></textarea>
+        </div>
+        <div class="vout on" style="margin-top:15px;">
+          <div class="vhead">大写结果<span id="copyBtn"><i class="layui-icon layui-icon-file"></i> 复制</span></div>
+          <textarea id="output" readonly placeholder="大写金额将显示在这里..."></textarea>
+        </div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>转换选项</label>
+            <select id="mode">
+              <option value="rmb">人民币大写（元/角/分）</option>
+              <option value="num">纯数字大写（壹贰叁…）</option>
+            </select>
+          </div>
+        </div>
+        <button class="fbtn green" id="runBtn">开始转换</button>
+        <button class="fbtn gray" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于人民币大写转换工具介绍：</h4>
+    <ol>
+      <li><strong>用途：</strong>财务票据、合同、报销单等场合要求金额使用大写汉字（壹、贰、叁…），防止涂改。本工具可将阿拉伯数字金额一键转为标准人民币大写。</li>
+      <li><strong>转换规则：</strong>
+        <ul>
+          <li>数字大写：零壹贰叁肆伍陆柒捌玖；位数为拾佰仟万亿；</li>
+          <li>人民币大写精确到分：整块写"元"，有角无分写"整"或"正"，如 1234.50 → 壹仟贰佰叁拾肆元伍角整；</li>
+          <li>中间有零时按规范补"零"，如 1005.06 → 壹仟零伍元零陆分；</li>
+          <li>支持最大到万亿级别，最多两位小数。</li>
+        </ul>
+      </li>
+      <li><strong>说明：</strong>纯本地转换，不依赖网络，结果可一键复制。</li>
+    </ol>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const DIG="零壹贰叁肆伍陆柒捌玖",UNIT=["","拾","佰","仟"],BIG=["","万","亿","万亿"];
+function intUpper(n){                     /* 整数部分 -> 大写 */
+  if(n==="0")return "零";
+  let s="",groups=[];
+  for(let i=n.length;i>0;i-=4)groups.unshift(n.slice(Math.max(0,i-4),i));
+  groups.forEach((g,gi)=>{
+    let t="",zero=false;
+    for(let i=0;i<g.length;i++){
+      const dv=+g[i];
+      if(dv===0){zero=(t!=="");}
+      else{t+=(zero&&t?"零":"")+DIG[dv]+UNIT[g.length-1-i];zero=false;}
+    }
+    if(t)s+=t+(BIG[groups.length-1-gi]||"");
+  });
+  return s||"零";
+}
+function rmbUpper(v){
+  let neg=v<0;v=Math.abs(v);
+  let [i,f]=v.toFixed(2).split(".");
+  let out=(neg?"负":"")+intUpper(String(+i))+"元";
+  const j=+f[0],fen=+f[1];
+  if(j===0&&fen===0)out+="整";
+  else{
+    if(j>0)out+=DIG[j]+"角";
+    else if(fen>0)out+="零";
+    if(fen>0)out+=DIG[fen]+"分";
+    else if(j>0)out+="整";
+  }
+  return out;
+}
+function numUpper(v){
+  let [i,f]=v.toFixed(2).split(".");
+  let s=intUpper(String(+i));
+  if(f!=="00"){s+=(s?"点":"")+f.split("").map(c=>DIG[+c]).join("");}
+  return s||"零";
+}
+$("runBtn").onclick=()=>{
+  const raw=$("input").value.trim().replace(/[,，\s]/g,"");
+  const v=parseFloat(raw);
+  if(isNaN(v)||v>=1e16){$("output").value="请输入有效金额（最大支持万亿级，两位小数）";return;}
+  $("output").value=$("mode").value==="rmb"?rmbUpper(v):numUpper(v);
+};
+$("clearBtn").onclick=()=>{$("input").value="";$("output").value="";};
+$("copyBtn").onclick=()=>{navigator.clipboard.writeText($("output").value);$("copyBtn").innerHTML='<i class="layui-icon layui-icon-ok"></i> 已复制';setTimeout(()=>$("copyBtn").innerHTML='<i class="layui-icon layui-icon-file"></i> 复制',1500);};
+</script>
+</body>
+</html>

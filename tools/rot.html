@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROT在线加解密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="rot" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要加密/解密的内容...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>算法</label>
+        <select id="mode">
+          <option value="13">ROT13（字母位移13位）</option>
+          <option value="5">ROT5（数字位移5位）</option>
+          <option value="18">ROT18（字母13+数字5）</option>
+          <option value="47">ROT47（ASCII 33-126位移47位）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">加密 / 解密</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于ROT加密介绍：</h4>
+    <ol>
+      <li>ROT 系列是一种对称位移加密，加密与解密使用相同操作，再执行一次即可还原。</li>
+      <li>ROT13：字母循环位移 13 位（A↔N），数字与符号不变，是最常见的字母混淆方式。</li>
+      <li>ROT5：仅对数字 0-9 循环位移 5 位（0↔5）。</li>
+      <li>ROT18：ROT13 与 ROT5 的组合；ROT47：对 ASCII 33-126 区间字符循环位移 47 位。</li>
+      <li>安全性极低，仅适用于隐藏剧透、谜题等娱乐场景。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+function rot(s, mode) {
+  const n = +mode;
+  return [...s].map(c => {
+    const cp = c.codePointAt(0);
+    if (n === 13 || n === 18) {
+      if (cp >= 65 && cp <= 90) return String.fromCharCode((cp - 65 + 13) % 26 + 65);
+      if (cp >= 97 && cp <= 122) return String.fromCharCode((cp - 97 + 13) % 26 + 97);
+    }
+    if (n === 5 || n === 18) {
+      if (cp >= 48 && cp <= 57) return String.fromCharCode((cp - 48 + 5) % 10 + 48);
+    }
+    if (n === 47) {
+      if (cp >= 33 && cp <= 126) return String.fromCharCode((cp - 33 + 47) % 94 + 33);
+    }
+    return c;
+  }).join("");
+}
+$("runBtn").onclick = () => {
+  const s=$("input").value;
+  if (!s) return alert("请输入内容");
+  $("output").value = rot(s, $("mode").value);
+  $("outBox").classList.add("on");
+};
+$("demoBtn").onclick = () => { $("input").value="Hello World 123!"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>计算器在线使用 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.calc { max-width: 320px; margin: 0 auto; }
+.calc-screen { background: #181a1b; color: #eee; border-radius: 6px; padding: 14px 16px; text-align: right; margin-bottom: 12px; }
+.calc-expr { font-size: 13px; color: #9aa; min-height: 18px; word-break: break-all; }
+.calc-cur { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; word-break: break-all; }
+.calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.calc-grid button { height: 52px; border: none; border-radius: 6px; font-size: 17px; cursor: pointer; background: #f5f5f5; color: #333; font-family: inherit; transition: filter .1s; }
+.calc-grid button:hover { filter: brightness(.95); }
+.calc-grid .op { background: #ff9800; color: #fff; }
+.calc-grid .eq { background: #009688; color: #fff; }
+.calc-grid .fn { background: #e3e3e3; }
+</style>
+</head>
+<body data-tool="calculator" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="calc">
+      <div class="calc-screen">
+        <div class="calc-expr" id="expr">&nbsp;</div>
+        <div class="calc-cur" id="cur">0</div>
+      </div>
+      <div class="calc-grid" id="grid"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线计算器介绍：</h4>
+    <ol>
+      <li>支持加减乘除、百分比、小数与括号运算，键盘输入同样有效。</li>
+      <li>快捷键：数字与运算符直接输入；Backspace 退格；Esc 清空；回车等于。</li>
+      <li>上方小字实时显示完整算式，方便核对。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let cur="0", expr="";
+const KEYS=[["C","fn"],["←","fn"],["%","fn"],["÷","op"],
+            ["7"],["8"],["9"],["×","op"],
+            ["4"],["5"],["6"],["−","op"],
+            ["1"],["2"],["3"],["+","op"],
+            ["("],["0"],["."],["=","eq"]];
+$("grid").innerHTML=KEYS.map(([k,c])=>`<button class="${c||""}" data-k="${k}">${k}</button>`).join("");
+function show(){ $("cur").textContent=cur||"0"; $("expr").innerHTML=expr||"&nbsp;"; }
+function press(k){
+  if(k==="C"){cur="0";expr="";return show();}
+  if(k==="←"){cur=cur.length>1?cur.slice(0,-1):"0";return show();}
+  if(k==="="){
+    if(!cur) return;
+    const js=cur.replace(/÷/g,"/").replace(/×/g,"*").replace(/−/g,"-").replace(/%/g,"/100");
+    if(!/^[-+*/().0-9]+$/.test(js.replace(/\/100/g,"%")==js?js:js)){}
+    try{
+      const r=Function('"use strict";return('+js+")")();
+      expr=cur+" =";
+      cur=typeof r==="number"&&isFinite(r)?String(+r.toFixed(10)):"错误";
+    }catch(e){expr=cur+" =";cur="错误";}
+    return show();
+  }
+  if(cur==="错误")cur="";
+  if(cur==="0"&&/[0-9]/.test(k))cur="";
+  else if(cur==="0"&&k==="0")return show();
+  if("+−×÷%".includes(k)&&"+−×÷%".includes(cur.slice(-1)))cur=cur.slice(0,-1);
+  cur+=k; show();
+}
+$("grid").addEventListener("click",e=>{if(e.target.dataset.k)press(e.target.dataset.k);});
+document.addEventListener("keydown",e=>{
+  if(/[0-9.()+%]/.test(e.key)&&e.key.length===1)press(e.key);
+  else if(e.key==="-")press("−"); else if(e.key==="*")press("×");
+  else if(e.key==="/")press("÷");
+  else if(e.key==="Enter")press("=");
+  else if(e.key==="Backspace")press("←");
+  else if(e.key==="Escape")press("C");
+});
+show();
+</script>
+</body>
+</html>

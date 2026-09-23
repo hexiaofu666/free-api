@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>二维码在线生成 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="qrcode" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>二维码内容</label><input type="text" id="text" placeholder="输入文本或网址，如 https://example.com" style="height:38px;"></div>
+      <div class="fitem"><label>纠错等级</label>
+        <select id="ecl">
+          <option value="L">L - 7%可纠错</option>
+          <option value="M" selected>M - 15%可纠错</option>
+          <option value="Q">Q - 25%可纠错</option>
+          <option value="H">H - 30%可纠错</option>
+        </select>
+      </div>
+      <div class="fitem"><label>尺寸大小</label><input type="number" id="size" value="240" min="120" max="600" step="20"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成二维码</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>生成结果（右键图片可另存）</strong><span id="dlBtn">下载PNG</span></div>
+      <div style="text-align:center;padding:15px;"><canvas id="cv"></canvas></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于二维码生成器介绍：</h4>
+    <ol>
+      <li>输入任意文本、网址、名片信息等内容，一键生成二维码图片。</li>
+      <li>纠错等级越高，二维码破损后越容易识别，但画面也会更密集。</li>
+      <li>生成的二维码完全在浏览器本地绘制，内容不会上传服务器。</li>
+      <li>点击“下载PNG”或右键图片即可保存使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/lib/qrcode.js"></script>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+/* 关键：库默认按单字节截断编码，中文会乱码；显式启用 UTF-8 转换 */
+if(qrcode.stringToBytesFuncs && qrcode.stringToBytesFuncs["UTF-8"])
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs["UTF-8"];
+$("runBtn").onclick=()=>{
+  const text=$("text").value;
+  if(!text){alert("请输入二维码内容");return;}
+  let qr;
+  try{ qr=qrcode(0,$("ecl").value); qr.addData(text); qr.make(); }
+  catch(e){ alert("内容过长，无法生成二维码"); return; }
+  const size=+$("size").value, count=qr.getModuleCount();
+  const scale=Math.max(2,Math.floor(size/count)), dim=scale*count+8;
+  const cv=$("cv"); cv.width=cv.height=dim;
+  const ctx=cv.getContext("2d");
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,dim,dim);
+  ctx.fillStyle="#000";
+  for(let r=0;r<count;r++)for(let c=0;c<count;c++)
+    if(qr.isDark(r,c)) ctx.fillRect(4+c*scale,4+r*scale,scale,scale);
+  $("outBox").classList.add("on");
+};
+$("dlBtn").onclick=()=>{ const a=document.createElement("a"); a.download="qrcode.png"; a.href=$("cv").toDataURL("image/png"); a.click(); };
+$("clearBtn").onclick=()=>{$("text").value="";$("outBox").classList.remove("on");};
+</script>
+</body>
+</html>

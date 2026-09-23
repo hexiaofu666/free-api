@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单双休薪资在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.sal-result { font-size: 13px; line-height: 2.2; }
+.sal-result b { color: #ff6500; font-size: 15px; }
+.sal-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; }
+</style>
+</head>
+<body data-tool="xinzi" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>月薪</label><input type="number" id="salary" value="10000" min="1"> <span style="font-size:12px;color:#999;">元</span></div>
+      <div class="fitem"><label>每月休息</label>
+        <select id="rest">
+          <option value="8" selected>双休（约 8 天）</option>
+          <option value="6">单双休（约 6 天）</option>
+          <option value="4">单休（约 4 天）</option>
+          <option value="2">月休 2 天</option>
+        </select>
+      </div>
+      <div class="fitem"><label>每天工时</label><input type="number" id="hours" value="8" min="1" max="24"> <span style="font-size:12px;color:#999;">小时</span></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始计算</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on" id="outBox">
+      <div class="vhead"><strong>换算结果</strong></div>
+      <div class="sal-result" id="result">填写上方参数后点击「开始计算」。</div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于单双休薪资转换介绍：</h4>
+    <ol>
+      <li>按每月 30 天计算实际工作天数：工作天数 = 30 − 每月休息天数。</li>
+      <li>日薪 = 月薪 ÷ 工作天数；时薪 = 日薪 ÷ 每天工时。</li>
+      <li>同时给出换算到双休（22 个工作日）制度下的等效月薪，方便对比不同休息制度的工作。</li>
+      <li>结果未扣除五险一金与个税，仅供参考。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+$("runBtn").onclick=()=>{
+  const s=+$("salary").value, rest=+$("rest").value, h=+$("hours").value;
+  if(s<=0) return alert("请输入有效月薪");
+  const days=30-rest;
+  const daily=s/days, hourly=daily/h;
+  const std=s/days*21.75; /* 折算为标准 21.75 工作日 */
+  $("result").innerHTML=`
+    <div class="sal-row"><span>每月工作天数</span><span>${days} 天</span></div>
+    <div class="sal-row"><span>日薪</span><b>${daily.toFixed(2)} 元</b></div>
+    <div class="sal-row"><span>时薪</span><b>${hourly.toFixed(2)} 元</b></div>
+    <div class="sal-row"><span>折算双休等效月薪（21.75 天）</span><b>${std.toFixed(2)} 元</b></div>`;
+};
+$("clearBtn").onclick=()=>{$("result").innerHTML="填写上方参数后点击「开始计算」。";};
+</script>
+</body>
+</html>

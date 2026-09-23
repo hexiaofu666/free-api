@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base32在线编码解码 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="base32" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要编码/解码的内容...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>操作</label>
+        <select id="mode">
+          <option value="enc">编码（文本 → Base32）</option>
+          <option value="dec">解码（Base32 → 文本）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Base32编码介绍：</h4>
+    <ol>
+      <li>Base32 是一种使用 32 个可打印字符（A-Z、2-7）表示二进制数据的编码方式。</li>
+      <li>与 Base64 相比，Base32 全部由大写字母和数字组成，不易混淆，适合对大小写不敏感的系统。</li>
+      <li>Base32 编码后的长度比原始数据长约 60%，效率低于 Base64。</li>
+      <li>常用于邮件系统、OTP 动态口令密钥等场景。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const A32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function b32enc(u8) {
+  let out = "", bits = 0, val = 0;
+  for (const b of u8) {
+    val = (val << 8) | b; bits += 8;
+    while (bits >= 5) { out += A32[(val >>> (bits - 5)) & 31]; bits -= 5; }
+  }
+  if (bits > 0) out += A32[(val << (5 - bits)) & 31];
+  while (out.length % 8) out += "=";
+  return out;
+}
+function b32dec(s) {
+  s = s.toUpperCase().replace(/=+$/, "").replace(/\s/g, "");
+  if (/[^A-Z2-7]/.test(s)) throw "包含非 Base32 字符";
+  const bytes = []; let bits = 0, val = 0;
+  for (const c of s) {
+    val = (val << 5) | A32.indexOf(c); bits += 5;
+    if (bits >= 8) { bytes.push((val >>> (bits - 8)) & 255); bits -= 8; }
+  }
+  return new Uint8Array(bytes);
+}
+const $=id=>document.getElementById(id);
+$("runBtn").onclick = () => {
+  try {
+    const s=$("input").value;
+    if (!s) return alert("请输入内容");
+    $("output").value = $("mode").value==="enc"
+      ? b32enc(new TextEncoder().encode(s))
+      : new TextDecoder().decode(b32dec(s));
+    $("outBox").classList.add("on");
+  } catch(e) { alert("解码失败：" + e); }
+};
+$("demoBtn").onclick = () => { $("input").value="Hello, 词海工具箱!"; $("mode").value="enc"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片在线压缩 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="imgcompress" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>选择图片</label><input type="file" id="file" accept="image/*" style="height:38px;padding:6px 10px;"></div>
+      <div class="fitem"><label>压缩质量</label>
+        <select id="quality">
+          <option value="0.9">高质量（90%）</option>
+          <option value="0.7" selected>标准（70%）</option>
+          <option value="0.5">较高压缩（50%）</option>
+          <option value="0.3">极限压缩（30%）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>缩放比例</label>
+        <select id="scale">
+          <option value="1">保持原尺寸</option>
+          <option value="0.75">缩小到 75%</option>
+          <option value="0.5">缩小到 50%</option>
+          <option value="0.25">缩小到 25%</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始压缩</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>压缩结果</strong><span id="dlBtn">下载图片</span></div>
+      <div style="text-align:center;padding:10px;">
+        <img id="preview" style="max-width:100%;border:1px solid #eee;border-radius:6px;">
+        <div id="info" style="font-size:13px;color:#666;margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于图片压缩工具介绍：</h4>
+    <ol>
+      <li>支持 JPG、PNG、WebP 等常见格式，压缩后统一输出为 JPG 格式。</li>
+      <li>可选择压缩质量与缩放比例，实时预览压缩后的效果和体积对比。</li>
+      <li>图片压缩完全在浏览器本地完成（Canvas 绘制），不会上传到任何服务器，安全无忧。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let img=null,srcSize=0;
+$("file").onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  srcSize=f.size;
+  img=new Image();
+  img.onload=()=>{$("runBtn").click();};
+  img.src=URL.createObjectURL(f);
+};
+$("runBtn").onclick=()=>{
+  if(!img){alert("请先选择图片");return;}
+  const q=+$("quality").value, sc=+$("scale").value;
+  const cv=document.createElement("canvas");
+  cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
+  cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+  const dataUrl=cv.toDataURL("image/jpeg",q);
+  $("preview").src=dataUrl;
+  const outSize=Math.round(dataUrl.length*0.75);
+  $("info").innerHTML=`原始：${img.width}×${img.height}，${(srcSize/1024).toFixed(1)} KB &nbsp;→&nbsp; 压缩后：${cv.width}×${cv.height}，<strong style="color:#ff6500;">${(outSize/1024).toFixed(1)} KB</strong>（节省 ${Math.max(0,100-Math.round(outSize/srcSize*100))}%）`;
+  $("dlBtn").onclick=()=>{const a=document.createElement("a");a.download="compressed.jpg";a.href=dataUrl;a.click();};
+  $("outBox").classList.add("on");
+};
+$("clearBtn").onclick=()=>{$("outBox").classList.remove("on");$("info").innerHTML="";};
+</script>
+</body>
+</html>

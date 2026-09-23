@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>图片在线加水印 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+
+
+</head>
+<body data-tool="imgwatermark">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div id="drop" style="border:2px dashed #ddd;border-radius:8px;padding:40px 20px;text-align:center;color:#999;font-size:14px;cursor:pointer;">
+          <i class="layui-icon layui-icon-picture" style="font-size:36px;color:#ffb27a;display:block;margin-bottom:8px;"></i>
+          点击选择图片 或 拖拽图片到此处
+        </div>
+        <input type="file" id="file" accept="image/*" style="display:none;">
+        <div style="text-align:center;margin-top:14px;display:none;" id="prevWrap">
+          <img id="prev" style="max-width:100%;max-height:340px;border:1px solid #eee;border-radius:6px;">
+        </div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>水印文字</label><input type="text" id="text" value="© 词海工具箱"></div>
+          <div class="fitem"><label>位置</label>
+            <select id="pos">
+              <option value="br">右下角</option><option value="bl">左下角</option>
+              <option value="tr">右上角</option><option value="tl">左上角</option>
+              <option value="c">正中间</option><option value="tile">平铺全图</option>
+            </select>
+          </div>
+          <div class="fitem"><label>字号</label><input type="number" id="fs" value="28" min="8"></div>
+          <div class="fitem"><label>透明度</label><input type="number" id="op" value="40" min="5" max="100"></div>
+        </div>
+        <button class="fbtn green" id="runBtn">生成水印图</button>
+        <button class="fbtn orange" id="dlBtn" disabled>下载 PNG</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于图片加水印工具介绍：</h4>
+    <ol>
+      <li><strong>用途：</strong>给图片添加文字水印，用于作品版权保护、公众号配图、截图标注等场景。</li>
+      <li><strong>功能特点：</strong>
+        <ul>
+          <li>支持五个角落 + 正中间 + <strong>斜向平铺全图</strong>六种布局；</li>
+          <li>自定义水印文字、字号、透明度；</li>
+          <li>纯浏览器本地处理，图片<strong>不会上传服务器</strong>，安全可靠；</li>
+          <li>生成 PNG 后可直接下载保存。</li>
+        </ul>
+      </li>
+      <li><strong>建议：</strong>平铺水印适合保护原图素材，角落水印适合成图发布；透明度建议 30%-50%，既醒目又不遮挡内容。</li>
+    </ol>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+let img=null,outUrl=null;
+function load(f){
+  const r=new FileReader();
+  r.onload=e=>{img=new Image();img.onload=()=>{$("prev").src=e.target.result;$("prevWrap").style.display="block";$("prev").src=e.target.result;};img.src=e.target.result;};
+  r.readAsDataURL(f);
+}
+$("drop").onclick=()=>$("file").click();
+$("file").onchange=e=>{if(e.target.files[0])load(e.target.files[0]);};
+$("drop").ondragover=e=>{e.preventDefault();$("drop").style.borderColor="#ff6500";};
+$("drop").ondragleave=()=>$("drop").style.borderColor="#ddd";
+$("drop").ondrop=e=>{e.preventDefault();$("drop").style.borderColor="#ddd";if(e.dataTransfer.files[0])load(e.dataTransfer.files[0]);};
+$("runBtn").onclick=()=>{
+  if(!img){alert("请先选择图片");return;}
+  const c=document.createElement("canvas");
+  c.width=img.naturalWidth;c.height=img.naturalHeight;
+  const ctx=c.getContext("2d");
+  ctx.drawImage(img,0,0);
+  const txt=$("text").value||" ";
+  const fs=+$("fs").value*(c.width/1000);
+  ctx.font=`${Math.max(fs,10)}px sans-serif`;
+  ctx.globalAlpha=(+$("op").value||40)/100;
+  ctx.fillStyle="#fff";ctx.strokeStyle="rgba(0,0,0,.35)";ctx.lineWidth=1;
+  const m=ctx.measureText(txt).width,pad=fs;
+  const draw=(x,y,rot)=>{
+    ctx.save();ctx.translate(x,y);if(rot)ctx.rotate(-Math.PI/8);
+    ctx.strokeText(txt,0,0);ctx.fillText(txt,0,0);ctx.restore();
+  };
+  const pos=$("pos").value;
+  if(pos==="tile"){
+    const step=Math.max(m+fs*3,fs*6);
+    for(let y=fs*2;y<c.height+step;y+=step)
+      for(let x=0;x<c.width+step;x+=step)
+        draw(x-((y/step)%2?step/2:0),y,true);
+  }else{
+    const P={br:[c.width-m-pad,c.height-pad],bl:[pad,c.height-pad],tr:[c.width-m-pad,pad+fs],tl:[pad,pad+fs],c:[(c.width-m)/2,c.height/2]};
+    draw(...P[pos],false);
+  }
+  ctx.globalAlpha=1;
+  outUrl=c.toDataURL("image/png");
+  $("prev").src=outUrl;
+  $("dlBtn").disabled=false;
+};
+$("dlBtn").onclick=()=>{
+  const a=document.createElement("a");
+  a.href=outUrl;a.download="watermark.png";a.click();
+};
+</script>
+</body>
+</html>

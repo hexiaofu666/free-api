@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64与Hex在线互转 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="base64hex" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入 Base64 或 16 进制字符串...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>转换方向</label>
+        <select id="mode">
+          <option value="b2h">Base64 → Hex</option>
+          <option value="h2b">Hex → Base64</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Base64与Hex介绍：</h4>
+    <ol>
+      <li>Base64 使用 64 个可打印字符表示二进制数据；Hex（十六进制）使用 0-9 与 A-F 表示。</li>
+      <li>Hex 表示更直观可读，但长度是原始数据的 2 倍；Base64 长度约为 4/3 倍，更节省空间。</li>
+      <li>两者常用于数据传输、调试分析、证书与密钥的表示。</li>
+      <li>本工具支持两种格式互相转换，自动忽略空格与换行。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+function b64toHex(s) {
+  const bin = atob(s.replace(/\s/g, ""));
+  return [...bin].map(c => c.charCodeAt(0).toString(16).padStart(2, "0")).join("");
+}
+function hexToB64(s) {
+  const h = s.replace(/\s/g, "").replace(/^0x/i, "");
+  if (/[^0-9a-f]/i.test(h) || h.length % 2) throw "不是有效的十六进制字符串";
+  const bin = h.match(/../g).map(x => String.fromCharCode(parseInt(x, 16))).join("");
+  return btoa(bin);
+}
+$("runBtn").onclick = () => {
+  try {
+    const s=$("input").value;
+    if (!s) return alert("请输入内容");
+    $("output").value = $("mode").value==="b2h" ? b64toHex(s) : hexToB64(s);
+    $("outBox").classList.add("on");
+  } catch(e) { alert("转换失败：" + e); }
+};
+$("demoBtn").onclick = () => { $("input").value="SGVsbG8sIOW8gOWPpeeroyE="; $("mode").value="b2h"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网页尺子在线测量 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.ruler-area{position:relative;height:340px;border:1px solid #eee;border-radius:4px;overflow:hidden;background:#fafafa;margin-top:15px;cursor:crosshair;user-select:none;}
+.ruler-area .hline{position:absolute;height:36px;top:0;left:0;background:linear-gradient(#ff6500,#ff8c33);width:100%;}
+.ruler-area .vline{position:absolute;width:36px;height:100%;top:0;left:0;background:linear-gradient(90deg,#2196f3,#64b5f6);}
+.ruler-area .tick-h{position:absolute;top:0;width:1px;background:rgba(255,255,255,.55);height:10px;}
+.ruler-area .tick-v{position:absolute;left:0;height:1px;background:rgba(255,255,255,.55);width:10px;}
+.ruler-pos{position:absolute;font-size:12px;color:#fff;padding:2px 8px;border-radius:3px;background:rgba(0,0,0,.55);pointer-events:none;white-space:nowrap;}
+.meas-box{position:absolute;border:1px dashed #ff6500;background:rgba(255,101,0,.08);pointer-events:none;}
+.meas-label{position:absolute;font-size:12px;color:#ff6500;pointer-events:none;background:#fff;padding:1px 6px;border:1px solid #ffd0b3;border-radius:3px;}
+.ruler-tip{font-size:13px;color:#666;padding:8px 2px;}
+</style>
+</head>
+<body data-tool="ruler" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="abar" style="border:1px solid #eee;border-radius:3px;">
+      <button class="fbtn orange" id="markBtn">标记测量点</button>
+      <button class="fbtn gray" id="clearBtn">清除标记</button>
+      <span class="ruler-tip" style="margin-left:8px;">区域上方/左侧为像素刻度；鼠标移动显示坐标；“标记测量点”后点击两处可量距离</span>
+    </div>
+    <div class="ruler-area" id="area">
+      <div class="hline" id="hRuler"></div>
+      <div class="vline" id="vRuler"></div>
+      <div class="ruler-pos" id="pos" style="display:none;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于网页尺子介绍：</h4>
+    <ol>
+      <li>在页面内模拟一把像素刻度尺，用于快速查看光标位置的像素坐标。</li>
+      <li>点击“标记测量点”后，在标尺区先后点击两个位置，即可测量两点间的水平/垂直/直线距离。</li>
+      <li>可用来估量设计稿、图片中元素的间距（按 1 倍缩放）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const area=$("area");
+/* 生成刻度 */
+(function(){
+  const W=area.clientWidth||800;
+  for(let x=0;x<W;x+=10){
+    const t=document.createElement("div");
+    t.className="tick-h";t.style.left=x+"px";
+    if(x%100===0)t.style.height="20px";
+    $("hRuler").appendChild(t);
+  }
+  const H=340;
+  for(let y=0;y<H;y+=10){
+    const t=document.createElement("div");
+    t.className="tick-v";t.style.top=y+"px";
+    if(y%100===0)t.style.width="20px";
+    $("vRuler").appendChild(t);
+  }
+})();
+let marking=false,points=[];
+area.addEventListener("mousemove",e=>{
+  const r=area.getBoundingClientRect();
+  const x=Math.round(e.clientX-r.left),y=Math.round(e.clientY-r.top);
+  const p=$("pos");
+  p.style.display="block";
+  p.style.left=(x+14)+"px";p.style.top=(y+40)+"px";
+  p.textContent="X: "+x+"  Y: "+y;
+});
+area.addEventListener("mouseleave",()=>{$("pos").style.display="none";});
+$("markBtn").onclick=()=>{marking=true;points=[];$("markBtn").textContent="请点击两个点…";};
+area.addEventListener("click",e=>{
+  if(!marking)return;
+  const r=area.getBoundingClientRect();
+  const x=Math.round(e.clientX-r.left),y=Math.round(e.clientY-r.top);
+  points.push({x,y});
+  const dot=document.createElement("div");
+  dot.style.cssText=`position:absolute;width:8px;height:8px;border-radius:50%;background:#ff6500;left:${x-4}px;top:${y-4}px;`;
+  area.appendChild(dot);
+  if(points.length===2){
+    const [p1,p2]=points;
+    const box=document.createElement("div");
+    box.className="meas-box";
+    box.style.left=Math.min(p1.x,p2.x)+"px";box.style.top=Math.min(p1.y,p2.y)+"px";
+    box.style.width=Math.abs(p2.x-p1.x)+"px";box.style.height=Math.abs(p2.y-p1.y)+"px";
+    area.appendChild(box);
+    const dx=p2.x-p1.x,dy=p2.y-p1.y;
+    const dist=Math.round(Math.sqrt(dx*dx+dy*dy));
+    const label=document.createElement("div");
+    label.className="meas-label";
+    label.style.left=((p1.x+p2.x)/2)+"px";label.style.top=((p1.y+p2.y)/2)+"px";
+    label.textContent=`直线 ${dist}px（横向 ${Math.abs(dx)}，纵向 ${Math.abs(dy)}）`;
+    area.appendChild(label);
+    marking=false;$("markBtn").textContent="标记测量点";points=[];
+  }
+});
+$("clearBtn").onclick=()=>{
+  [...area.querySelectorAll(".meas-box,.meas-label,div[style*='border-radius:50%']")].forEach(el=>el.remove());
+  marking=false;$("markBtn").textContent="标记测量点";points=[];
+};
+</script>
+</body>
+</html>

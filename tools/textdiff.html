@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本在线对比 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.diff-box{display:flex;gap:12px;}
+.diff-box>div{flex:1;border:1px solid #eee;border-radius:4px;padding:10px;font-size:13px;line-height:1.9;font-family:Consolas,monospace;white-space:pre-wrap;word-break:break-all;min-height:220px;max-height:420px;overflow:auto;background:#fff;}
+.diff-add{background:#e6ffed;color:#22863a;}
+.diff-del{background:#ffeef0;color:#cb2431;}
+@media (max-width:768px){.diff-box{flex-direction:column;}}
+</style>
+</head>
+<body data-tool="textdiff" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>对比方式</label>
+        <select id="mode"><option value="line">按行对比</option><option value="char">按字符对比</option></select>
+      </div>
+    </div>
+    <div class="vin" style="margin-top:0;">
+      <div class="vhead" style="font-size:12px;padding:0 0 6px;">原始文本</div>
+      <textarea id="srcA" placeholder="原始文本…" spellcheck="false" style="min-height:130px;"></textarea>
+    </div>
+    <div class="vin" style="margin-top:10px;">
+      <div class="vhead" style="font-size:12px;padding:0 0 6px;">目标文本</div>
+      <textarea id="srcB" placeholder="修改后的文本…" spellcheck="false" style="min-height:130px;"></textarea>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始对比</button>
+      <button class="fbtn brown" id="demoBtn">填充示例</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>对比结果（红色=删除，绿色=新增）</strong><span id="copyBtn">复制</span></div>
+      <div class="diff-box">
+        <div id="outA"></div>
+        <div id="outB"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本对比介绍：</h4>
+    <ol>
+      <li>基于 LCS（最长公共子序列）算法对比两段文本差异，与 Git diff 原理相同。</li>
+      <li>绿色标记新增内容，红色标记删除内容，左右两栏一一对应。</li>
+      <li>支持按行对比（适合代码/文章）与按字符对比（适合短文本精细修改）。</li>
+      <li>全部在本地计算，文本不会上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+/* LCS diff：a、b 为数组，返回操作序列 [{type:'same'|'del'|'add', aIdx, bIdx}] */
+function diff(a,b){
+  const n=a.length,m=b.length;
+  const dp=Array.from({length:n+1},()=>new Uint16Array(m+1));
+  for(let i=n-1;i>=0;i--)
+    for(let j=m-1;j>=0;j--)
+      dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  const ops=[];let i=0,j=0;
+  while(i<n&&j<m){
+    if(a[i]===b[j]){ops.push({t:"same",a:i,b:j});i++;j++;}
+    else if(dp[i+1][j]>=dp[i][j+1]){ops.push({t:"del",a:i});i++;}
+    else{ops.push({t:"add",b:j});j++;}
+  }
+  while(i<n)ops.push({t:"del",a:i++});
+  while(j<m)ops.push({t:"add",b:j++});
+  return ops;
+}
+/* 两栏对齐渲染：把 ops 变成左右行流（del 占位右、add 占位左） */
+function render(ops,A,B){
+  const left=[],right=[];
+  for(const o of ops){
+    if(o.t==="same"){left.push({t:"same",s:A[o.a]});right.push({t:"same",s:B[o.b]});}
+    else if(o.t==="del"){left.push({t:"del",s:A[o.a]});right.push({t:"void"});}
+    else{left.push({t:"void"});right.push({t:"add",s:B[o.b]});}
+  }
+  let htmlA="",htmlB="",cntA=0,cntB=0;
+  for(let i=0;i<left.length;i++){
+    htmlA+=left[i].t==="void"?'<div style="background:#fafafa;color:#ccc;">↓</div>'
+      :`<div class="${left[i].t==="del"?"diff-del":""}">${esc(left[i].s)||"&nbsp;"}</div>`;
+    htmlB+=right[i].t==="void"?'<div style="background:#fafafa;color:#ccc;">↑</div>'
+      :`<div class="${right[i].t==="add"?"diff-add":""}">${esc(right[i].s)||"&nbsp;"}</div>`;
+    if(left[i].t!=="void")cntA++;
+    if(right[i].t!=="void")cntB++;
+  }
+  return {htmlA,htmlB};
+}
+function run(){
+  const mode=$("mode").value;
+  const A=$("srcA").value,B=$("srcB").value;
+  if(!A&&!B){alert("请输入至少一段文本");return;}
+  let ops,RA,RB;
+  if(mode==="line"){
+    const LA=A===""?[]:A.split("\n"),LB=B===""?[]:B.split("\n");
+    ops=diff(LA,LB);
+    const r=render(ops,LA,LB);RA=r.htmlA;RB=r.htmlB;
+  }else{
+    ops=diff([...A],[...B]);
+    /* 字符模式合并连续同类 */
+    const merged=[];
+    for(const o of ops){
+      const last=merged[merged.length-1];
+      if(last&&last.t===o.t)last.s+= (o.t==="same"?A[o.a]:o.t==="del"?A[o.a]:B[o.b]);
+      else merged.push({t:o.t,s:o.t==="same"||o.t==="del"?A[o.a]:B[o.b]});
+    }
+    let hA="",hB="";
+    for(const o of merged){
+      if(o.t==="same"){hA+=esc(o.s);hB+=esc(o.s);}
+      else if(o.t==="del"){hA+=`<span class="diff-del">${esc(o.s)}</span>`;}
+      else{hB+=`<span class="diff-add">${esc(o.s)}</span>`;}
+    }
+    RA=hA;RB=hB;
+  }
+  $("outA").innerHTML=RA;$("outB").innerHTML=RB;
+  $("outBox").classList.add("on");
+}
+$("runBtn").onclick=run;
+$("demoBtn").onclick=()=>{
+  $("srcA").value="词海工具箱\n包含 875 个实用工具\n支持多种分类\nJSON 格式化";
+  $("srcB").value="词海工具箱\n包含 65 个实用工具\n支持多种分类和搜索\nJSON 格式化\n二维码生成";
+  run();
+};
+$("clearBtn").onclick=()=>{$("srcA").value="";$("srcB").value="";$("outBox").classList.remove("on");};
+$("copyBtn").onclick=()=>{const t=$("outA").innerText+"\n----\n"+$("outB").innerText;
+  const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();};
+</script>
+</body>
+</html>

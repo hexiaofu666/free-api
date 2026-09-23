@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>正则表达式在线测试 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.re-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.re-row .slash { font-family: Consolas, monospace; font-size: 16px; color: #999; }
+.re-pat { flex: 1; height: 36px; border: 1px solid #eee; border-radius: 4px; padding: 0 10px; font-family: Consolas, Monaco, monospace; font-size: 14px; outline: none; min-width: 0; }
+.re-flags { width: 60px; height: 36px; border: 1px solid #eee; border-radius: 4px; padding: 0 8px; font-family: Consolas, monospace; font-size: 13px; outline: none; }
+.re-test { width: 100%; height: 120px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: inherit; }
+.re-out { margin-top: 14px; background: #f8f9fb; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 2; min-height: 60px; word-break: break-all; color: #34495e; }
+.re-out mark { background: #ffe3ba; color: #c2410c; padding: 1px 3px; border-radius: 3px; }
+.re-out .err { color: #dc2626; }
+</style>
+</head>
+<body data-tool="regex" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mlf">
+      <div class="re-row">
+        <span class="slash">/</span>
+        <input class="re-pat" id="pattern" placeholder="输入正则表达式，如 \d+" value="">
+        <span class="slash">/</span>
+        <input class="re-flags" id="flags" placeholder="flags" value="g">
+      </div>
+      <textarea class="re-test" id="testText" placeholder="输入要匹配的测试文本..."></textarea>
+      <div class="re-out" id="output">输入正则与文本后自动匹配</div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于正则表达式测试工具介绍：</h4>
+    <p>在线正则表达式测试工具，输入正则与测试文本即可实时匹配并高亮结果，支持 g / i / m 等常用修饰符，是开发调试的得力助手。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const pattern = document.getElementById("pattern");
+const flags = document.getElementById("flags");
+const testText = document.getElementById("testText");
+const output = document.getElementById("output");
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function run() {
+  const p = pattern.value, f = flags.value || "g", text = testText.value;
+  if (!p || !text) { output.innerHTML = "输入正则与文本后自动匹配"; return; }
+  try {
+    const re = new RegExp(p, f.includes("g") ? f : f + "g");
+    const matches = [...text.matchAll(re)].map(m => m[0]);
+    if (!matches.length) { output.innerHTML = "😅 没有匹配到内容"; return; }
+    const html = esc(text).replace(new RegExp(
+      esc(p).replace(/\\\//g, "/"), ""), m => `<mark>${esc(m)}</mark>`);
+    // 用安全方式重做高亮：基于原始匹配位置
+    let result = "", last = 0;
+    const re2 = new RegExp(p, f.includes("g") ? f : f + "g");
+    let m;
+    while ((m = re2.exec(text)) !== null) {
+      result += esc(text.slice(last, m.index)) + `<mark>${esc(m[0])}</mark>`;
+      last = m.index + m[0].length;
+      if (m[0].length === 0) re2.lastIndex++;
+    }
+    result += esc(text.slice(last));
+    output.innerHTML = `✅ 共匹配 <b style="color:#ff6500">${matches.length}</b> 处：<br>` + result;
+  } catch (e) {
+    output.innerHTML = `<span class="err">❌ 正则错误：${e.message}</span>`;
+  }
+}
+pattern.addEventListener("input", run);
+flags.addEventListener("input", run);
+testText.addEventListener("input", run);
+</script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>密码强度在线检测 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="zxcvbn" data-cat="dev">
+<style>
+.pw-meter { margin-top: 0; }
+.pw-bar { height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin: 10px 0; }
+.pw-bar i { display: block; height: 100%; width: 0; transition: all .3s; }
+.pw-score { display: flex; justify-content: space-between; font-size: 13px; }
+.pw-hints { font-size: 13px; color: #888ea2; line-height: 1.9; margin-top: 8px; }
+.pw-hints b { color: #ff6500; }
+</style>
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="pw-meter">
+      <input id="pw" placeholder="输入要检测的密码" style="width:100%;box-sizing:border-box;height:44px;border:1px solid #eee;padding:0 12px;font-size:15px;outline:none;border-radius:3px;">
+      <div class="pw-bar"><i id="bar"></i></div>
+      <div class="pw-score"><span id="level">等待输入…</span><span id="entropy"></span></div>
+      <div class="pw-hints" id="hints">密码强度不会上传，仅在本页计算。</div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于密码强度检测介绍：</h4>
+    <ol>
+      <li>实时估算密码的熵（破解难度），并给出强度等级：极弱 / 弱 / 一般 / 强 / 极强。</li>
+      <li>检测维度：长度、字符种类（小写/大写/数字/符号）、是否有连续或重复片段。</li>
+      <li>常见弱密码（如 123456、password、abc123）会被直接标记为极弱。</li>
+      <li>建议：长度 12 位以上、混合四类字符、不含个人信息。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const WEAK=["123456","12345678","123456789","password","abc123","111111","123123","qwerty","000000","1234567890","admin","letmein","iloveyou","666666","888888","a123456"];
+const LV=[["极弱","#f44336",8],["弱","#ff9800",30],["一般","#ffc20d",55],["强","#06b672",80],["极强","#009688",100]];
+$("pw").addEventListener("input",()=>{
+  const p=$("pw").value;
+  if(!p){$("bar").style.width=0;$("level").textContent="等待输入…";$("entropy").textContent="";$("hints").textContent="密码强度不会上传，仅在本页计算。";return;}
+  let pool=0;
+  if(/[a-z]/.test(p))pool+=26; if(/[A-Z]/.test(p))pool+=26;
+  if(/[0-9]/.test(p))pool+=10; if(/[^a-zA-Z0-9]/.test(p))pool+=32;
+  let bits=p.length*Math.log2(pool||1);
+  const hints=[];
+  if(WEAK.includes(p.toLowerCase())){bits=2;hints.push("这是<b>常见弱密码</b>，请立即更换！");}
+  if(p.length<8)hints.push("长度不足 8 位，建议 12 位以上");
+  if(/^[0-9]+$/.test(p))hints.push("纯数字密码太容易被穷举，建议混入字母与符号");
+  if(/(.)\1{2,}/.test(p))hints.push("存在 3 个以上重复字符（如 aaa、111）");
+  if(/0123|1234|2345|3456|4567|5678|6789|abcd|qwer/.test(p.toLowerCase()))hints.push("存在连续字符序列（如 1234、abcd）");
+  if(p.length>=12&&!/[0-9]/.test(p.replace(/[^0-9]/g,""))&&pool>=52)hints.push("建议加入数字提高强度");
+  if(!hints.length)hints.push("很好！这个密码强度不错，记得不同网站使用不同密码。");
+  let idx=bits<28?0:bits<45?1:bits<60?2:bits<80?3:4;
+  const[name,color,w]=LV[idx];
+  $("bar").style.width=w+"%";$("bar").style.background=color;
+  $("level").textContent="强度："+name;$("level").style.color=color;
+  $("entropy").textContent="≈ "+Math.round(bits)+" bits 熵";
+  $("hints").innerHTML=hints.join("<br>");
+});
+</script>
+</body>
+</html>

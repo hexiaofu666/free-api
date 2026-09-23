@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSV在线转JSON - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="csv2json" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>分隔符</label>
+        <select id="delim">
+          <option value=",">逗号 ,</option>
+          <option value=";">分号 ;</option>
+          <option value="\t">制表符 Tab</option>
+          <option value="|">竖线 |</option>
+        </select>
+      </div>
+      <div class="fitem"><label>首行标题</label>
+        <select id="header">
+          <option value="1" selected>首行是表头（转为键名）</option>
+          <option value="0">首行是数据（生成列编号）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>数字转换</label>
+        <select id="numeric">
+          <option value="1" selected>数字列自动转为数值类型</option>
+          <option value="0">全部保留为字符串</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换为JSON</button>
+      <button class="fbtn brown" id="demoBtn">填充示例</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vin" style="margin-top:0;">
+      <textarea id="input" placeholder="在此粘贴 CSV 文本…" spellcheck="false"></textarea>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>JSON 结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于CSV转JSON介绍：</h4>
+    <ol>
+      <li>支持逗号、分号、制表符、竖线四种分隔符，自动处理引号包裹和转义（如 "a,b" 整体为一列）。</li>
+      <li>默认首行作为表头转为 JSON 键名；也可选择生成 col1、col2 等列编号。</li>
+      <li>数字列可自动识别为数值类型，方便程序直接处理。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+function parseCSV(text,delim){
+  const rows=[[]];
+  let cur="",inQ=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){
+        if(text[i+1]==='"'){cur+='"';i++;}
+        else inQ=false;
+      }else cur+=ch;
+    }else{
+      if(ch==='"')inQ=true;
+      else if(ch===delim){rows[rows.length-1].push(cur);cur="";}
+      else if(ch==="\n"||ch==="\r"){
+        if(ch==="\r"&&text[i+1]==="\n")i++;
+        rows[rows.length-1].push(cur);cur="";
+        rows.push([]);
+      }else cur+=ch;
+    }
+  }
+  rows[rows.length-1].push(cur);
+  return rows.filter(r=>r.length>1||(r.length===1&&r[0].trim()!==""));
+}
+$("runBtn").onclick=()=>{
+  const text=$("input").value;
+  if(!text.trim()){alert("请先粘贴 CSV 内容");return;}
+  let delim=$("delim").value;
+  if(delim==="\\t")delim="\t";
+  const rows=parseCSV(text,delim);
+  if(!rows.length){alert("未解析到有效数据");return;}
+  const hasHeader=$("header").value==="1";
+  const numeric=$("numeric").value==="1";
+  const toVal=v=>{
+    if(numeric&&/^-?\d+(\.\d+)?$/.test(v.trim()))return Number(v.trim());
+    return v;
+  };
+  let out;
+  if(hasHeader){
+    const head=rows[0].map((h,i)=>h.trim()||("col"+(i+1)));
+    out=rows.slice(1).map(r=>{
+      const o={};
+      head.forEach((h,i)=>o[h]=toVal(r[i]!==undefined?r[i]:""));
+      return o;
+    });
+  }else{
+    out=rows.map(r=>r.map(v=>toVal(v)));
+  }
+  $("output").value=JSON.stringify(out,null,2);
+  $("outBox").classList.add("on");
+};
+$("demoBtn").onclick=()=>{
+  $("input").value='姓名,年龄,城市\n张三,28,北京\n"李,四",32,上海\n王五,25,广州';
+  $("runBtn").click();
+};
+$("clearBtn").onclick=()=>{$("input").value="";$("output").value="";$("outBox").classList.remove("on");};
+$("copyBtn").onclick=()=>{$("output").select();document.execCommand("copy");};
+</script>
+</body>
+</html>

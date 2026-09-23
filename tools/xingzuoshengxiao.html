@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生肖星座在线查询 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.zo-result { font-size: 13px; line-height: 2.2; }
+.zo-result b { color: #ff6500; font-size: 15px; }
+.zo-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; }
+.zo-emoji { font-size: 34px; text-align: center; margin-bottom: 4px; }
+</style>
+</head>
+<body data-tool="xingzuoshengxiao" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>出生日期</label><input id="birth" placeholder="如 1995-08-15" value="1995-08-15"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始查询</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on" id="outBox">
+      <div class="vhead"><strong>查询结果</strong></div>
+      <div class="zo-result" id="result">输入出生日期后点击「开始查询」。</div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于生肖星座查询介绍：</h4>
+    <ol>
+      <li>星座按公历（阳历）出生日期划分，共 12 个星座。</li>
+      <li>生肖按出生年份计算，对应十二地支：鼠、牛、虎、兔、龙、蛇、马、羊、猴、鸡、狗、猪。</li>
+      <li>注意：严格来说生肖以立春或农历新年为界，本工具按公历年份粗略计算，春节前后出生者可能有一年误差。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const ZODIAC=[
+  ["水瓶座","♒",120,218],["双鱼座","♓",219,320],["白羊座","♈",321,419],
+  ["金牛座","♉",420,520],["双子座","♊",521,621],["巨蟹座","♋",622,722],
+  ["狮子座","♌",723,822],["处女座","♍",823,922],["天秤座","♎",923,1023],
+  ["天蝎座","♏",1024,1122],["射手座","♐",1123,1221],["摩羯座","♑",1222,1231]
+];
+function constellation(m,d){
+  const md=m*100+d;
+  for(const[name,icon,a,b]of ZODIAC)if(md>=a&&md<=b)return[name,icon];
+  return["摩羯座","♑"]; /* 1月1-19 */
+}
+const SHENGXIAO=["鼠","牛","虎","兔","龙","蛇","马","羊","猴","鸡","狗","猪"];
+$("runBtn").onclick=()=>{
+  const m=$("birth").value.trim().match(/^(\d{4})[-/年.](\d{1,2})[-/月.](\d{1,2})/);
+  if(!m) return alert("请输入出生日期，如 1995-08-15");
+  const y=+m[1], mo=+m[2], d=+m[3];
+  if(mo<1||mo>12||d<1||d>31) return alert("日期数值不正确");
+  const[name,icon]=constellation(mo,d);
+  const sx=SHENGXIAO[(y-4)%12];
+  $("result").innerHTML=`
+    <div class="zo-emoji">${icon}🐑</div>
+    <div class="zo-row"><span>星座</span><b>${name}</b></div>
+    <div class="zo-row"><span>生肖</span><b>属${sx}</b></div>
+    <div class="zo-row"><span>出生日期</span><span>${y} 年 ${mo} 月 ${d} 日</span></div>`;
+};
+$("clearBtn").onclick=()=>{$("result").innerHTML="输入出生日期后点击「开始查询」。";};
+</script>
+</body>
+</html>

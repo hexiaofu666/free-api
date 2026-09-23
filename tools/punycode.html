@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Punycode在线编码解码 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="punycode" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入中文域名或 Punycode 字符串...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>操作</label>
+        <select id="mode">
+          <option value="enc">编码（中文域名 → xn--）</option>
+          <option value="dec">解码（xn-- → 中文域名）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Punycode介绍：</h4>
+    <ol>
+      <li>Punycode 是 RFC 3492 定义的一种编码，用于把 Unicode 字符串转为纯 ASCII 字符串。</li>
+      <li>国际化域名（IDN）体系中，中文域名会被转为 xn-- 开头的 ASCII 形式才能被 DNS 解析。</li>
+      <li>例如「中文.com」会被编码为 xn--fiq228c.com。</li>
+      <li>本工具支持整条域名（含多个子域）的编码与解码。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const BASE=36,TMIN=1,TMAX=26,SKEW=38,DAMP=700,IB=72,IN=128;
+function adapt(delta,n,first){delta=first?Math.floor(delta/DAMP):delta>>1;delta+=Math.floor(delta/n);let k=0;while(delta>((BASE-TMIN)*TMAX)>>1){delta=Math.floor(delta/(BASE-TMIN));k+=BASE;}return k+Math.floor(((BASE-TMIN+1)*delta)/(delta+SKEW));}
+const dc=d=>d<26?String.fromCharCode(97+d):String.fromCharCode(48+d-26);
+const dv=c=>{const x=c.codePointAt(0);return x-48<10?x-22:(x-65<26?x-65:(x-97<26?x-97:BASE));};
+function pEncode(input) {
+  const cps=[...input].map(c=>c.codePointAt(0));
+  let out = cps.filter(c=>c<128).map(c=>String.fromCharCode(c));
+  const b = out.length;
+  if (b>0) out.push("-");
+  let n=IN, bias=IB, h=b, delta=0;
+  while (h<cps.length) {
+    let m=Infinity;
+    for (const c of cps) if (c>=n && c<m) m=c;
+    delta += (m-n)*(h+1); n=m;
+    for (const c of cps) {
+      if (c<n) delta++;
+      if (c===n) {
+        let q=delta;
+        for (let k=BASE;;k+=BASE) {
+          const t = k<=bias?TMIN : k>=bias+TMAX?TMAX : k-bias;
+          if (q<t) break;
+          out.push(dc(t+((q-t)%(BASE-t))));
+          q=Math.floor((q-t)/(BASE-t));
+        }
+        out.push(dc(q));
+        bias=adapt(delta,h+1,h===b); delta=0; h++;
+      }
+    }
+    delta++; n++;
+  }
+  return out.join("");
+}
+function pDecode(str) {
+  let n=IN,i=0,bias=IB;
+  const j = str.lastIndexOf("-");
+  const out = j>0 ? [...str.slice(0,j)].map(c=>c.codePointAt(0)) : [];
+  const rest = j>0 ? str.slice(j+1) : str;
+  let idx=0;
+  while (idx<rest.length) {
+    const oldi=i; let w=1;
+    for (let k=BASE;;k+=BASE) {
+      if (idx>=rest.length) throw "编码不完整";
+      const d=dv(rest[idx++]);
+      if (d>=BASE) throw "含非法字符";
+      i += d*w;
+      const t = k<=bias?TMIN : k>=bias+TMAX?TMAX : k-bias;
+      if (d<t) break;
+      w *= BASE-t;
+    }
+    bias=adapt(i-oldi,out.length+1,oldi===0);
+    n += Math.floor(i/(out.length+1));
+    i %= out.length+1;
+    out.splice(i,0,n);
+    i++;
+  }
+  return String.fromCodePoint(...out);
+}
+function encDomain(s){return s.split(".").map(l=>/[^\x00-\x7f]/.test(l)?"xn--"+pEncode(l):l).join(".");}
+function decDomain(s){return s.split(".").map(l=>/^xn--/i.test(l)?pDecode(l.slice(4)):l).join(".");}
+$("runBtn").onclick = () => {
+  try {
+    const s=$("input").value.trim();
+    if (!s) return alert("请输入内容");
+    $("output").value = $("mode").value==="enc" ? encDomain(s) : decDomain(s);
+    $("outBox").classList.add("on");
+  } catch(e) { alert("转换失败：" + e); }
+};
+$("demoBtn").onclick = () => { $("input").value="中文.com"; $("mode").value="enc"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

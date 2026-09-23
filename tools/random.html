@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>随机数在线生成 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.rand-out {
+  min-height: 200px; padding: 16px;
+  background: #f8f9fb; border-radius: 4px;
+  display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start;
+}
+.rand-chip {
+  background: #ff6500; color: #fff; border-radius: 6px;
+  padding: 8px 16px; font-size: 18px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.rand-tip { width: 100%; font-size: 13px; color: #bbb; }
+</style>
+</head>
+<body data-tool="random" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="rand-out" id="output"><span class="rand-tip">设置好范围和个数后，点击右侧"生成"按钮</span></div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>最小值</label><input type="number" id="min" value="1"></div>
+          <div class="fitem"><label>最大值</label><input type="number" id="max" value="100"></div>
+          <div class="fitem"><label>生成个数</label><input type="number" id="count" value="5" min="1" max="1000"></div>
+          <div class="fitem"><label>去重</label>
+            <select id="unique"><option value="1">不重复</option><option value="0">允许重复</option></select>
+          </div>
+        </div>
+        <button class="fbtn orange" id="genBtn">🎲 生成</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于随机数生成器工具介绍：</h4>
+    <p>自定义范围与个数批量生成随机数，支持去重模式，可用于抽奖、抽样、测试数据生成等场景。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+document.getElementById("genBtn").onclick = () => {
+  const min = Math.ceil(+document.getElementById("min").value);
+  const max = Math.floor(+document.getElementById("max").value);
+  const count = +document.getElementById("count").value;
+  const unique = document.getElementById("unique").value === "1";
+  const out = document.getElementById("output");
+  if (isNaN(min) || isNaN(max) || min > max) { out.innerHTML = '<span class="rand-tip">❌ 请检查最小值 / 最大值</span>'; return; }
+  if (unique && count > max - min + 1) { out.innerHTML = '<span class="rand-tip">❌ 范围内不重复的数字不够用</span>'; return; }
+  if (!count || count < 1 || count > 1000) { out.innerHTML = '<span class="rand-tip">❌ 个数需在 1~1000 之间</span>'; return; }
+  const set = new Set(), result = [];
+  while (result.length < count) {
+    const n = Math.floor(Math.random() * (max - min + 1)) + min;
+    if (unique) { if (!set.has(n)) { set.add(n); result.push(n); } }
+    else result.push(n);
+  }
+  out.innerHTML = result.map(n => `<div class="rand-chip">${n}</div>`).join("");
+};
+</script>
+</body>
+</html>

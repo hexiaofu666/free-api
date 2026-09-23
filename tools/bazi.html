@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>生辰八字在线查询 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+
+
+
+</head>
+<body data-tool="bazi">
+<div class="main"><div class="center">
+<div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <div class="bazi-grid" id="result">
+          <div class="bz-col"><div class="bz-h">年柱</div><div class="bz-gz" id="pYear">—</div><div class="bz-sx" id="pYearSx"></div></div>
+          <div class="bz-col"><div class="bz-h">月柱</div><div class="bz-gz" id="pMonth">—</div><div class="bz-sx"></div></div>
+          <div class="bz-col"><div class="bz-h">日柱</div><div class="bz-gz" id="pDay">—</div><div class="bz-sx"></div></div>
+          <div class="bz-col"><div class="bz-h">时柱</div><div class="bz-gz" id="pHour">—</div><div class="bz-sx"></div></div>
+        </div>
+        <div id="extra" style="margin-top:14px;font-size:13px;color:#666;line-height:2;"></div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>公历年</label><input type="number" id="y" value="2000" min="1901" max="2099"></div>
+          <div class="fitem"><label>公历月</label><input type="number" id="m" value="1" min="1" max="12"></div>
+          <div class="fitem"><label>公历日</label><input type="number" id="d" value="1" min="1" max="31"></div>
+          <div class="fitem"><label>时辰</label>
+            <select id="h">
+              <option value="-1">不知道/不填</option>
+              <option value="0">子时 23:00-00:59</option>
+              <option value="1">丑时 01:00-02:59</option>
+              <option value="2">寅时 03:00-04:59</option>
+              <option value="3">卯时 05:00-06:59</option>
+              <option value="4">辰时 07:00-08:59</option>
+              <option value="5">巳时 09:00-10:59</option>
+              <option value="6">午时 11:00-12:59</option>
+              <option value="7">未时 13:00-14:59</option>
+              <option value="8">申时 15:00-16:59</option>
+              <option value="9">酉时 17:00-18:59</option>
+              <option value="10">戌时 19:00-20:59</option>
+              <option value="11">亥时 21:00-22:59</option>
+            </select>
+          </div>
+        </div>
+        <button class="fbtn green" id="runBtn">查询八字</button>
+        <button class="fbtn plain" id="nowBtn">用今天</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于生辰八字查询工具介绍：</h4>
+    <ol>
+      <li><strong>什么是生辰八字：</strong>八字即出生的年、月、日、时四个时间单位，各自用一组的干支表示，共八个字，也称四柱。传统命理以四柱干支为框架推算五行与运势。</li>
+      <li><strong>计算依据：</strong>
+        <ul>
+          <li>年柱以<strong>立春</strong>为界，立春前出生属上一年；</li>
+          <li>月柱以十二<strong>节</strong>（立春、惊蛰、清明等）为界，而非农历月初一；</li>
+          <li>日柱按公历连续纪日推算；</li>
+          <li>时柱按十二时辰划分，23:00-00:59 为子时。</li>
+        </ul>
+      </li>
+      <li><strong>数据来源：</strong>节气日期采用寿星天文历精确数据（1901-2099），与传统万年历一致。</li>
+      <li><strong>说明：</strong>本工具仅作传统历法换算与学习参考，不构成任何命理建议。</li>
+    </ol>
+  </div>
+</div>
+</div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/jieqi-data.js"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const GAN="甲乙丙丁戊己庚辛壬癸",ZHI="子丑寅卯辰巳午未申酉戌亥";
+const SX=["鼠","牛","虎","兔","龙","蛇","马","羊","猴","鸡","狗","猪"];
+const B32="0123456789abcdefghijklmnopqrstuv";
+const NAME=["小寒","大寒","立春","雨水","惊蛰","春分","清明","谷雨","立夏","小满","芒种","夏至","小暑","大暑","立秋","处暑","白露","秋分","寒露","霜降","立冬","小雪","大雪","冬至"];
+const JIE=[0,2,4,6,8,10,12,14,16,18,20,22];           /* 12节在表中的序号 */
+const JIE_ZHI=[1,2,3,4,5,6,7,8,9,10,11,0];            /* 对应月支：丑寅卯辰巳午未申酉戌亥子 */
+
+/* 日柱：距 2000-01-01（戊午=54）的天数偏移（先减 1970 纪元 10957 天） */
+function dayPillar(y,m,d){const i=(((Math.floor(Date.UTC(y,m-1,d)/86400000)-10957)+54)%60+60)%60;return GAN[i%10]+ZHI[i%12];}
+
+/* 节气日（某年某序号的公历日） */
+function jqDate(y,idx){return B32.indexOf(JIEQI_YEARS[y][idx])+1;}
+
+/* 年柱（立春分界） */
+function yearPillar(y,m,d){
+  const ly=(m<2||(m===2&&d<jqDate(y,2)))?y-1:y;
+  return {gz:GAN[(ly-4)%10]+ZHI[(ly-4)%12],y:ly};
+}
+
+/* 月柱（以12节分界，含跨年子月；用 月×40+日 绝对值比较） */
+function monthPillar(y,m,d){
+  const yP=yearPillar(y,m,d);
+  const abs=m*40+d;
+  const jieAbs=JIE.map(j=>(j/2+1)*40+jqDate(y,j));      /* 小寒=1月 ... 大雪=12月 */
+  if(abs<jieAbs[0]){                                     /* 小寒之前 -> 上年子月 */
+    const ygIdx=((y-1)-4)%10;
+    const first=[2,4,6,8,0][ygIdx%5];
+    return GAN[(first+10)%10]+ZHI[0];
+  }
+  let baseJie=11;
+  for(let k=0;k<12;k++){
+    const start=jieAbs[k];
+    const end=(k<11)?jieAbs[k+1]:(12*40+32);
+    if(abs>=start&&abs<end){baseJie=k;break;}
+  }
+  const branch=JIE_ZHI[baseJie];
+  const yg=GAN.indexOf(yP.gz[0]);
+  const first=[2,4,6,8,0][yg%5];
+  const mg=(first+((branch-2+12)%12))%10;
+  return GAN[mg]+ZHI[branch];
+}
+
+/* 时柱：五鼠遁 */
+function hourPillar(dayGz,hIdx){
+  if(hIdx<0)return null;
+  const dg=GAN.indexOf(dayGz[0]);
+  const first=[0,2,4,6,8][dg%5];                  /* 子时起甲丙戊庚壬 */
+  const hg=(first+hIdx)%10;
+  return GAN[hg]+ZHI[hIdx];
+}
+
+function render(){
+  const y=+$("y").value,m=+$("m").value,d=+$("d").value,h=+$("h").value;
+  if(!JIEQI_YEARS[y]||!JIEQI_YEARS[y-1]||!JIEQI_YEARS[y+1]){alert("仅支持 1902-2098 年");return;}
+  const yp=yearPillar(y,m,d),mp=monthPillar(y,m,d),dp=dayPillar(y,m,d),hp=hourPillar(dp,h);
+  $("pYear").textContent=yp.gz;  $("pYearSx").textContent=SX[(yp.y-4)%12]+"年";
+  $("pMonth").textContent=mp;
+  $("pDay").textContent=dp;
+  $("pHour").textContent=hp||"—";
+  const dt=new Date(Date.UTC(y,m-1,d));
+  const wd="日一二三四五六"[dt.getUTCDay()];
+  const lz=yearPillar(y,m,d).y;
+  let ext=`公历 ${y}年${m}月${d}日（星期${wd}） · 生肖${SX[(lz-4)%12]} · ${GAN[(lz-4)%10]}${ZHI[(lz-4)%12]}年`;
+  if(hp)ext+=`<br>时辰：${hp}时（${NAME_CHECK(h)}）`;
+  $("extra").innerHTML=ext;
+}
+function NAME_CHECK(h){const n=["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];return n[h]+"时";}
+$("runBtn").onclick=render;
+$("nowBtn").onclick=()=>{const t=new Date();$("y").value=t.getFullYear();$("m").value=t.getMonth()+1;$("d").value=t.getDate();render();};
+render();
+</script>
+</body>
+</html>

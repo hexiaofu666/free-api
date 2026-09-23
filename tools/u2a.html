@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unicode与ASCII在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="u2a" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入文本或码点数字（如 72 101 108）...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>操作</label>
+        <select id="mode">
+          <option value="enc">文本 → ASCII/Unicode 码点</option>
+          <option value="dec">ASCII/Unicode 码点 → 文本</option>
+        </select>
+      </div>
+      <div class="fitem"><label>进制</label>
+        <select id="radix">
+          <option value="10">十进制</option>
+          <option value="16">十六进制</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Unicode与ASCII介绍：</h4>
+    <ol>
+      <li>ASCII 是最早的字符编码标准，用 0-127 的数字表示英文字母、数字与常用符号。</li>
+      <li>Unicode 是覆盖全球文字的字符集，每个字符都有唯一的码点（如「中」= U+4E2D）。</li>
+      <li>本工具可将文本逐字符转为码点数字，也可把码点数字还原为文本。</li>
+      <li>支持十进制与十六进制两种进制表示，十六进制请直接输入不带 0x 前缀的值。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+$("runBtn").onclick = () => {
+  const s=$("input").value, r=+$("radix").value;
+  if (!s.trim()) return alert("请输入内容");
+  let out;
+  if ($("mode").value === "enc") {
+    out = [...s].map(c => c.codePointAt(0).toString(r)).join(" ");
+  } else {
+    out = s.trim().split(/[\s,]+/).map(x => String.fromCodePoint(parseInt(x, r))).join("");
+  }
+  $("output").value = out;
+  $("outBox").classList.add("on");
+};
+$("demoBtn").onclick = () => { $("input").value="Hello"; $("mode").value="enc"; $("radix").value="10"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

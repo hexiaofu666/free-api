@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时间戳在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.now-box { background: #fff7f2; border-radius: 6px; padding: 16px; text-align: center; font-size: 13px; color: #888ea2; margin-bottom: 16px; }
+.now-ts { font-size: 24px; font-weight: 700; color: #ff6500; font-variant-numeric: tabular-nums; margin-left: 8px; }
+.conv-row { display: flex; gap: 0; margin-bottom: 10px; }
+.conv-row input, .conv-row select { flex: 1; min-width: 0; height: 34px; border: 1px solid #eee; border-radius: 4px 0 0 4px; padding: 0 10px; font-size: 13px; outline: none; font-family: inherit; }
+.conv-row button { width: 84px; border: none; background: #2196F3; color: #fff; border-radius: 0 4px 4px 0; cursor: pointer; font-size: 13px; }
+.result { background: #f8f9fb; border-radius: 4px; padding: 10px 12px; font-size: 13px; min-height: 36px; word-break: break-all; color: #34495e; }
+</style>
+</head>
+<body data-tool="timestamp" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mlf">
+      <div class="now-box">当前 Unix 时间戳（秒）<span class="now-ts" id="nowTs">--</span></div>
+      <p style="font-size:13px;color:#555;margin-bottom:8px;">时间戳 → 日期</p>
+      <div class="conv-row">
+        <input id="tsInput" placeholder="输入时间戳，如 1727097600（兼容毫秒级）">
+        <button id="tsBtn">转换</button>
+      </div>
+      <div class="result" id="tsResult" style="margin-bottom:18px;"></div>
+      <p style="font-size:13px;color:#555;margin-bottom:8px;">日期 → 时间戳</p>
+      <div class="conv-row">
+        <input type="datetime-local" id="dateInput">
+        <button id="dateBtn">转换</button>
+      </div>
+      <div class="result" id="dateResult"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于时间戳转换工具介绍：</h4>
+    <p>Unix 时间戳与日期时间的双向在线转换工具，支持秒级与毫秒级时间戳，是开发调试中处理时间的常用工具。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const nowTs = document.getElementById("nowTs");
+setInterval(() => { nowTs.textContent = Math.floor(Date.now() / 1000); }, 500);
+nowTs.textContent = Math.floor(Date.now() / 1000);
+function fmt(d) {
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+document.getElementById("tsBtn").onclick = () => {
+  const v = document.getElementById("tsInput").value.trim();
+  const out = document.getElementById("tsResult");
+  if (!/^\d+$/.test(v)) { out.textContent = "❌ 请输入纯数字时间戳"; return; }
+  let num = +v;
+  if (v.length === 13) num = Math.floor(num / 1000);
+  const d = new Date(num * 1000);
+  out.textContent = isNaN(d.getTime()) ? "❌ 时间戳无效" : `✅ ${fmt(d)}`;
+};
+document.getElementById("dateBtn").onclick = () => {
+  const v = document.getElementById("dateInput").value;
+  const out = document.getElementById("dateResult");
+  if (!v) { out.textContent = "❌ 请先选择日期时间"; return; }
+  const d = new Date(v);
+  out.textContent = `✅ 秒级：${Math.floor(d.getTime()/1000)}　毫秒级：${d.getTime()}`;
+};
+</script>
+</body>
+</html>

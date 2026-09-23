@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ULID在线生成 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="ulid" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>生成数量</label><input type="number" id="num" value="5" min="1" max="100"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">批量生成</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>生成结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly style="min-height:160px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于ULID介绍：</h4>
+    <ol>
+      <li>ULID（Universally Unique Lexicographically Sortable Identifier）是可按字典序排序的唯一 ID。</li>
+      <li>结构：前 10 字符为毫秒级时间戳（48 bit），后 16 字符为随机数（80 bit），共 26 字符。</li>
+      <li>使用 Crockford Base32 编码（不含 I、L、O、U），全部大写，无特殊符号。</li>
+      <li>与 UUID 相比，ULID 天然按生成时间排序，适合数据库索引场景。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const $=id=>document.getElementById(id);
+const CROCK="0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+function randBits(n){
+  const bytes=new Uint8Array(Math.ceil(n/8));
+  crypto.getRandomValues(bytes);
+  return [...bytes];
+}
+function ulid(){
+  const ts=Date.now();
+  let timeStr="";
+  let t=ts;
+  for(let i=9;i>=0;i--){timeStr=CROCK[t%32]+timeStr;t=Math.floor(t/32);}
+  const bytes=randBits(80);
+  /* 时间戳之后的 80 bit 随机数逐位拼接 */
+  let bitStr=bytes.map(b=>b.toString(2).padStart(8,"0")).join("").slice(0,80);
+  randStr="";
+  for(let i=0;i<16;i++)randStr+=CROCK[parseInt(bitStr.slice(i*5,i*5+5),2)];
+  return timeStr+randStr;
+}
+$("runBtn").onclick=()=>{
+  const out=[];
+  for(let i=0;i<+$("num").value;i++)out.push(ulid());
+  $("output").value=out.join("\n");
+  $("outBox").classList.add("on");
+};
+$("clearBtn").onclick=()=>{$("output").value="";$("outBox").classList.remove("on");};
+$("copyBtn").onclick=()=>{$("output").select();document.execCommand("copy");};
+</script>
+</body>
+</html>

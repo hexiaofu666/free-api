@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMI在线计算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+.bmi-num { text-align: center; padding: 20px 0; }
+.bmi-value { font-size: 72px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bmi-tag { display: inline-block; margin-top: 8px; padding: 5px 18px; border-radius: 999px; color: #fff; font-size: 14px; }
+.bmi-range { font-size: 12px; color: #bbb; margin-top: 12px; line-height: 2; }
+</style>
+</head>
+<body data-tool="bmi" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="display:flex;align-items:center;justify-content:center;">
+        <div class="bmi-num" id="result">
+          <div class="bmi-value" style="color:#ccc">--</div>
+          <div class="bmi-range">输入身高体重后点击"计算 BMI"</div>
+        </div>
+      </div>
+      <div class="mlr">
+        <div class="fbox">
+          <div class="fitem"><label>性别</label>
+            <select id="gender"><option value="m">男</option><option value="f">女</option></select>
+          </div>
+          <div class="fitem"><label>身高</label><input type="number" id="height" value="170" min="50" max="250"><span style="margin-left:8px;font-size:13px;color:#888;">cm</span></div>
+          <div class="fitem"><label>体重</label><input type="number" id="weight" value="60" min="20" max="300"><span style="margin-left:8px;font-size:13px;color:#888;">kg</span></div>
+        </div>
+        <button class="fbtn green" id="calcBtn">计算 BMI</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于BMI体重计算工具介绍：</h4>
+    <p>BMI（身体质量指数）= 体重(kg) ÷ 身高(m)²，是国际通用的胖瘦健康指标：偏瘦 &lt;18.5，正常 18.5~24，偏胖 24~28，肥胖 ≥28（中国标准）。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const LEVELS = [
+  { max: 18.5, name: "偏瘦", color: "#5b9df9" },
+  { max: 24,   name: "正常", color: "#06b672" },
+  { max: 28,   name: "偏胖", color: "#FF9800" },
+  { max: 999,  name: "肥胖", color: "#f44336" },
+];
+document.getElementById("calcBtn").onclick = () => {
+  const h = +document.getElementById("height").value / 100;
+  const w = +document.getElementById("weight").value;
+  const out = document.getElementById("result");
+  if (!h || !w || h < 0.5 || w < 20) { out.querySelector(".bmi-value").textContent = "--"; return; }
+  const bmi = w / (h * h);
+  const lv = LEVELS.find(l => bmi < l.max);
+  out.innerHTML = `
+    <div class="bmi-value" style="color:${lv.color}">${bmi.toFixed(1)}</div>
+    <div class="bmi-tag" style="background:${lv.color}">${lv.name}</div>
+    <div class="bmi-range">BMI = 体重(kg) ÷ 身高(m)²<br>偏瘦 &lt;18.5 · 正常 18.5~24 · 偏胖 24~28 · 肥胖 ≥28</div>`;
+};
+</script>
+</body>
+</html>

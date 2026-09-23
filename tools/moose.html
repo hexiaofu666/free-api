@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>摩斯密码在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+</head>
+<body data-tool="moose" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入文本或摩斯电码（如 .... . .-.. .-.. ---）...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>操作</label>
+        <select id="mode">
+          <option value="enc">编码（文本 → 摩斯密码）</option>
+          <option value="dec">解码（摩斯密码 → 文本）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>播放声音</label>
+        <select id="sound">
+          <option value="0">不播放</option>
+          <option value="1">播放电码声</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于摩斯密码介绍：</h4>
+    <ol>
+      <li>摩斯密码（Morse Code）通过点（·）、划（—）及间隔组合表示字母、数字与符号。</li>
+      <li>字母之间用空格分隔，单词之间用斜杠（/）分隔。</li>
+      <li>1837 年由塞缪尔·摩斯发明，最初用于电报通信，至今仍在航海、航空求救领域使用（SOS = ···———···）。</li>
+      <li>本工具支持编码解码，并可播放对应的电码声。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const MORSE = {A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",J:".---",K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",S:"...",T:"-",U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--..","0":"-----","1":".----","2":"..---","3":"...--","4":"....-","5":".....","6":"-....","7":"--...","8":"---..","9":"----.",".":".-.-.-",",":"--..--","?":"..--..","!":"-.-.--","/":"-..-.","(":"-.--.",")":"-.--.-","&":".-...",":":"---...",";":"-.-.-.","=":"-...-","+":".-.-.","-":"-....-","_":"..--.-",'"':".-..-.","@":".--.-."};
+const REV = {}; for (const k in MORSE) REV[MORSE[k]] = k;
+const $=id=>document.getElementById(id);
+function playMorse(code) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const unit = 0.09; let t = ctx.currentTime + 0.1;
+    for (const c of code) {
+      if (c === ".") { tone(ctx, t, unit); t += unit * 2; }
+      else if (c === "-") { tone(ctx, t, unit * 3); t += unit * 4; }
+      else if (c === " ") t += unit * 2;
+      else if (c === "/") t += unit * 4;
+    }
+    function tone(ctx, start, dur) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = 600; o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.25, start); g.gain.setValueAtTime(0, start + dur);
+      o.start(start); o.stop(start + dur);
+    }
+  } catch (e) {}
+}
+$("runBtn").onclick = () => {
+  const s = $("input").value.trim();
+  if (!s) return alert("请输入内容");
+  let out;
+  if ($("mode").value === "enc") {
+    out = s.toUpperCase().split(/\s+/).map(w => [...w].map(c => MORSE[c] || "").filter(Boolean).join(" ")).join(" / ");
+  } else {
+    out = s.split("/").map(w => w.trim().split(/\s+/).map(m => REV[m] || "").join("")).join(" ").trim();
+  }
+  $("output").value = out;
+  $("outBox").classList.add("on");
+  if ($("sound").value === "1" && $("mode").value === "enc") playMorse(out);
+};
+$("demoBtn").onclick = () => { $("input").value="SOS"; $("mode").value="enc"; $("runBtn").click(); };
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

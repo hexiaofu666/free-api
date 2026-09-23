@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>字数在线统计 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.1">
+<style>
+textarea.in { width: 100%; height: 220px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: inherit; color: #34495e; }
+textarea.in:focus { border-color: #d0d0d0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 16px; }
+.stat-item { background: #f8f9fb; border-radius: 6px; padding: 12px; text-align: center; }
+.stat-num { font-size: 22px; font-weight: 700; color: #ff6500; font-variant-numeric: tabular-nums; }
+.stat-label { font-size: 12px; color: #888ea2; margin-top: 3px; }
+</style>
+</head>
+<body data-tool="wordcount" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mlf">
+      <textarea class="in" id="input" placeholder="在这里粘贴或输入文字，统计数据实时更新..."></textarea>
+      <div class="stats">
+        <div class="stat-item"><div class="stat-num" id="s-total">0</div><div class="stat-label">总字符数</div></div>
+        <div class="stat-item"><div class="stat-num" id="s-cn">0</div><div class="stat-label">中文字数</div></div>
+        <div class="stat-item"><div class="stat-num" id="s-en">0</div><div class="stat-label">英文单词数</div></div>
+        <div class="stat-item"><div class="stat-num" id="s-num">0</div><div class="stat-label">数字个数</div></div>
+        <div class="stat-item"><div class="stat-num" id="s-lines">0</div><div class="stat-label">行数</div></div>
+        <div class="stat-item"><div class="stat-num" id="s-nospace">0</div><div class="stat-label">不计空格</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于字数统计工具介绍：</h4>
+    <p>在线字数统计工具，支持统计总字符数、中文字数、英文单词数、数字个数、行数与不计空格字符数，数据实时更新，是写作、投稿、文案编辑的好帮手。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.1"></script>
+<script src="../assets/chrome.js?v=1.5.1"></script>
+<script>
+const input = document.getElementById("input");
+input.addEventListener("input", () => {
+  const t = input.value;
+  document.getElementById("s-total").textContent = t.length;
+  document.getElementById("s-cn").textContent = (t.match(/[\u4e00-\u9fa5]/g) || []).length;
+  document.getElementById("s-en").textContent = (t.match(/[a-zA-Z]+/g) || []).length;
+  document.getElementById("s-num").textContent = (t.match(/[0-9]/g) || []).length;
+  document.getElementById("s-lines").textContent = t === "" ? 0 : t.split("\n").length;
+  document.getElementById("s-nospace").textContent = t.replace(/\s/g, "").length;
+});
+</script>
+</body>
+</html>

@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.2"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<script src="../assets/theme.js?v=1.5.3"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.3">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -64,13 +64,20 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.5.2"></script>
-<script src="../assets/chrome.js?v=1.5.2"></script>
+<script src="../assets/tools-data.js?v=1.5.3"></script>
+<script src="../assets/chrome.js?v=1.5.3"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.5.3", date: "2026-09-24",
+    items: [
+      ["new", "新增 10 款开发/效率工具：ASCII码对照表、字符串ASCII互换、半角全角转换、罗马数字转换、HEX与字符转换、UTF8与字符串互转、驼峰下划线转换、连续日期生成器、随机IP地址生成、随机MAC地址"],
+      ["fix", "罗马数字支持 1-3999 全量转换并校验规范写法；驼峰转换支持 JS/PHP/Java/Go/Python/CSS 六类语法识别"],
+    ]
+  },
   {
     ver: "v1.5.2", date: "2026-09-24",
     items: [

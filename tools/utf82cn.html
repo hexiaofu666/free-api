@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTF8编码在线转换 - 词海工具箱</title>
+<meta name="description" content="UTF-8与字符串在线互转工具：支持中文、英文、表情等任意字符与 UTF-8 十六进制字节互相转换，可选择是否空格分割，适合调试编码问题。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="utf82cn" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>编码分割</label>
+        <select id="split">
+          <option value="1" selected>空格分割（E5 B7 A5）</option>
+          <option value="0">不进行分割（E5B7A5）</option>
+        </select>
+      </div>
+    </div>
+    <div class="vin"><textarea id="src" placeholder="在此输入字符串或 UTF-8 十六进制字节，例如：工 或 E5 B7 A5"></textarea></div>
+    <div class="abar">
+      <button class="fbtn teal" id="toUtf8">字符串转UTF8</button>
+      <button class="fbtn brown" id="toStr">UTF8转字符串</button>
+      <button class="fbtn plain" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制结果</span></div>
+      <textarea id="res" readonly placeholder="结果显示在这里"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于UTF8与字符串互转工具介绍：</h4>
+    <ol>
+      <li>UTF8 与字符串互转工具：一款简单、精准的在线编码助手，支持任意 Unicode 字符（中文、英文、表情、符号等）与 UTF-8 十六进制之间的双向转换。</li>
+      <li>双向转换：一键将字符串转为 UTF-8 字节（十六进制），或将 UTF-8 字节解码为原文。</li>
+      <li>灵活格式：可选择十六进制输出是否用空格分隔，满足不同使用习惯（如 E5 B7 A5 或 E5B7A5）。</li>
+      <li>UTF-8 是 Unicode 字符集的一种变长编码，使用 1 到 4 个字节表示字符：英文字母 A → 41（1 字节），汉字 工 → E5 B7 A5（3 字节），表情 😊 → F0 9F 98 8A（4 字节）。</li>
+      <li>超过 90% 的网页使用 UTF-8，它也是 HTML、JSON、XML、数据库等领域的默认编码。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+$("toUtf8").onclick = () => {
+  const s = $("src").value;
+  if (!s) { $("res").value = ""; return alert("请先输入要转换的字符串"); }
+  const hex = [...new TextEncoder().encode(s)].map(b => b.toString(16).toUpperCase().padStart(2, "0"));
+  $("res").value = $("split").value === "1" ? hex.join(" ") : hex.join("");
+};
+
+$("toStr").onclick = () => {
+  const raw = $("src").value;
+  if (!raw.trim()) { $("res").value = ""; return alert("请先输入 UTF-8 十六进制字节"); }
+  const cleaned = raw.replace(/0[xX]/g, "").replace(/[\\:,\-;\s]/g, "");
+  if (!/^[0-9a-fA-F]*$/.test(cleaned)) { $("res").value = "❌ 转换失败：包含非十六进制字符"; return; }
+  if (cleaned.length % 2 !== 0) { $("res").value = "❌ 转换失败：字符个数必须为偶数（每字节 2 位）"; return; }
+  const bytes = new Uint8Array(cleaned.length / 2);
+  for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(cleaned.substr(i * 2, 2), 16);
+  $("res").value = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+};
+
+$("clearBtn").onclick = () => { $("src").value = ""; $("res").value = ""; };
+$("copyBtn").onclick = () => {
+  if (!$("res").value) return alert("还没有转换结果");
+  navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+</script>
+</body>
+</html>

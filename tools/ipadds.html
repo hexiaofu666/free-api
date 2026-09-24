@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>随机IP地址在线生成 - 词海工具箱</title>
+<meta name="description" content="随机IP地址生成器：在线批量生成 IPv4（A/B/C/D/E 类可选）与 IPv6 地址，支持设置生成数量与是否去重，一键复制。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="ipadds" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>协议版本</label>
+        <select id="ver">
+          <option value="4" selected>IPv4</option>
+          <option value="6">IPv6</option>
+        </select>
+      </div>
+      <div class="fitem" id="typeWrap"><label>地址类型</label>
+        <select id="type">
+          <option value="any" selected>任意（0.0.0.0 - 255.255.255.255）</option>
+          <option value="A">A 类（1.0.0.0 - 126.255.255.255）</option>
+          <option value="B">B 类（128.0.0.0 - 191.255.255.255）</option>
+          <option value="C">C 类（192.0.0.0 - 223.255.255.255）</option>
+          <option value="D">D 类（224.0.0.0 - 239.255.255.255）</option>
+          <option value="E">E 类（240.0.0.0 - 255.255.255.255）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>生成数量</label><input type="number" id="cnt" value="10" min="1" max="200"></div>
+      <div class="fitem"><label>是否重复</label>
+        <select id="uniq">
+          <option value="1" selected>不重复</option>
+          <option value="0">允许重复</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成IP地址</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成的 IP 地址</strong></div>
+      <textarea id="res" readonly placeholder="结果显示在这里"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于随机IP地址生成器介绍：</h4>
+    <ol>
+      <li>你可以使用本工具批量生成 IPv4 或 IPv6 地址，最多一次 200 个。</li>
+      <li>IPv4 可以分类型进行随机生成，比如 A 类地址、B 类地址。</li>
+      <li>可以限制生成的多个 IP 中是否可以重复。</li>
+      <li>IPv4 A 类地址范围：0.0.0.0 到 127.255.255.255；B 类：128.0.0.0 到 191.255.255.255；C 类：192.0.0.0 到 223.255.255.255。</li>
+      <li>IPv4 D 类地址范围：224.0.0.0 到 239.255.255.255（组播）；E 类：240.0.0.0 到 255.255.255.255（保留）。</li>
+      <li>生成的地址为随机测试数据，仅用于开发调试、数据填充等用途。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+const RANGE = { A: [1, 126], B: [128, 191], C: [192, 223], D: [224, 239], E: [240, 255] };
+
+const rnd = n => Math.floor(Math.random() * n);
+
+function genV4(type) {
+  let h1;
+  if (type === "any") h1 = rnd(256);
+  else { const [a, b] = RANGE[type]; h1 = a + rnd(b - a + 1); }
+  if (type === "any") {
+    return [h1, rnd(256), rnd(256), rnd(256)].join(".");
+  }
+  return [h1, rnd(256), rnd(256), rnd(256)].join(".");
+}
+
+function genV6() {
+  const seg = [];
+  for (let i = 0; i < 8; i++) seg.push(rnd(65536).toString(16));
+  return seg.join(":");
+}
+
+$("ver").onchange = () => {
+  const v4 = $("ver").value === "4";
+  $("typeWrap").style.display = v4 ? "flex" : "none";
+};
+
+$("runBtn").onclick = () => {
+  let cnt = parseInt($("cnt").value, 10);
+  if (isNaN(cnt) || cnt < 1) return alert("请输入有效的生成数量（1 - 200）");
+  if (cnt > 200) { cnt = 200; $("cnt").value = 200; }
+  const v4 = $("ver").value === "4";
+  const type = $("type").value;
+  const uniq = $("uniq").value === "1";
+  const out = [], seen = new Set();
+  let guard = 0;
+  while (out.length < cnt && guard < cnt * 200) {
+    guard++;
+    const ip = v4 ? genV4(type) : genV6();
+    if (uniq && seen.has(ip)) continue;
+    seen.add(ip);
+    out.push(ip);
+  }
+  $("res").value = out.join("\n");
+  $("tip").textContent = "已生成 " + out.length + " 个" + (v4 ? "IPv4" : "IPv6") + "地址" + (uniq ? "（不重复）" : "");
+};
+
+$("copyBtn").onclick = () => {
+  if (!$("res").value) return alert("请先生成 IP 地址");
+  navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("clearBtn").onclick = () => { $("res").value = ""; $("tip").textContent = "生成的 IP 地址"; };
+</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII码表在线查询 - 词海工具箱</title>
+<meta name="description" content="ASCII码对照表在线查询：完整收录 ASCII 控制字符、可显示字符与扩展 ASCII 码的二进制、八进制、十进制、十六进制及 HTML 实体对照，支持搜索。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<style>
+.tb-wrap { overflow: auto; max-height: 560px; border: 1px solid #eee; border-radius: 4px; }
+table.ascii-tb { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.ascii-tb th, table.ascii-tb td { border: 1px solid #eee; padding: 6px 8px; text-align: center; white-space: nowrap; color: #555; }
+table.ascii-tb th { background: #fafafa; position: sticky; top: 0; font-weight: 600; color: #333; }
+table.ascii-tb tr:hover td { background: #fff8f2; }
+table.ascii-tb td.sym { font-family: Consolas, Monaco, monospace; color: var(--orange); font-weight: 700; }
+.ch-title { font-size: 13px; font-weight: 700; color: var(--orange); margin: 0 0 8px; }
+.ch-desc { font-size: 12px; color: #888; margin: 0 0 10px; }
+html.dark .tb-wrap { border-color: #2c2f33; }
+html.dark table.ascii-tb th { background: #24272a; color: #d5d9e0; }
+html.dark table.ascii-tb th, html.dark table.ascii-tb td { border-color: #2c2f33; color: #a8adb8; }
+html.dark table.ascii-tb tr:hover td { background: #2a2d30; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="asciilist" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="输入十进制/十六进制/字符，如 65、41、A、空格"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">搜索字符</button>
+      <button class="fbtn brown" id="allBtn">显示全部</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on" id="outBox">
+      <div class="vhead"><strong id="tip">ASCII 码对照表（共 128 个基本字符）</strong></div>
+      <div id="tables"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于ASCII码表介绍：</h4>
+    <ol>
+      <li>ASCII（美国信息交换标准代码）是计算机最基础的字符编码，用 7 位二进制数表示 128 个字符。</li>
+      <li>0～31 与 127 为控制字符，用于控制文本格式与通信协议，屏幕上通常不显示。</li>
+      <li>32～126 为可显示字符，包含空格、数字、英文字母、标点符号。</li>
+      <li>128～255 为扩展 ASCII（Windows-1252），用于表示欧洲语言字母、货币符号等，其中部分对应 HTML 实体。</li>
+      <li>支持按十进制、十六进制、二进制或字符本身搜索，例如输入 65、0x41、A 都能定位到大写字母 A。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* 控制字符 0-31 与 127 */
+const CTRL = [[0,"NUL","空字符（Null）"],[1,"SOH","标题开始"],[2,"STX","本文开始"],[3,"ETX","本文结束"],[4,"EOT","传输结束"],
+[5,"ENQ","请求"],[6,"ACK","确认回应"],[7,"BEL","响铃"],[8,"BS","退格"],[9,"HT","水平定位符号"],[10,"LF","换行键"],
+[11,"VT","垂直定位符号"],[12,"FF","换页键"],[13,"CR","归位键"],[14,"SO","取消变换（Shift out）"],[15,"SI","启用变换（Shift in）"],
+[16,"DLE","跳出数据通讯"],[17,"DC1","设备控制一（XON 启用软件速度控制）"],[18,"DC2","设备控制二"],[19,"DC3","设备控制三（XOFF 停用软件速度控制）"],
+[20,"DC4","设备控制四"],[21,"NAK","确认失败回应"],[22,"SYN","同步用暂停"],[23,"ETB","区块传输结束"],[24,"CAN","取消"],
+[25,"EM","连接介质中断"],[26,"SUB","替换"],[27,"ESC","跳出"],[28,"FS","文件分割符"],[29,"GS","组群分隔符"],[30,"RS","记录分隔符"],
+[31,"US","单元分隔符"],[127,"DEL","删除"]];
+
+/* Windows-1252 符号表（128-159） */
+const WIN1252 = {128:"€",130:"‚",131:"ƒ",132:"„",133:"…",134:"†",135:"‡",136:"ˆ",137:"‰",138:"Š",139:"‹",140:"Œ",142:"Ž",
+145:"‘",146:"’",147:"“",148:"”",149:"•",150:"–",151:"—",152:"˜",153:"™",154:"š",155:"›",156:"œ",158:"ž",159:"Ÿ"};
+
+/* HTML 实体名（128-159 部分 + 160-255 全部） */
+const ENT = {128:"euro",132:"bdquo",133:"hellip",134:"dagger",135:"Dagger",136:"circ",137:"permil",138:"Scaron",139:"lsaquo",
+140:"OElig",145:"lsquo",146:"rsquo",147:"ldquo",148:"rdquo",149:"bull",150:"ndash",151:"mdash",152:"tilde",153:"trade",
+154:"scaron",155:"rsaquo",156:"oelig",160:"nbsp",161:"iexcl",162:"cent",163:"pound",164:"curren",165:"yen",166:"brvbar",
+167:"sect",168:"uml",169:"copy",170:"ordf",171:"laquo",172:"not",173:"shy",174:"reg",175:"macr",176:"deg",177:"plusmn",
+178:"sup2",179:"sup3",180:"acute",181:"micro",182:"para",183:"middot",184:"cedil",185:"sup1",186:"ordm",187:"raquo",
+188:"frac14",189:"frac12",190:"frac34",191:"iquest",192:"Agrave",193:"Aacute",194:"Acirc",195:"Atilde",196:"Auml",
+197:"Aring",198:"AElig",199:"Ccedil",200:"Egrave",201:"Eacute",202:"Ecirc",203:"Euml",204:"Igrave",205:"Iacute",
+206:"Icirc",207:"Iuml",208:"ETH",209:"Ntilde",210:"Ograve",211:"Oacute",212:"Ocirc",213:"Otilde",214:"Ouml",215:"times",
+216:"Oslash",217:"Ugrave",218:"Uacute",219:"Ucirc",220:"Uuml",221:"Yacute",222:"THORN",223:"szlig",224:"agrave",
+225:"aacute",226:"acirc",227:"atilde",228:"auml",229:"aring",230:"aelig",231:"ccedil",232:"egrave",233:"eacute",
+234:"ecirc",235:"euml",236:"igrave",237:"iacute",238:"icirc",239:"iuml",240:"eth",241:"ntilde",242:"ograve",243:"oacute",
+244:"ocirc",245:"otilde",246:"ouml",247:"divide",248:"oslash",249:"ugrave",250:"uacute",251:"ucirc",252:"uuml",
+253:"yacute",254:"thorn",255:"yuml"};
+
+const pad = (n, w) => n.toString(2).padStart(8, "0");
+const oct = n => n.toString(8).padStart(3, "0");
+const hex = n => n.toString(16).toUpperCase().padStart(2, "0");
+const symOf = n => {
+  if (n === 32) return "␠";
+  if (n >= 128 && n <= 159) return WIN1252[n] || "";
+  return String.fromCharCode(n);
+};
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+function row(html) { return "<tr>" + html + "</tr>"; }
+function cell(t, cls) { return '<td' + (cls ? ' class="' + cls + '"' : "") + ">" + t + "</td>"; }
+
+function buildTables(kw) {
+  kw = (kw || "").trim();
+  const k = kw.toLowerCase();
+  const hit = (n, extra) => {
+    if (!k) return true;
+    const s = symOf(n);
+    const cand = [String(n), hex(n), oct(n), pad(n, 8), "0x" + hex(n).toLowerCase(), s, (extra || "").toLowerCase()];
+    return cand.some(v => String(v).toLowerCase().includes(k));
+  };
+
+  let html = "";
+  /* 控制字符 */
+  const ctrl = CTRL.filter(c => hit(c[0], c[1] + c[2]));
+  if (ctrl.length) {
+    html += '<div class="ch-title">ASCII 控制字符（屏幕不可见）</div>';
+    html += '<div class="tb-wrap" style="margin-bottom:18px;"><table class="ascii-tb"><thead><tr><th>二进制</th><th>八进制</th><th>十进制</th><th>十六进制</th><th>可见表示法</th><th>名称/意义</th></tr></thead><tbody>';
+    ctrl.forEach(c => {
+      html += row(cell(pad(c[0], 8)) + cell(oct(c[0])) + cell(c[0]) + cell(hex(c[0])) + cell(c[1], "sym") + cell(c[2]));
+    });
+    html += "</tbody></table></div>";
+  }
+
+  /* 可显示字符 */
+  const print = [];
+  for (let n = 32; n <= 126; n++) if (hit(n, "")) print.push(n);
+  if (print.length) {
+    html += '<div class="ch-title">ASCII 可显示字符（32 - 126）</div>';
+    html += '<div class="tb-wrap" style="margin-bottom:18px;"><table class="ascii-tb"><thead><tr><th>二进制</th><th>八进制</th><th>十进制</th><th>十六进制</th><th>图形</th><th>名称</th></tr></thead><tbody>';
+    print.forEach(n => {
+      const name = n === 32 ? "空格" : (n >= 48 && n <= 57 ? "数字" : (n >= 65 && n <= 90 ? "大写字母" : (n >= 97 && n <= 122 ? "小写字母" : "符号")));
+      html += row(cell(pad(n, 8)) + cell(oct(n)) + cell(n) + cell(hex(n)) + cell(n === 32 ? "（空格）" : symOf(n), "sym") + cell(name));
+    });
+    html += "</tbody></table></div>";
+  }
+
+  /* 扩展 ASCII */
+  const ext = [];
+  for (let n = 128; n <= 255; n++) if (hit(n, ENT[n] || "")) ext.push(n);
+  if (ext.length) {
+    html += '<div class="ch-title">扩展 ASCII 码（128 - 255 · Windows-1252）</div>';
+    html += '<div class="tb-wrap"><table class="ascii-tb"><thead><tr><th>十进制</th><th>八进制</th><th>十六进制</th><th>二进制</th><th>符号</th><th>HTML 编号</th><th>HTML 实体</th></tr></thead><tbody>';
+    ext.forEach(n => {
+      html += row(cell(n) + cell(oct(n)) + cell(hex(n)) + cell(pad(n, 8)) + cell(symOf(n), "sym") +
+        cell("&#" + n + ";") + cell(ENT[n] ? "&" + ENT[n] + ";" : ""));
+    });
+    html += "</tbody></table></div>";
+  }
+
+  if (!html) html = '<p style="font-size:13px;color:#999;padding:10px 0;">没有找到匹配的字符，换个关键词试试（例如 65、A、0x41、空格）。</p>';
+  $("tables").innerHTML = html;
+  $("tip").textContent = kw ? "搜索「" + kw + "」的结果" : "ASCII 码对照表（共 128 个基本字符 + 128 个扩展字符）";
+}
+
+$("runBtn").onclick = () => buildTables($("kw").value);
+$("kw").onkeydown = e => { if (e.key === "Enter") buildTables($("kw").value); };
+$("allBtn").onclick = () => { $("kw").value = ""; buildTables(""); };
+$("clearBtn").onclick = () => { $("kw").value = ""; buildTables(""); };
+
+buildTables("");
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全角半角在线转换 - 词海工具箱</title>
+<meta name="description" content="半角符号与全角符号在线互转工具：支持英文字母、数字、标点符号的半角转全角、全角转半角，适合处理排版、编码与数据清洗。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<style>
+.io-area { width: 100%; height: 160px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.io-label:first-child { margin-top: 0; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="sbccase" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <p class="io-label">输入内容</p>
+        <textarea class="io-area" id="src" placeholder="输入要转换的文本，例如：ＡＢＣ１２３ 或 ABC123"></textarea>
+        <p class="io-label" style="margin-top:14px;">转换结果</p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="toFull">半角转全角</button>
+        <button class="fbtn green" id="toHalf">全角转半角</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于全角/半角的介绍：</h4>
+    <ol>
+      <li>全角和半角是描述字符在计算机文本中占据空间大小的术语，常用于中日韩文（CJK）字符和拉丁字符的处理。</li>
+      <li>全角字符是指占用了等于一个汉字宽度的空间。在东亚字体设计中，一个全角字符的宽度通常等于两个半角字符的宽度。</li>
+      <li>半角字符是指占用了半个汉字宽度的空间。半角字符主要用于表示拉丁字母、数字和西文标点符号。</li>
+      <li>本工具转换范围：ASCII 可显示字符（! 到 ~，码位 33-126）与全角字符（！到～，码位 65281-65374）互转，空格与全角空格（U+3000）互转。</li>
+      <li>常见用途：中文排版统一标点、表单数据清洗、老系统数据兼容处理。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function toFull(s) {
+  let out = "";
+  for (const ch of s) {
+    const c = ch.codePointAt(0);
+    if (c === 32) out += String.fromCharCode(0x3000);
+    else if (c >= 33 && c <= 126) out += String.fromCharCode(c + 0xFEE0);
+    else out += ch;
+  }
+  return out;
+}
+
+function toHalf(s) {
+  let out = "";
+  for (const ch of s) {
+    const c = ch.codePointAt(0);
+    if (c === 0x3000) out += " ";
+    else if (c >= 0xFF01 && c <= 0xFF5E) out += String.fromCharCode(c - 0xFEE0);
+    else out += ch;
+  }
+  return out;
+}
+
+$("toFull").onclick = () => {
+  if (!$("src").value) return alert("请先输入要转换的文本");
+  $("res").value = toFull($("src").value);
+};
+$("toHalf").onclick = () => {
+  if (!$("src").value) return alert("请先输入要转换的文本");
+  $("res").value = toHalf($("src").value);
+};
+$("copyBtn").onclick = () => {
+  if (!$("res").value) return alert("还没有转换结果");
+  navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("clearBtn").onclick = () => { $("src").value = ""; $("res").value = ""; };
+</script>
+</body>
+</html>

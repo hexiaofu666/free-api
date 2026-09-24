@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>连续日期在线生成 - 词海工具箱</title>
+<meta name="description" content="连续日期生成器：批量生成两个日期之间的所有日期，可自定义分割符号、年月日顺序、是否补零与输出排序，支持复制与导出 TXT。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="adddates" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>开始日期</label><input type="date" id="d1"></div>
+      <div class="fitem"><label>结束日期</label><input type="date" id="d2"></div>
+      <div class="fitem"><label>分割符号</label>
+        <select id="sep">
+          <option value="-" selected>短横线 2026-09-24</option>
+          <option value="/">斜杠 2026/09/24</option>
+          <option value=".">点号 2026.09.24</option>
+          <option value="">无 20260924</option>
+          <option value="cn">中文 2026年09月24日</option>
+        </select>
+      </div>
+      <div class="fitem"><label>年月日排序</label>
+        <select id="order">
+          <option value="ymd" selected>年月日</option>
+          <option value="dmy">日月年</option>
+          <option value="mdy">月日年</option>
+        </select>
+      </div>
+      <div class="fitem"><label>是否补零</label>
+        <select id="pad">
+          <option value="1" selected>补零（09 月 05 日）</option>
+          <option value="0">不补零（9 月 5 日）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>输出顺序</label>
+        <select id="sort">
+          <option value="asc" selected>升序（早 → 晚）</option>
+          <option value="desc">降序（晚 → 早）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成日期</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+      <button class="fbtn gray" id="exportBtn">导出为 TXT 文件</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成的日期列表</strong></div>
+      <textarea id="res" readonly placeholder="结果显示在这里"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于连续日期生成器介绍：</h4>
+    <ol>
+      <li>本工具可以批量生成两个日期之间的所有日期，常用于排班表、日志分析、数据补全等场景。</li>
+      <li>你可以设置生成日期的格式，比如年月日之间的分割符号，年月日的排序以及是否对月或日进行前置补零。</li>
+      <li>你可以通过设置「输出顺序」来对生成的日期输出进行大小排序。</li>
+      <li>工具生成的日期你可以进行复制或导出到本地（TXT 文件）。</li>
+      <li>单次最多生成 5000 个日期，超出会提示缩小范围。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+const MAX = 5000;
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+function fmtDate(y, m, d, sep, order, pad) {
+  const mm = pad ? String(m).padStart(2, "0") : String(m);
+  const dd = pad ? String(d).padStart(2, "0") : String(d);
+  if (sep === "cn") {
+    const p = order === "ymd" ? [y + "年", mm + "月", dd + "日"] : (order === "dmy" ? [dd + "日", mm + "月", y + "年"] : [mm + "月", dd + "日", y + "年"]);
+    return p.join("");
+  }
+  const a = order === "ymd" ? [y, mm, dd] : (order === "dmy" ? [dd, mm, y] : [mm, dd, y]);
+  return a.join(sep);
+}
+
+function run() {
+  const v1 = $("d1").value, v2 = $("d2").value;
+  if (!v1 || !v2) return alert("请先选择开始日期和结束日期");
+  const sep = $("sep").value, order = $("order").value;
+  const pad = $("pad").value === "1";
+  const start = Date.parse(v1 + "T00:00:00Z"), end = Date.parse(v2 + "T00:00:00Z");
+  if (start > end) return alert("开始日期不能晚于结束日期");
+  const days = Math.round((end - start) / 86400000) + 1;
+  if (days > MAX) return alert("日期范围过大（" + days + " 天），单次最多生成 " + MAX + " 个日期");
+
+  const out = [];
+  for (let i = 0; i < days; i++) {
+    const t = new Date(start + i * 86400000);
+    out.push(fmtDate(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate(), sep, order, pad));
+  }
+  if ($("sort").value === "desc") out.reverse();
+  $("res").value = out.join("\n");
+  $("tip").textContent = "共生成 " + days + " 个日期（" + v1 + " → " + v2 + "）";
+}
+
+$("d1").value = todayStr();
+const t = new Date(); t.setDate(t.getDate() + 6);
+$("d2").value = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+
+$("runBtn").onclick = run;
+$("copyBtn").onclick = () => {
+  if (!$("res").value) return alert("请先生成日期");
+  navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("exportBtn").onclick = () => {
+  if (!$("res").value) return alert("请先生成日期");
+  const blob = new Blob(["﻿" + $("res").value], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "连续日期_" + $("d1").value + "_" + $("d2").value + ".txt";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+};
+run();
+</script>
+</body>
+</html>

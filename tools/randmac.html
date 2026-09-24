@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>随机MAC地址在线生成 - 词海工具箱</title>
+<meta name="description" content="随机MAC地址生成器：批量在线生成 48 位 MAC 地址，支持冒号、短横线、点号、无分隔四种格式与大小写切换，可指定单播/多播。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="randmac" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>生成数量</label><input type="number" id="cnt" value="5" min="1" max="200"></div>
+      <div class="fitem"><label>分隔符号</label>
+        <select id="sep">
+          <option value=":" selected>冒号 00:1A:2B:3C:4D:5E</option>
+          <option value="-">短横线 00-1A-2B-3C-4D-5E</option>
+          <option value=".">点号（Cisco 格式）001A.2B3C.4D5E</option>
+          <option value="">无分隔 001A2B3C4D5E</option>
+        </select>
+      </div>
+      <div class="fitem"><label>字母大小写</label>
+        <select id="case">
+          <option value="1" selected>大写</option>
+          <option value="0">小写</option>
+        </select>
+      </div>
+      <div class="fitem"><label>地址类型</label>
+        <select id="type">
+          <option value="any" selected>任意</option>
+          <option value="uni">单播（U/L 位为 0）</option>
+          <option value="local">本地管理（U/L 位为 1）</option>
+          <option value="multi">多播（I/G 位为 1）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>是否重复</label>
+        <select id="uniq">
+          <option value="1" selected>不重复</option>
+          <option value="0">允许重复</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成MAC地址</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成的 MAC 地址</strong></div>
+      <textarea id="res" readonly placeholder="结果显示在这里"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于MAC地址介绍：</h4>
+    <ol>
+      <li>MAC 地址，也称为物理地址、硬件地址或以太网地址，是一个用来定义网络设备身份的 48 位（6 字节）唯一序列号。</li>
+      <li>MAC 地址通常以六组两位的十六进制数字表示，这些数字通过冒号（:）、短横线（-）或点（.）分隔。</li>
+      <li>MAC 地址通常被烧录在网络接口卡（NIC）的固件中，或者在网络设备的硬件中。</li>
+      <li>理论上，每个网络接口卡都有一个全球唯一的 MAC 地址，这个唯一性由 IEEE 负责分配和维护。</li>
+      <li>地址类型说明：单播/多播由第一字节最低位（I/G 位）决定，本地管理/全球唯一由第一字节次低位（U/L 位）决定，本工具可据此生成对应类型的地址。</li>
+      <li>生成的地址为随机测试数据，仅用于开发调试、设备模拟等用途。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+
+function genBytes(type) {
+  const b = [];
+  for (let i = 0; i < 6; i++) b.push(rnd(256));
+  if (type === "uni") b[0] &= 0xFE;        /* I/G 位 = 0 单播 */
+  if (type === "multi") b[0] |= 0x01;      /* I/G 位 = 1 多播 */
+  if (type === "local") b[0] |= 0x02;      /* U/L 位 = 1 本地管理 */
+  return b;
+}
+
+function fmtMac(bytes, sep, upper) {
+  const h = bytes.map(b => b.toString(16).padStart(2, "0"));
+  let out;
+  if (sep === ".") out = h.slice(0, 2).join("") + "." + h.slice(2, 4).join("") + "." + h.slice(4, 6).join("");
+  else out = h.join(sep);
+  return upper ? out.toUpperCase() : out;
+}
+
+$("runBtn").onclick = () => {
+  let cnt = parseInt($("cnt").value, 10);
+  if (isNaN(cnt) || cnt < 1) return alert("请输入有效的生成数量（1 - 200）");
+  if (cnt > 200) { cnt = 200; $("cnt").value = 200; }
+  const sep = $("sep").value, upper = $("case").value === "1", type = $("type").value, uniq = $("uniq").value === "1";
+  const out = [], seen = new Set();
+  let guard = 0;
+  while (out.length < cnt && guard < cnt * 200) {
+    guard++;
+    const mac = fmtMac(genBytes(type), sep, upper);
+    if (uniq && seen.has(mac)) continue;
+    seen.add(mac);
+    out.push(mac);
+  }
+  $("res").value = out.join("\n");
+  $("tip").textContent = "已生成 " + out.length + " 个 MAC 地址" + (uniq ? "（不重复）" : "");
+};
+
+$("copyBtn").onclick = () => {
+  if (!$("res").value) return alert("请先生成 MAC 地址");
+  navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("clearBtn").onclick = () => { $("res").value = ""; $("tip").textContent = "生成的 MAC 地址"; };
+</script>
+</body>
+</html>

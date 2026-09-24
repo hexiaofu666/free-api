@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>驼峰下划线在线转换 - 词海工具箱</title>
+<meta name="description" content="代码变量命名风格在线转换工具：小驼峰、大驼峰、下划线、常量、短横线五种格式批量互转，自动识别变量名并保留关键字与符号。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="camel" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>选择格式</label>
+        <select id="style">
+          <option value="camel" selected>camelCase 小驼峰</option>
+          <option value="pascal">PascalCase 大驼峰</option>
+          <option value="snake">snake_case 下划线</option>
+          <option value="screaming">SCREAMING_SNAKE_CASE 常量</option>
+          <option value="kebab">kebab-case 短横线</option>
+        </select>
+      </div>
+    </div>
+    <div class="vin"><textarea id="src" placeholder="每行一个变量名或代码行，例如：&#10;let user_name = 1;&#10;$this->user_id = 2;&#10;MAX_RETRY_COUNT"></textarea></div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">点击处理</button>
+      <button class="fbtn brown" id="demoBtn">演示数据</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制结果</span></div>
+      <textarea id="res" readonly placeholder="结果显示在这里"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于驼峰下划线转换器工具介绍：</h4>
+    <ol>
+      <li>驼峰下划线转换器可以快速将变量名或代码行中的变量，转换成不同的命名风格，支持一次批量处理多行内容。</li>
+      <li>操作步骤：在上方文本框中粘贴或输入需要处理的变量名、代码行（每行一个）；从「选择格式」下拉菜单选择目标风格；点击「点击处理」按钮，结果立即显示在下方；点击结果区右上角「复制结果」即可复制。</li>
+      <li>智能识别与保留：工具会自动识别每一行中的变量名，只转换变量名部分，其余部分（关键字、类型、前缀、运算符等）原样保留。</li>
+      <li>支持的语言语法：JavaScript/TypeScript（let、const、var、function）、PHP（$var、$this->prop）、Java/C#（String userName）、Go（name := value）、Python（self.attr、注解、装饰器）、CSS/SCSS 变量（--main-color、$var）。</li>
+      <li>以 //、/*、* 开头的注释行会被自动忽略，不参与转换。</li>
+      <li>支持的目标风格：camelCase（小驼峰，如 getUserById）、PascalCase（大驼峰，如 GetUserById）、snake_case（下划线，如 get_user_by_id）、SCREAMING_SNAKE_CASE（常量，如 MAX_RETRY_COUNT）、kebab-case（短横线，如 get-user-by-id）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+const KEYWORDS = new Set(["let","const","var","function","class","extends","new","this","self","return","if","else","for","while","do","switch","case","break","continue","try","catch","finally","throw","await","async","yield","import","from","export","default","static","public","private","protected","final","abstract","package","interface","implements","def","lambda","print","echo","None","True","False","none","true","false","null","undefined","int","float","double","bool","boolean","char","void","long","short","byte","string","String","Object","Array","List","Map","Dict","num","str","in","of","as","is","not","and","or","with","type","using","namespace","struct","enum","union","goto","sizeof","typedef","extern","register","volatile","inline","template","virtual","override","super","then","end","elif","elseif","fi","esac","param","foreach","until","require","include","fn","impl","pub","mut","match","let"]);
+
+function splitWords(name) {
+  const spaced = name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2");
+  return spaced.split(/[_\-.\s]+/).filter(Boolean);
+}
+const cap = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+
+function convert(name, style) {
+  const words = splitWords(name);
+  if (!words.length) return name;
+  if (style === "camel") return words[0].toLowerCase() + words.slice(1).map(cap).join("");
+  if (style === "pascal") return words.map(cap).join("");
+  if (style === "snake") return words.map(w => w.toLowerCase()).join("_");
+  if (style === "screaming") return words.map(w => w.toUpperCase()).join("_");
+  if (style === "kebab") return words.map(w => w.toLowerCase()).join("-");
+  return name;
+}
+
+/* 只转换标识符，保留 $ 前缀、运算符、关键字、类型、注释等 */
+function convertLine(line, style) {
+  const t = line.trim();
+  if (!t || t.startsWith("//") || t.startsWith("/*") || t.startsWith("*")) return line;
+  return line.replace(/\$?[A-Za-z_][A-Za-z0-9_]*/g, (token) => {
+    const dollar = token.startsWith("$");
+    const name = dollar ? token.slice(1) : token;
+    if (KEYWORDS.has(name)) return token;
+    /* 单个字母或全大写缩写之外，跳过不像变量名的（如纯大写类型名 String） */
+    if (/^[A-Z][a-z]+$/.test(name) && name.length <= 8 && new RegExp("\\b(class|new|extends)\\s+" + name + "\\b").test(line)) return token;
+    return (dollar ? "$" : "") + convert(name, style);
+  });
+}
+
+function run() {
+  const style = $("style").value;
+  const lines = $("src").value.split("\n");
+  if (!$("src").value.trim()) return alert("请先输入要转换的内容");
+  $("res").value = lines.map(l => convertLine(l, style)).join("\n");
+}
+
+const DEMO = [
+  "let user_name = 'xiaofu';",
+  "const MAX_RETRY_COUNT = 3;",
+  "$this->user_id = $userInfo['id'];",
+  "public String getUserName() { return this.user_name; }",
+  "func get_user_by_id(id int) string",
+  "--main-color: #ff6500;",
+  "// 这行是注释，不会转换: some_var_name"
+].join("\n");
+
+$("runBtn").onclick = run;
+$("demoBtn").onclick = () => { $("src").value = DEMO; run(); };
+$("clearBtn").onclick = () => { $("src").value = ""; $("res").value = ""; };
+$("copyBtn").onclick = () => {
+  if (!$("res").value) return alert("还没有转换结果");
+  navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("src").addEventListener("input", () => { if ($("res").value) run(); });
+</script>
+</body>
+</html>

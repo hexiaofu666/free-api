@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEX编码在线转换 - 词海工具箱</title>
+<meta name="description" content="HEX（十六进制）与文本字符串在线互转工具：支持中文、字母、符号与十六进制编码互相转换，可选分隔符与 0x 前缀，一键复制。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="hexcodes" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输出格式</label>
+        <select id="fmt">
+          <option value="space" selected>空格分隔（E5 B7 A5）</option>
+          <option value="none">不分割（E5B7A5）</option>
+          <option value="0x">0x 前缀加逗号（0xE5, 0xB7, 0xA5）</option>
+          <option value="pct">百分号编码（%E5%B7%A5）</option>
+        </select>
+      </div>
+    </div>
+    <div class="vin"><textarea id="src" placeholder="在此输入文本或十六进制字符串，例如：你好 或 E4BDA0E5A5BD"></textarea></div>
+    <div class="abar">
+      <button class="fbtn teal" id="toHex">文本转HEX</button>
+      <button class="fbtn brown" id="toText">HEX转文本</button>
+      <button class="fbtn plain" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制结果</span></div>
+      <textarea id="res" readonly placeholder="结果显示在这里"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Hex编码介绍：</h4>
+    <ol>
+      <li>Hex 编码（十六进制编码）是一种将数据转换为十六进制数的形式，以便于存储或传输。</li>
+      <li>在计算机科学中，Hex 编码用于表示二进制数据，因为每个十六进制数可以表示四个二进制位，这使得它比二进制更加紧凑和易于读写。</li>
+      <li>Hex 编码的基本规则：使用基数 16，符号包括 0-9 的数字和 A-F 的字母，从右向左每一位的位权是 16 的幂次。</li>
+      <li>Hex 编码在存储和传输二进制数据、调试和程序开发以及网络通信中被广泛使用。</li>
+      <li>本工具按 UTF-8 编码处理文本（中文 1 个字 = 3 字节），支持空格分割、不分割、0x 前缀、百分号编码四种输出格式。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function textBytes(s) { return new TextEncoder().encode(s); }
+function fmtHex(bytes, fmt) {
+  const list = [...bytes].map(b => b.toString(16).toUpperCase().padStart(2, "0"));
+  if (fmt === "space") return list.join(" ");
+  if (fmt === "none") return list.join("");
+  if (fmt === "0x") return list.map(x => "0x" + x).join(", ");
+  if (fmt === "pct") return list.map(x => "%" + x).join("");
+  return list.join(" ");
+}
+
+$("toHex").onclick = () => {
+  const s = $("src").value;
+  if (!s) { $("res").value = ""; return alert("请先输入要转换的文本"); }
+  $("res").value = fmtHex(textBytes(s), $("fmt").value);
+};
+
+$("toText").onclick = () => {
+  const raw = $("src").value;
+  if (!raw.trim()) { $("res").value = ""; return alert("请先输入十六进制字符串"); }
+  const cleaned = raw.replace(/0[xX]/g, "").replace(/[%\\:,\-;\s]/g, "");
+  if (!/^[0-9a-fA-F]*$/.test(cleaned)) { $("res").value = "❌ 转换失败：包含非十六进制字符，请检查输入"; return; }
+  if (cleaned.length % 2 !== 0) { $("res").value = "❌ 转换失败：十六进制字符个数必须为偶数（每个字节 2 位）"; return; }
+  const bytes = new Uint8Array(cleaned.length / 2);
+  for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(cleaned.substr(i * 2, 2), 16);
+  try {
+    $("res").value = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  } catch (e) {
+    $("res").value = "❌ 解码失败：" + e.message;
+  }
+};
+
+$("clearBtn").onclick = () => { $("src").value = ""; $("res").value = ""; };
+$("copyBtn").onclick = () => {
+  if (!$("res").value) return alert("还没有转换结果");
+  navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+</script>
+</body>
+</html>

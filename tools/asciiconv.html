@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII编码在线转换 - 词海工具箱</title>
+<meta name="description" content="字符串与ASCII码在线互换工具：支持二进制、八进制、十进制、十六进制四种进制，可添加进制前缀，一键双向转换。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="asciiconv" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>ASCII进制</label>
+        <select id="base">
+          <option value="2">二进制 (BIN)</option>
+          <option value="8">八进制 (OCT)</option>
+          <option value="10" selected>十进制 (DEC)</option>
+          <option value="16">十六进制 (HEX)</option>
+        </select>
+      </div>
+      <div class="fitem"><label>前缀设置</label>
+        <select id="prefix">
+          <option value="0" selected>无前缀</option>
+          <option value="1">添加进制前缀（十进制无前缀）</option>
+        </select>
+      </div>
+    </div>
+    <div class="vin"><textarea id="src" placeholder="在此输入要转换的字符串，例如：Hello 工具箱"></textarea></div>
+    <div class="abar">
+      <button class="fbtn teal" id="toAscii">字符串转ASCII</button>
+      <button class="fbtn brown" id="toStr">ASCII转字符串</button>
+      <button class="fbtn plain" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制结果</span></div>
+      <textarea id="res" readonly placeholder="结果显示在这里"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Ascii编码介绍：</h4>
+    <ol>
+      <li>ASCII 是一种用于电子通信的字符编码标准，可在不同的计算机和通信设备之间进行数据交换。</li>
+      <li>ASCII 编码使用 7 位或 8 位二进制数来表示 128 或 256 个不同的字符。</li>
+      <li>在 7 位 ASCII 码表中，值从 0 到 31 和 127 是控制字符，它们通常不会直接显示在屏幕上，而是在计算机内部用于控制文本格式和通信协议；值从 32 到 126 是可打印字符，包括字母、数字和符号。</li>
+      <li>当使用 8 位 ASCII（也称为扩展 ASCII）时，额外的 128 个字符（128-255）用于表示其他符号、外来字母和图形字符。</li>
+      <li>本工具支持二进制、八进制、十进制、十六进制四种进制互换，并可选择是否添加进制前缀（如 0x、0o）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+const PREFIX = { 2: "0b", 8: "0o", 10: "", 16: "0x" };
+
+function toAscii() {
+  const base = parseInt($("base").value, 10);
+  const usePrefix = $("prefix").value === "1";
+  const s = $("src").value;
+  if (!s) { $("res").value = ""; return alert("请先输入要转换的字符串"); }
+  const out = [...s].map(ch => {
+    const code = ch.codePointAt(0);
+    let v = code.toString(base).toUpperCase();
+    if (base === 2) v = v.padStart(8, "0");
+    if (base === 8) v = v.padStart(3, "0");
+    if (base === 16) v = v.padStart(2, "0");
+    return (usePrefix ? PREFIX[base] : "") + v;
+  });
+  $("res").value = out.join(" ");
+}
+
+function toStr() {
+  const base = parseInt($("base").value, 10);
+  const raw = $("src").value.trim();
+  if (!raw) { $("res").value = ""; return alert("请先输入要转换的 ASCII 码"); }
+  const parts = raw.split(/[\s,;，、]+/).filter(Boolean);
+  const out = [];
+  for (const p of parts) {
+    const clean = p.replace(/^0[bBoOxX]/, "");
+    const n = parseInt(clean, base);
+    if (isNaN(n) || n < 0 || n > 0x10FFFF) { $("res").value = "❌ 转换失败：\"" + p + "\" 不是有效的 " + base + " 进制数字"; return; }
+    out.push(String.fromCodePoint(n));
+  }
+  $("res").value = out.join("");
+}
+
+$("toAscii").onclick = toAscii;
+$("toStr").onclick = toStr;
+$("clearBtn").onclick = () => { $("src").value = ""; $("res").value = ""; };
+$("copyBtn").onclick = () => {
+  if (!$("res").value) return alert("还没有转换结果");
+  navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("src").addEventListener("input", () => { if ($("res").value) toAscii(); });
+</script>
+</body>
+</html>

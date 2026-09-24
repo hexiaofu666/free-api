@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>罗马数字在线转换 - 词海工具箱</title>
+<meta name="description" content="罗马数字与阿拉伯数字在线互转工具：支持 1-3999 范围内数字与罗马数字（I、V、X、L、C、D、M）双向转换，附罗马数字规则说明。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.2"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.2">
+<style>
+.io-area { width: 100%; height: 120px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.io-label:first-child { margin-top: 0; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</head>
+<body data-tool="roman" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf">
+        <p class="io-label">输入内容（阿拉伯数字或罗马数字）</p>
+        <textarea class="io-area" id="src" placeholder="例如：2026 或 MMXXVI"></textarea>
+        <p class="io-label" style="margin-top:14px;">转换结果</p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="toRoman">阿拉伯数字转罗马</button>
+        <button class="fbtn green" id="toNum">罗马数字转阿拉伯</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于罗马数字介绍：</h4>
+    <ol>
+      <li>罗马数字起源于古罗马，基于拉丁字母，采用加法和减法的组合规则来表示数值。</li>
+      <li>罗马数字使用拉丁字母（I, V, X, L, C, D, M）表示数值，没有零的概念。</li>
+      <li>罗马数字的数值通过加法和减法规则组合（如 IV 表示 4，IX 表示 9，XL 表示 40）。</li>
+      <li>目前主要用于表示章节编号、序数、钟表表盘、电影年份、奥运会和超级碗的编号等。</li>
+      <li>本工具支持 1 - 3999 范围的转换（标准罗马数字上限为 3999，更大数值需使用上加线表示法）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.2"></script>
+<script src="../assets/chrome.js?v=1.5.2"></script>
+<script>
+const $ = id => document.getElementById(id);
+const TAB = [[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]];
+
+function num2roman(n) {
+  if (!Number.isInteger(n) || n < 1 || n > 3999) return null;
+  let s = "";
+  for (const [v, r] of TAB) { while (n >= v) { s += r; n -= v; } }
+  return s;
+}
+
+function roman2num(s) {
+  const str = s.toUpperCase().replace(/\s+/g, "");
+  if (!/^[IVXLCDM]+$/.test(str)) return null;
+  const val = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+  let n = 0;
+  for (let i = 0; i < str.length; i++) {
+    const cur = val[str[i]], next = val[str[i + 1]];
+    n += (next && cur < next) ? -cur : cur;
+  }
+  /* 反算校验：确保是规范写法（如 IIII 会被纠正判断） */
+  if (num2roman(n) !== str) return null;
+  return n;
+}
+
+$("toRoman").onclick = () => {
+  const v = $("src").value.trim();
+  if (!v) return alert("请先输入阿拉伯数字");
+  const n = Number(v);
+  const r = num2roman(n);
+  $("res").value = r ? r : "❌ 转换失败：请输入 1 - 3999 之间的整数";
+};
+$("toNum").onclick = () => {
+  const v = $("src").value.trim();
+  if (!v) return alert("请先输入罗马数字");
+  const n = roman2num(v);
+  $("res").value = n !== null ? String(n) : "❌ 转换失败：不是规范的罗马数字（仅支持 I V X L C D M，范围 1 - 3999）";
+};
+$("copyBtn").onclick = () => {
+  if (!$("res").value) return alert("还没有转换结果");
+  navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("clearBtn").onclick = () => { $("src").value = ""; $("res").value = ""; };
+</script>
+</body>
+</html>

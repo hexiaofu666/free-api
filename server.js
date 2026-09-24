@@ -123,6 +123,26 @@ const API = {
   },
 };
 
+/* ---------------- SEO：sitemap（扫描 tools/ 自动生成，目录变化自动重建） ---------------- */
+const HOST = "https://tools.hdemba.cn";
+let sitemapCache = { dirMtime: 0, xml: "" };
+function buildSitemap() {
+  const dir = path.join(ROOT, "tools");
+  const dmtime = fs.statSync(dir).mtimeMs;
+  if (sitemapCache.dirMtime === dmtime) return sitemapCache.xml;
+  const files = ["index.html", ...fs.readdirSync(dir).filter(f => f.endsWith(".html")).sort().map(f => `tools/${f}`)];
+  const items = files.map(f => {
+    const lastmod = new Date(fs.statSync(path.join(ROOT, f)).mtimeMs).toISOString().slice(0, 10);
+    const loc = f === "index.html" ? `${HOST}/` : `${HOST}/${f}`;
+    return `  <url><loc>${loc}</loc><lastmod>${lastmod}</lastmod></url>`;
+  });
+  sitemapCache = {
+    dirMtime: dmtime,
+    xml: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${items.join("\n")}\n</urlset>\n`,
+  };
+  return sitemapCache.xml;
+}
+
 /* ---------------- 主服务 ---------------- */
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host || "localhost"}`);
@@ -169,6 +189,16 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  /* ---- SEO 路由 ---- */
+  if (u.pathname === "/robots.txt") {
+    res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" });
+    return res.end(`User-agent: *\nAllow: /\nSitemap: ${HOST}/sitemap.xml\n`);
+  }
+  if (u.pathname === "/sitemap.xml") {
+    res.writeHead(200, { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "no-cache" });
+    return res.end(buildSitemap());
+  }
+
   /* ---- 静态文件 ---- */
   let fp = decodeURIComponent(u.pathname);
   if (fp.endsWith("/")) fp += "index.html";
@@ -185,7 +215,8 @@ const server = http.createServer(async (req, res) => {
       if (err2) { res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); return res.end("404 Not Found"); }
       res.writeHead(200, {
         "Content-Type": MIME[path.extname(file).toLowerCase()] || "application/octet-stream",
-        "Cache-Control": "no-cache",
+        /* assets 带 ?v= 版本号可长缓存；HTML 等其余内容保持 no-cache（靠 ETag 协商 304） */
+        "Cache-Control": fp.startsWith("/assets/") ? "public, max-age=2592000" : "no-cache",
         ETag: etag,
       });
       res.end(buf);

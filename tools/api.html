@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>开放API在线文档 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
 <script src="../assets/theme.js?v=1.5.4"></script>
@@ -14,6 +15,10 @@
 .api-sec h3 { font-size: 14px; margin: 18px 0 8px; color: #ff6500; }
 .api-sec p { font-size: 13px; line-height: 1.9; color: #555; margin-bottom: 6px; }
 .api-sec pre { background: #181a1b; color: #d8dee9; border-radius: 6px; padding: 12px 14px; font-size: 12px; line-height: 1.7; overflow-x: auto; font-family: Consolas, Monaco, monospace; margin: 8px 0 14px; }
+@media (max-width: 768px) {
+  .api-tbl { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .api-sec pre { padding: 10px 10px; font-size: 11px; }
+}
 </style>
 <script>
 var _hmt = _hmt || [];

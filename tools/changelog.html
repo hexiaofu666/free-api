@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.3"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.3">
+<script src="../assets/theme.js?v=1.5.4"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -67,13 +67,20 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.5.3"></script>
-<script src="../assets/chrome.js?v=1.5.3"></script>
+<script src="../assets/tools-data.js?v=1.5.4"></script>
+<script src="../assets/chrome.js?v=1.5.4"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.5.4", date: "2026-09-25",
+    items: [
+      ["new", "新增 10 款加密解密工具（工具总数 95→105）：栅栏密码（标准/W型+枚举破解）、维吉尼亚密码、埃特巴什码、博福特密码、敲击码、希尔密码（2x2/3x3矩阵）、四方密码、异或加密、CRC32校验、HMAC哈希（MD5/SHA全系）"],
+      ["fix", "敲击码解码支持混合分隔格式（1,1 2,3 等）"],
+    ]
+  },
   {
     ver: "v1.5.3", date: "2026-09-24",
     items: [

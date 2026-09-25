@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HMAC在线加密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.4"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="HMAC带密钥哈希计算，支持MD5/SHA-1/SHA-256/SHA-384/SHA-512">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/hmac.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="hmac" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要计算 HMAC 的消息内容...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>密钥</label><input type="text" id="key" placeholder="任意文本密钥"></div>
+      <div class="fitem"><label>算法</label><select id="alg">
+        <option value="SHA-256">SHA-256</option>
+        <option value="SHA-1">SHA-1</option>
+        <option value="SHA-384">SHA-384</option>
+        <option value="SHA-512">SHA-512</option>
+        <option value="MD5">MD5</option>
+      </select></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="calcBtn">计算 HMAC</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>计算结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 HMAC 介绍：</h4>
+    <ol>
+      <li>HMAC（Hash-based Message Authentication Code）是带密钥的哈希消息认证码，同时验证消息完整性与来源身份。</li>
+      <li>计算公式：HMAC(K, M) = H((K⊕opad) ∥ H((K⊕ipad) ∥ M))，其中 opad/ipad 为固定填充常量。</li>
+      <li>只有持有相同密钥的一方才能计算出相同的 HMAC，广泛用于 API 签名（如各大云服务）、Webhook 校验、JWT 签名等。</li>
+      <li>支持 MD5 / SHA-1 / SHA-256 / SHA-384 / SHA-512 五种底层哈希；新系统建议优先使用 SHA-256 及以上。</li>
+      <li>消息与密钥均按 UTF-8 编码；结果输出 128 位十六进制摘要（MD5 为 32 位）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.4"></script>
+<script src="../assets/chrome.js?v=1.5.4"></script>
+<script src="../assets/hashlib.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+function show(res){ $("output").value = res; $("outBox").classList.add("on"); }
+function toHex(buf){ return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join(""); }
+async function hmacMD5(keyBytes, msgBytes){
+  let k = keyBytes.slice();
+  if (k.length > 64) k = md5hex(new Uint8Array(k)).match(/../g).map(h => parseInt(h, 16));
+  while (k.length < 64) k.push(0);
+  const ipad = k.map(b => b ^ 0x36), opad = k.map(b => b ^ 0x5c);
+  const inner = md5hex(new Uint8Array(ipad.concat(msgBytes))).match(/../g).map(h => parseInt(h, 16));
+  return md5hex(new Uint8Array(opad.concat(inner)));
+}
+$("calcBtn").onclick = async () => {
+  const msg = $("input").value, key = $("key").value;
+  if (!msg) return alert("请输入消息内容");
+  if (!key) return alert("请输入密钥");
+  const alg = $("alg").value;
+  let hex;
+  if (alg === "MD5"){
+    hex = await hmacMD5(Array.from(new TextEncoder().encode(key)), Array.from(new TextEncoder().encode(msg)));
+  } else {
+    hex = toHex(await crypto.subtle.sign("HMAC", await crypto.subtle.importKey(
+      "raw", new TextEncoder().encode(key), { name: "HMAC", hash: alg }, false, ["sign"]
+    ), new TextEncoder().encode(msg)));
+  }
+  show(`HMAC-${alg}：\n${hex}`);
+};
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRC32在线加密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.4"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="在线计算文本CRC32校验值，输出十六进制与十进制">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/crc32.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="crc32" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要计算 CRC32 校验值的内容...."></textarea></div>
+    <div class="abar">
+      <button class="fbtn teal" id="calcBtn">计算 CRC32</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>计算结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CRC32 介绍：</h4>
+    <ol>
+      <li>CRC32（循环冗余校验）是广泛使用的 32 位校验算法，用于检测数据传输或存储中的意外改动。</li>
+      <li>采用标准多项式 0xEDB88320（IEEE 802.3），与 zip、gzip、PNG 等格式内部的 CRC 一致。</li>
+      <li>文本按 UTF-8 编码转为字节后计算；结果同时给出十六进制（8 位大写）与十进制两种形式。</li>
+      <li>CRC32 是校验码而非哈希加密：不具备抗碰撞性，不能用于密码存储或数字签名。</li>
+      <li>常见用途：文件完整性核对、下载校验、去重比对等。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.4"></script>
+<script src="../assets/chrome.js?v=1.5.4"></script>
+<script>
+const $=id=>document.getElementById(id);
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++){
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c;
+  }
+  return t;
+})();
+function crc32(bytes){
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function show(res){ $("output").value = res; $("outBox").classList.add("on"); }
+$("calcBtn").onclick = () => {
+  const s = $("input").value;
+  if (!s) return alert("请输入内容");
+  const v = crc32(Array.from(new TextEncoder().encode(s)));
+  show(`CRC32 (HEX)：${v.toString(16).toUpperCase().padStart(8, "0")}\nCRC32 (DEC)：${v}`);
+};
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

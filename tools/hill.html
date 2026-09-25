@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>希尔密码在线加解密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.4"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="基于矩阵运算的多字母替换密码，支持2x2与3x3密钥矩阵">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/hill.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="hill" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要加密/解密的内容（自动过滤非字母并补X）...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>矩阵规格</label><select id="size"><option value="2">2×2</option><option value="3">3×3</option></select></div>
+      <div class="fitem"><label>映射模式</label><select id="mapmode"><option value="0">A=0（A=0…Z=25）</option><option value="1">A=1（A=1…Z=26）</option></select></div>
+    </div>
+    <div class="vsetup"><div class="fitem"><label>密钥矩阵</label><div class="kgrid" id="kgrid"></div></div></div>
+    <div class="abar">
+      <button class="fbtn teal" id="encBtn">加密</button>
+      <button class="fbtn blue" id="decBtn">解密</button>
+      <button class="fbtn brown" id="demoBtn">示例密钥</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于希尔密码介绍：</h4>
+    <ol>
+      <li>希尔密码（Hill Cipher）由数学家 Lester S. Hill 于 1929 年发明，是历史上第一个实用的多字母替换密码。</li>
+      <li>核心是矩阵运算：明文按 n 个字母分组，与密钥矩阵相乘取模 26，得到密文分组。公式：C = K × P (mod 26)。</li>
+      <li>解密使用密钥矩阵在模 26 下的逆矩阵：P = K⁻¹ × C (mod 26)。</li>
+      <li>支持 2×2 与 3×3 矩阵、A=0 与 A=1 两种映射模式（部分教材采用 A=1…Z=26）。</li>
+      <li>非字母字符自动过滤，明文长度不足自动补 X；密钥矩阵必须在模 26 下可逆（行列式与 26 互质），否则无法解密。</li>
+      <li>示例：密钥矩阵 3 3 / 2 5，A=0 模式加密 HELP 得到 HIAT。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.4"></script>
+<script src="../assets/chrome.js?v=1.5.4"></script>
+<script>
+const $=id=>document.getElementById(id);
+let gridCells = [];
+function buildGrid(){
+  const n = +$("size").value;
+  const g = $("kgrid"); g.innerHTML = ""; gridCells = [];
+  g.style.gridTemplateColumns = `repeat(${n}, 56px)`;
+  for (let i = 0; i < n * n; i++){
+    const inp = document.createElement("input");
+    inp.type = "number"; inp.value = [3,3,2,5,6,24,1,13,16][i] ?? 1;
+    g.appendChild(inp); gridCells.push(inp);
+  }
+}
+$("size").onchange = buildGrid;
+buildGrid();
+function getK(){
+  const n = +$("size").value;
+  const m = [];
+  for (let i = 0; i < n; i++){
+    const row = [];
+    for (let j = 0; j < n; j++){
+      const v = +gridCells[i * n + j].value;
+      if (!Number.isFinite(v)) return null;
+      row.push(v);
+    }
+    m.push(row);
+  }
+  return m;
+}
+const mod = (a, m) => ((a % m) + m) % m;
+function det(m){
+  const n = m.length;
+  if (n === 2) return m[0][0]*m[1][1] - m[0][1]*m[1][0];
+  let d = 0;
+  for (let j = 0; j < n; j++){
+    const sub = m.slice(1).map(r => r.filter((_, c) => c !== j));
+    d += (j % 2 ? -1 : 1) * m[0][j] * det(sub);
+  }
+  return d;
+}
+function invMod(a, m){ a = mod(a, m); for (let x = 1; x < m; x++) if (mod(a * x, m) === 1) return x; return null; }
+function adjugate(m){
+  const n = m.length;
+  if (n === 2) return [[m[1][1], -m[1][0]], [-m[0][1], m[0][0]]];
+  const adj = Array.from({length: n}, () => Array(n).fill(0));
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++){
+    const sub = m.filter((_, r) => r !== i).map(r => r.filter((_, c) => c !== j));
+    adj[i][j] = ((i + j) % 2 ? -1 : 1) * det(sub);
+  }
+  return adj; /* 伴随：注意需转置——行列式按行展开的代数余子式矩阵需转置为 adj */
+}
+function inverse(m, mo){
+  const n = m.length, d = det(m), di = invMod(d, mo);
+  if (di === null) return null;
+  const adj = adjugate(m);
+  /* 伴随矩阵 = 代数余子式矩阵的转置 */
+  const co = Array.from({length: n}, (_, i) => Array.from({length: n}, (_, j) => adj[j][i]));
+  return co.map(row => row.map(v => mod(v * di, mo)));
+}
+function text2nums(s, mode){
+  return [...s.toUpperCase()].filter(c => c >= "A" && c <= "Z").map(c => {
+    const v = c.charCodeAt(0) - 64;
+    return mode === "1" ? v % 26 : v - 1;
+  });
+}
+function nums2text(a, mode){
+  return a.map(v => String.fromCharCode(mode === "1" ? (v === 0 ? 90 : v + 64) : v + 65)).join("");
+}
+function hill(s, K, mode, dec){
+  const n = K.length;
+  const M = dec ? inverse(K, 26) : K;
+  if (!M) return null;
+  let a = text2nums(s, mode);
+  while (a.length % n) a.push(mode === "1" ? 24 : 23); /* 补 X（X 在 A=0 模式=23，A=1 模式=24） */
+  const out = [];
+  for (let g = 0; g < a.length; g += n){
+    const v = a.slice(g, g + n); /* 列向量 */
+    for (let i = 0; i < n; i++){
+      let sum = 0;
+      for (let j = 0; j < n; j++) sum += M[i][j] * v[j];
+      out.push(mod(sum, 26));
+    }
+  }
+  return nums2text(out, mode);
+}
+function show(res){ $("output").value = res; $("outBox").classList.add("on"); }
+function run(dec){
+  const s = $("input").value;
+  if (!s) return alert("请输入内容");
+  const K = getK();
+  const r = hill(s, K, $("mapmode").value, dec);
+  show(r === null ? "❌ 密钥矩阵在模 26 下不可逆，请调整矩阵元素" : r);
+}
+$("encBtn").onclick = () => run(false);
+$("decBtn").onclick = () => run(true);
+$("demoBtn").onclick = () => {
+  const v = [3,3,2,5];
+  gridCells.forEach((inp, i) => inp.value = v[i] ?? 1);
+};
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

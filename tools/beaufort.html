@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>凯撒密码在线加解密 - 词海工具箱</title>
+<title>博福特密码在线加解密 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
 <script src="../assets/theme.js?v=1.5.4"></script>
 <link rel="stylesheet" href="../assets/style.css?v=1.5.4">
@@ -15,21 +15,20 @@ var s = document.getElementsByTagName("script")[0];
 s.parentNode.insertBefore(hm, s);
 })();
 </script>
-<meta name="description" content="支持文本加密、解密和暴力破解">
-<link rel="canonical" href="https://tools.hdemba.cn/tools/caesar.html">
+<meta name="description" content="维吉尼亚密码的变体，自反加密，加密即解密">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/beaufort.html">
 <link rel="icon" href="/favicon.ico">
 </head>
-<body data-tool="caesar" data-cat="dev">
+<body data-tool="beaufort" data-cat="dev">
 <div class="main"><div class="center"><div class="tools">
   <div class="tools-cent">
     <div class="vin"><textarea id="input" placeholder="输入要加密/解密的内容...."></textarea></div>
     <div class="vsetup">
-      <div class="fitem"><label>位移位数</label><input type="number" id="shift" value="3" min="1" max="25"></div>
+      <div class="fitem"><label>密钥</label><input type="text" id="key" placeholder="仅字母，如 KEY"></div>
     </div>
     <div class="abar">
       <button class="fbtn teal" id="encBtn">加密</button>
       <button class="fbtn blue" id="decBtn">解密</button>
-      <button class="fbtn brown" id="bruteBtn">暴力破解</button>
       <button class="fbtn gray" id="clearBtn">清空数据</button>
     </div>
     <div class="vout" id="outBox">
@@ -38,12 +37,13 @@ s.parentNode.insertBefore(hm, s);
     </div>
   </div>
   <div class="resttips">
-    <h4>关于凯撒密码介绍：</h4>
+    <h4>关于博福特密码介绍：</h4>
     <ol>
-      <li>凯撒密码（Caesar Cipher）是最古老、最简单的加密方式之一，得名于罗马的凯撒大帝。</li>
-      <li>原理：把每个字母在字母表中循环位移固定的位数，如位移 3 位时 A→D、B→E。</li>
-      <li>解密时反向位移即可；也可用「暴力破解」列出全部 25 种位移结果逐个辨认。</li>
-      <li>仅对英文字母生效，数字、汉字、标点保持不变，安全性极低。</li>
+      <li>博福特密码（Beaufort Cipher）由弗朗西斯·博福特爵士创造，是维吉尼亚密码的变体。</li>
+      <li>与维吉尼亚的区别：加密公式为 C = (K - P) mod 26，即从密钥字母开始反向计数明文字母。</li>
+      <li>它是自反密码：加密和解密使用同一公式、同一密钥，加密一次再加密一次即还原。</li>
+      <li>密钥仅接受字母（不区分大小写），循环使用；文本中的数字、汉字、标点、空格保持不变。</li>
+      <li>同样可用卡西斯基试验和频率分析攻破，安全性有限，适合教学与谜题。</li>
     </ol>
   </div>
 </div></div></div>
@@ -51,34 +51,27 @@ s.parentNode.insertBefore(hm, s);
 <script src="../assets/chrome.js?v=1.5.4"></script>
 <script>
 const $=id=>document.getElementById(id);
-function shiftStr(s, k) {
+function beau(s, key){
+  const k = key.toUpperCase().replace(/[^A-Z]/g, "");
+  if (!k) return null;
+  let ki = 0;
   return [...s].map(c => {
     const cp = c.codePointAt(0);
-    if (cp >= 65 && cp <= 90) return String.fromCharCode((cp - 65 + k + 26) % 26 + 65);
-    if (cp >= 97 && cp <= 122) return String.fromCharCode((cp - 97 + k + 26) % 26 + 97);
+    const kv = k.charCodeAt(ki % k.length) - 65;
+    if (cp >= 65 && cp <= 90){ const v = (kv - (cp - 65) + 26) % 26; ki++; return String.fromCharCode(v + 65); }
+    if (cp >= 97 && cp <= 122){ const v = (kv - (cp - 97) + 26) % 26; ki++; return String.fromCharCode(v + 97); }
     return c;
   }).join("");
 }
-function show(res) {
-  $("output").value = res;
-  $("outBox").classList.add("on");
+function show(res){ $("output").value = res; $("outBox").classList.add("on"); }
+function run(){
+  const s = $("input").value;
+  if (!s) return alert("请输入内容");
+  const r = beau(s, $("key").value);
+  show(r === null ? "❌ 密钥无效：请输入至少一个字母" : r);
 }
-$("encBtn").onclick = () => {
-  const s=$("input").value;
-  if (!s) return alert("请输入内容");
-  show(shiftStr(s, +$("shift").value || 3));
-};
-$("decBtn").onclick = () => {
-  const s=$("input").value;
-  if (!s) return alert("请输入内容");
-  show(shiftStr(s, -(+$("shift").value || 3)));
-};
-$("bruteBtn").onclick = () => {
-  const s=$("input").value;
-  if (!s) return alert("请输入内容");
-  show([...Array(25)].map((_, i) =>
-    `位移 ${String(i+1).padStart(2," ")}：${shiftStr(s, i+1)}`).join("\n"));
-};
+$("encBtn").onclick = run;
+$("decBtn").onclick = run;
 $("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
 $("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
 </script>

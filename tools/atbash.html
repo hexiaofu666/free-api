@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>埃特巴什码在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.4"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="字母表倒序映射的古典密码，加密即解密，一键转换">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/atbash.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="atbash" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要转换的内容...."></textarea></div>
+    <div class="abar">
+      <button class="fbtn teal" id="convBtn">转换</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于埃特巴什码介绍：</h4>
+    <ol>
+      <li>埃特巴什码（Atbash）是一种古老的替换密码，起源于希伯来字母表，最早见于圣经文本。</li>
+      <li>原理：把字母表完全倒序映射——A↔Z、B↔Y、C↔X……（第 n 个字母换成倒数第 n 个）。</li>
+      <li>它是自反密码：加密与解密是同一个操作，再转换一次即还原原文。</li>
+      <li>仅对英文字母生效，大小写分别映射；数字、汉字、标点保持不变。</li>
+      <li>安全性极低，常用于 CTF 入门题、谜题游戏和密码学教学。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.4"></script>
+<script src="../assets/chrome.js?v=1.5.4"></script>
+<script>
+const $=id=>document.getElementById(id);
+function atbash(s){
+  return [...s].map(c => {
+    const cp = c.codePointAt(0);
+    if (cp >= 65 && cp <= 90) return String.fromCharCode(90 - (cp - 65));
+    if (cp >= 97 && cp <= 122) return String.fromCharCode(122 - (cp - 97));
+    return c;
+  }).join("");
+}
+function show(res){ $("output").value = res; $("outBox").classList.add("on"); }
+$("convBtn").onclick = () => {
+  const s = $("input").value;
+  if (!s) return alert("请输入内容");
+  show(atbash(s));
+};
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

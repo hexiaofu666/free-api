@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>栅栏密码在线加密解密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.4"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="支持标准型与W型栅栏密码，加密、解密与枚举破解">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/railfence.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="railfence" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要加密/解密的内容（空格会自动删除）...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>类型</label><select id="mode"><option value="std">标准型</option><option value="w">W型</option></select></div>
+      <div class="fitem"><label>栏数</label><input type="number" id="rails" value="3" min="2" max="100"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="encBtn">加密</button>
+      <button class="fbtn blue" id="decBtn">解密</button>
+      <button class="fbtn brown" id="enumEncBtn">枚举加密</button>
+      <button class="fbtn brown" id="enumDecBtn">枚举解密</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于栅栏密码工具介绍：</h4>
+    <ol>
+      <li>栅栏密码（Rail Fence Cipher）是古典密码的一种，把明文分成 N 个"栏"再重排读取，打乱原文顺序。</li>
+      <li>标准型：将文本按行写入 N 栏矩阵后按列读取；长度不足会自动用 @ 补齐。</li>
+      <li>W型：将文本沿 W 形波浪路径依次排列到 N 个栏中，再按栏拼接生成密文。</li>
+      <li>枚举加密 / 枚举解密：自动尝试 2 到文本长度-1 的所有栏数，逐行列出结果，用于破解未知栏数的密文。</li>
+      <li>空格会自动删除；如需保留空格请先替换成其他字符。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.4"></script>
+<script src="../assets/chrome.js?v=1.5.4"></script>
+<script>
+const $=id=>document.getElementById(id);
+function clean(s){ return s.replace(/\s+/g,""); }
+/* 标准型：按行写入 N 栏矩阵，按列读取；@ 补齐 */
+function stdEnc(s, n){
+  const pad = (n - s.length % n) % n;
+  s = s + "@".repeat(pad);
+  const cols = s.length / n;
+  let out = "";
+  for (let j = 0; j < n; j++) for (let i = 0; i < cols; i++) out += s[i * n + j];
+  return out;
+}
+function stdDec(s, n){
+  if (s.length % n) return null;
+  const rows = s.length / n;
+  let out = "";
+  for (let i = 0; i < rows; i++) for (let j = 0; j < n; j++) out += s[j * rows + i];
+  return out;
+}
+/* W型：之字形波浪路径 */
+function wPattern(len, n){
+  const p = []; let row = 0, dir = 1;
+  for (let i = 0; i < len; i++){ p.push(row); if (row === 0) dir = 1; if (row === n - 1) dir = -1; row += dir; }
+  return p;
+}
+function wEnc(s, n){
+  const p = wPattern(s.length, n);
+  const rows = Array.from({length: n}, () => []);
+  s.split("").forEach((c, i) => rows[p[i]].push(c));
+  return rows.map(r => r.join("")).join("");
+}
+function wDec(s, n){
+  const p = wPattern(s.length, n);
+  const counts = Array(n).fill(0); p.forEach(r => counts[r]++);
+  const rows = []; let idx = 0;
+  for (let r = 0; r < n; r++){ rows.push(s.slice(idx, idx + counts[r]).split("")); idx += counts[r]; }
+  return p.map(r => rows[r].shift()).join("");
+}
+function show(res){ $("output").value = res; $("outBox").classList.add("on"); }
+function getN(){ return Math.min(100, Math.max(2, +$("rails").value || 3)); }
+function run(fn){
+  const s = clean($("input").value);
+  if (!s) return alert("请输入内容");
+  const n = getN();
+  if (s.length < n) return alert("栏数不能大于文本长度");
+  const r = fn(s, n);
+  show(r === null ? "❌ 栏数与文本长度不匹配，无法解密" : r);
+}
+$("encBtn").onclick = () => run($("mode").value === "w" ? wEnc : stdEnc);
+$("decBtn").onclick = () => run($("mode").value === "w" ? wDec : stdDec);
+function enumerate(dec){
+  const s = clean($("input").value);
+  if (!s) return alert("请输入内容");
+  const f = $("mode").value === "w" ? (dec ? wDec : wEnc) : (dec ? stdDec : stdEnc);
+  const lines = [];
+  for (let n = 2; n < s.length; n++){
+    const r = f(s, n);
+    if (r !== null) lines.push(`栏数 ${n}：${r}`);
+  }
+  show(lines.join("\n"));
+}
+$("enumEncBtn").onclick = () => enumerate(false);
+$("enumDecBtn").onclick = () => enumerate(true);
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

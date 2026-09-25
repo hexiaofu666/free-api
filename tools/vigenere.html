@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>维吉尼亚密码在线加解密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.4"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="多表替换古典密码，支持任意字母密钥与中英文混合文本">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/vigenere.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="vigenere" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要加密/解密的内容...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>密钥</label><input type="text" id="key" placeholder="仅字母，如 KEY"><button class="fbtn mini teal" id="randBtn" title="随机密钥">随机</button></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="encBtn">加密</button>
+      <button class="fbtn blue" id="decBtn">解密</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于维吉尼亚密码介绍：</h4>
+    <ol>
+      <li>维吉尼亚密码（Vigenère Cipher）是 16 世纪发明的多表替换密码，被誉为"不可破译的密码"，直到 19 世纪才被频率分析攻破。</li>
+      <li>加密公式：C = (P + K) mod 26；解密公式：P = (C - K + 26) mod 26。密钥循环使用，直至覆盖全文。</li>
+      <li>示例：使用密钥 KEY 加密 HELLO 得到密文 RIJVS。</li>
+      <li>密钥仅接受字母（不区分大小写）；文本中的数字、汉字、标点、空格保持不变。</li>
+      <li>密钥越长、越随机，加密强度越高。点击「随机」可生成 12 位随机字母密钥。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.4"></script>
+<script src="../assets/chrome.js?v=1.5.4"></script>
+<script>
+const $=id=>document.getElementById(id);
+function vig(s, key, dec){
+  const k = key.toUpperCase().replace(/[^A-Z]/g, "");
+  if (!k) return null;
+  let ki = 0;
+  return [...s].map(c => {
+    const cp = c.codePointAt(0);
+    const kv = k.charCodeAt(ki % k.length) - 65;
+    if (cp >= 65 && cp <= 90){ const v = (cp - 65 + (dec ? -kv : kv) + 26) % 26; ki++; return String.fromCharCode(v + 65); }
+    if (cp >= 97 && cp <= 122){ const v = (cp - 97 + (dec ? -kv : kv) + 26) % 26; ki++; return String.fromCharCode(v + 97); }
+    return c;
+  }).join("");
+}
+function show(res){ $("output").value = res; $("outBox").classList.add("on"); }
+function run(dec){
+  const s = $("input").value;
+  if (!s) return alert("请输入内容");
+  const r = vig(s, $("key").value, dec);
+  show(r === null ? "❌ 密钥无效：请输入至少一个字母" : r);
+}
+$("encBtn").onclick = () => run(false);
+$("decBtn").onclick = () => run(true);
+$("randBtn").onclick = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  $("key").value = [...Array(12)].map(() => chars[Math.floor(Math.random() * 26)]).join("");
+};
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

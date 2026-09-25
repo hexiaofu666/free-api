@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>敲击码在线加密解密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.4"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="基于5x5波利比奥斯方阵的敲击码转换，支持智能识别">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/tapcode.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="tapcode" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入明文（如 HELLO）或敲击码（如 23,15,31,31,34）...."></textarea></div>
+    <div class="abar">
+      <button class="fbtn teal" id="encBtn">转敲击码</button>
+      <button class="fbtn blue" id="decBtn">转字母</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+    <div class="taptable" id="tapTable"></div>
+  </div>
+  <div class="resttips">
+    <h4>关于敲击码介绍：</h4>
+    <ol>
+      <li>敲击码（Tap Code）是基于波利比奥斯方阵的简单编码，历史上被战俘用于通过敲击墙壁进行秘密通信（每对数字 = 敲几下 + 停顿 + 敲几下）。</li>
+      <li>本工具采用 5×5 方阵：C/K 合并占 13 位，I/J 合并占 24 位，25 位为空。</li>
+      <li>转敲击码：自动过滤非字母字符，每个字母输出两位数字（如 H→23），以逗号分隔。</li>
+      <li>转字母：智能识别多种格式，"11 23"、"1,1 2,3"、"1123" 均可解析还原。</li>
+      <li>适合剧本杀、解谜游戏与密码学入门教学。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.4"></script>
+<script src="../assets/chrome.js?v=1.5.4"></script>
+<script>
+const $=id=>document.getElementById(id);
+const TAP = {"A":"11","B":"12","C":"13","K":"13","D":"14","E":"15","F":"21","G":"22","H":"23","I":"24","J":"24","L":"31","M":"32","N":"33","O":"34","P":"35","Q":"41","R":"42","S":"43","T":"44","U":"45","V":"51","W":"52","X":"53","Y":"54","Z":"55"};
+const REV = {};
+Object.keys(TAP).forEach(l => { if (!REV[TAP[l]]) REV[TAP[l]] = l; });
+function show(res){ $("output").value = res; $("outBox").classList.add("on"); }
+$("encBtn").onclick = () => {
+  const s = $("input").value;
+  if (!s) return alert("请输入内容");
+  const out = [...s.toUpperCase()].filter(c => TAP[c]).map(c => TAP[c]).join(",");
+  if (!out) return alert("未识别到英文字母");
+  show(out);
+};
+$("decBtn").onclick = () => {
+  const s = $("input").value;
+  if (!s) return alert("请输入内容");
+  const pairs = s.match(/[1-5][\s,.、]*[1-5]/g);
+  if (!pairs || !pairs.length) return alert("未识别到有效的敲击码");
+  show(pairs.map(p => REV[p.replace(/[\s,.、]/g, "")] || "?").join(""));
+};
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+/* 渲染编码表 */
+(function(){
+  const grid = ["A","B","C/K","D","E","F","G","H","I/J","","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+  let html = '<table><tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>';
+  for (let r = 0; r < 5; r++){
+    html += `<tr><th>${r+1}</th>`;
+    for (let c = 0; c < 5; c++) html += `<td>${grid[r*5+c]}</td>`;
+    html += "</tr>";
+  }
+  $("tapTable").innerHTML = html + "</table>";
+})();
+</script>
+</body>
+</html>

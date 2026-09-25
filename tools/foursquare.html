@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四方密码在线加解密 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.4"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="四矩阵双字母替换古典密码，双密钥加密更难破解">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/foursquare.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="foursquare" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vin"><textarea id="input" placeholder="输入要加密/解密的内容（J 自动视为 I）...."></textarea></div>
+    <div class="vsetup">
+      <div class="fitem"><label>密钥 1</label><input type="text" id="key1" placeholder="密钥短语" style="width:150px"><button class="fbtn mini teal" id="rand1">随机</button></div>
+      <div class="fitem"><label>密钥 2</label><input type="text" id="key2" placeholder="密钥短语" style="width:150px"><button class="fbtn mini teal" id="rand2">随机</button></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="encBtn">加密</button>
+      <button class="fbtn blue" id="decBtn">解密</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>转换结果</strong><span id="copyBtn">复制</span></div>
+      <textarea id="output" readonly></textarea>
+    </div>
+    <div class="fsqbox" id="sqBox"></div>
+  </div>
+  <div class="resttips">
+    <h4>关于四方密码介绍：</h4>
+    <ol>
+      <li>四方密码（Four-Square Cipher）使用 4 个 5×5 矩阵：左上、右下为标准字母表，右上、左下分别由密钥 1、密钥 2 构造。</li>
+      <li>它是双字母替换密码：明文两两一组，分别定位在左上、右下矩阵，再从右上、左下矩阵取出对应字母组成密文。</li>
+      <li>相比单矩阵的 Playfair 密码，双密钥让频率分析更难，安全性强得多。</li>
+      <li>密钥短语自动去重并补全剩余字母，I 与 J 视为同一字母；明文奇数长度时末尾补 X。</li>
+      <li>非字母字符自动过滤；加密后可在下方核对四个矩阵的变化。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.4"></script>
+<script src="../assets/chrome.js?v=1.5.4"></script>
+<script>
+const $=id=>document.getElementById(id);
+function buildSquare(key){
+  const seen = new Set(), letters = [];
+  (key.toUpperCase().replace(/[^A-Z]/g, "").replace(/J/g, "I") + "ABCDEFGHIKLMNOPQRSTUVWXYZ").split("").forEach(c => {
+    if (!seen.has(c)){ seen.add(c); letters.push(c); }
+  });
+  const sq = [];
+  for (let r = 0; r < 5; r++) sq.push(letters.slice(r * 5, r * 5 + 5));
+  return sq;
+}
+function pos(sq, c){
+  for (let r = 0; r < 5; r++){ const i = sq[r].indexOf(c); if (i >= 0) return [r, i]; }
+  return null;
+}
+function pairs(s){
+  const a = [...s.toUpperCase().replace(/J/g, "I")].filter(c => c >= "A" && c <= "Z" && c !== "J");
+  if (a.length % 2) a.push("X");
+  const out = [];
+  for (let i = 0; i < a.length; i += 2) out.push([a[i], a[i + 1]]);
+  return out;
+}
+let SQ = null;
+function fourSquare(s, k1, k2, dec){
+  SQ = { q1: buildSquare(""), q2: buildSquare(k1), q3: buildSquare(k2), q4: buildSquare("") };
+  return pairs(s).map(([a, b]) => {
+    if (dec){
+      const p1 = pos(SQ.q2, a), p2 = pos(SQ.q3, b);
+      if (!p1 || !p2) return "";
+      return SQ.q1[p1[0]][p2[1]] + SQ.q4[p2[0]][p1[1]];
+    }
+    const p1 = pos(SQ.q1, a), p2 = pos(SQ.q4, b);
+    return SQ.q2[p1[0]][p2[1]] + SQ.q3[p2[0]][p1[1]];
+  }).join("");
+}
+function drawSquares(){
+  if (!SQ) return;
+  const names = [["左上 (标准)", "q1"], ["右上 (密钥1)", "q2"], ["左下 (密钥2)", "q3"], ["右下 (标准)", "q4"]];
+  $("sqBox").innerHTML = names.map(([t, k]) =>
+    `<div class="fsq"><h5>${t}</h5><table>${SQ[k].map(r => "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>").join("")}</table></div>`
+  ).join("");
+}
+function show(res){ $("output").value = res; $("outBox").classList.add("on"); drawSquares(); }
+function run(dec){
+  const s = $("input").value;
+  if (!s) return alert("请输入内容");
+  const k1 = $("key1").value, k2 = $("key2").value;
+  if (!k1.replace(/[^A-Za-z]/g, "") || !k2.replace(/[^A-Za-z]/g, "")) return alert("请填写两个密钥");
+  show(fourSquare(s, k1, k2, dec));
+}
+$("encBtn").onclick = () => run(false);
+$("decBtn").onclick = () => run(true);
+const randKey = () => {
+  const pool = "ABCDEFGHIKLMNOPQRSTUVWXYZ".split("");
+  for (let i = pool.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  return pool.join("");
+};
+$("rand1").onclick = () => $("key1").value = randKey();
+$("rand2").onclick = () => $("key2").value = randKey();
+$("clearBtn").onclick = () => { $("input").value=""; $("output").value=""; $("outBox").classList.remove("on"); $("sqBox").innerHTML=""; SQ=null; };
+$("copyBtn").onclick = () => { $("output").select(); document.execCommand("copy"); };
+</script>
+</body>
+</html>

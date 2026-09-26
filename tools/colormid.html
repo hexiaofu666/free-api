@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>两种颜色中间色计算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.5"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.5">
+<style>
+.cp-row { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+.cp-item { flex: 1; min-width: 150px; }
+.cp-item .lab { font-size: 13px; color: #555; margin-bottom: 6px; }
+.cp-box { height: 100px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-family: Consolas, monospace; text-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.crow { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.crow input { height: 36px; border: 1px solid #ddd; border-radius: 3px; padding: 0 10px; font-size: 14px; outline: none; }
+.crow input:focus { border-color: #ff6500; }
+html.dark .crow input { background: #1f2224; border-color: #3a3d40; color: #e8eaed; }
+html.dark .cp-item .lab { color: #a8adb8; }
+.grad { height: 34px; border-radius: 4px; margin-top: 12px; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="计算两种颜色的中间过渡色，输出 HEX 与 RGB 颜色值，支持渐变预览">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/colormid.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="colormid" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="crow">
+      <input id="c1" value="#ff6500" style="width:130px;" spellcheck="false">
+      <input id="c2" value="#00b277" style="width:130px;" spellcheck="false">
+      <button class="fbtn blue" id="calcBtn" style="margin:0;">开始计算</button>
+    </div>
+    <div class="cp-row">
+      <div class="cp-item"><div class="lab">颜色 A</div><div class="cp-box" id="box1">#FF6500</div></div>
+      <div class="cp-item"><div class="lab">中间色（50%）</div><div class="cp-box" id="boxMid">#808C40</div></div>
+      <div class="cp-item"><div class="lab">颜色 B</div><div class="cp-box" id="box2">#00B277</div></div>
+    </div>
+    <div class="lab" style="font-size:13px;color:#555;margin-bottom:6px;">A → B 渐变预览（中间色在最中央）</div>
+    <div class="grad" id="grad"></div>
+    <div class="citem" style="display:flex;border:1px solid #eee;border-radius:4px;margin-top:12px;overflow:hidden;">
+      <label style="width:110px;flex-shrink:0;background:#f8f8f8;border-right:1px solid #eee;display:flex;align-items:center;justify-content:center;font-size:13px;color:#555;">中间色值</label>
+      <span id="midOut" style="flex:1;padding:10px 12px;font-family:Consolas,monospace;font-size:14px;color:#34495e;">HEX #808C40 · RGB rgb(128, 140, 64)</span>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于两种颜色中间色计算工具介绍：</h4>
+    <p>1、此工具可计算两种颜色的中间过渡色（RGB 三通道各取平均值）。</p>
+    <p>2、输入两个颜色值（支持 HEX 与 RGB 格式），点击「开始计算」即可得到结果。</p>
+    <p>3、附赠 A → B 的渐变预览条，中间色位于渐变正中央，方便配色参考。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.5"></script>
+<script src="../assets/chrome.js?v=1.5.5"></script>
+<script>
+const $ = id => document.getElementById(id);
+function toHex(r, g, b) { return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase(); }
+function parse(v) {
+  v = v.trim();
+  let m;
+  if ((m = v.match(/^#?([0-9a-fA-F]{6})$/))) { const n = parseInt(m[1], 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  if ((m = v.match(/^#?([0-9a-fA-F]{3})$/))) return m[1].split("").map(c => parseInt(c + c, 16));
+  if ((m = v.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/))) {
+    const [r, g, b] = [+m[1], +m[2], +m[3]];
+    return (r > 255 || g > 255 || b > 255) ? null : [r, g, b];
+  }
+  return null;
+}
+$("calcBtn").onclick = () => {
+  const a = parse($("c1").value), b = parse($("c2").value);
+  if (!a || !b) return alert("❌ 请输入两个有效颜色（#RRGGBB 或 r,g,b）");
+  const mid = a.map((u, i) => Math.round((u + b[i]) / 2));
+  const hexA = toHex(...a), hexB = toHex(...b), hexM = toHex(...mid);
+  $("box1").style.background = hexA; $("box1").textContent = hexA;
+  $("box2").style.background = hexB; $("box2").textContent = hexB;
+  $("boxMid").style.background = hexM; $("boxMid").textContent = hexM;
+  $("grad").style.background = `linear-gradient(to right, ${hexA}, ${hexB})`;
+  $("midOut").textContent = `HEX ${hexM} · RGB rgb(${mid.join(", ")})`;
+};
+$("calcBtn").click();
+</script>
+</body>
+</html>

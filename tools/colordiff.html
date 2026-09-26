@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>颜色匹配度在线计算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.5"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.5">
+<style>
+.cp-row { display: flex; gap: 12px; margin: 14px 0; flex-wrap: wrap; }
+.cp-item { flex: 1; min-width: 220px; }
+.cp-item .lab { font-size: 13px; color: #555; margin-bottom: 6px; }
+.cp-box { height: 100px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-family: Consolas, monospace; text-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.score { display: flex; align-items: center; gap: 14px; margin: 14px 0; }
+.score .num { font-size: 34px; font-weight: 700; color: #ff6500; font-family: Consolas, monospace; }
+.bar { flex: 1; height: 12px; border-radius: 6px; background: #eee; overflow: hidden; }
+.bar i { display: block; height: 100%; background: linear-gradient(90deg, #e74c3c, #f39c12, #00b277); width: 0; transition: width .4s; }
+table.diff-tbl { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+table.diff-tbl th, table.diff-tbl td { border: 1px solid #eee; padding: 7px 10px; text-align: left; }
+table.diff-tbl th { background: #f8f8f8; }
+html.dark table.diff-tbl th { background: #1f2224; }
+html.dark table.diff-tbl th, html.dark table.diff-tbl td { border-color: #2c2f33; }
+html.dark .cp-item .lab { color: #a8adb8; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="计算两种颜色的匹配度（CIE76 色差公式 ΔE），判断视觉相似程度">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/colordiff.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="colordiff" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="fbox">
+      <div class="fitem"><label>颜色 A</label><input id="c1" value="#ff6500" spellcheck="false"></div>
+      <div class="fitem"><label>颜色 B</label><input id="c2" value="#ff7d1a" spellcheck="false"></div>
+    </div>
+    <button class="fbtn blue" id="calcBtn">开始计算</button>
+    <div class="cp-row">
+      <div class="cp-item"><div class="lab">颜色 A</div><div class="cp-box" id="box1"></div></div>
+      <div class="cp-item"><div class="lab">颜色 B</div><div class="cp-box" id="box2"></div></div>
+    </div>
+    <div class="score">
+      <span class="num" id="score">--</span>
+      <div class="bar"><i id="bar"></i></div>
+    </div>
+    <table class="diff-tbl">
+      <tr><th>色差 ΔE (CIE76)</th><th>匹配度</th><th>感知程度</th></tr>
+      <tr><td>ΔE ≤ 1.0</td><td>≥ 95 分</td><td>人眼无法区分</td></tr>
+      <tr><td>1.0 &lt; ΔE ≤ 2.0</td><td>85 ~ 95 分</td><td>仔细观察可察觉</td></tr>
+      <tr><td>2.0 &lt; ΔE ≤ 10.0</td><td>40 ~ 85 分</td><td>一眼可以看出差别</td></tr>
+      <tr><td>ΔE &gt; 10.0</td><td>&lt; 40 分</td><td>明显是两种不同颜色</td></tr>
+    </table>
+    <p id="concl" style="font-size:13px;color:#555;line-height:2;margin-top:10px;"></p>
+  </div>
+  <div class="resttips">
+    <h4>关于颜色匹配度计算工具介绍：</h4>
+    <p>1、此工具基于国际通用的 CIE76 色差公式（Lab 色彩空间 ΔE）计算两种颜色的视觉差异。</p>
+    <p>2、输入两个颜色值（支持 HEX 与 RGB 格式），点击「开始计算」得到色差 ΔE 与匹配度评分。</p>
+    <p>3、ΔE 越小代表两种颜色越接近：≤1 人眼无法区分，≤2 仔细看可察觉，越大差别越明显。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.5"></script>
+<script src="../assets/chrome.js?v=1.5.5"></script>
+<script>
+const $ = id => document.getElementById(id);
+function toHex(r, g, b) { return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase(); }
+function parse(v) {
+  v = v.trim();
+  let m;
+  if ((m = v.match(/^#?([0-9a-fA-F]{6})$/))) { const n = parseInt(m[1], 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  if ((m = v.match(/^#?([0-9a-fA-F]{3})$/))) return m[1].split("").map(c => parseInt(c + c, 16));
+  if ((m = v.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/))) {
+    const [r, g, b] = [+m[1], +m[2], +m[3]];
+    return (r > 255 || g > 255 || b > 255) ? null : [r, g, b];
+  }
+  return null;
+}
+function rgb2lab(r, g, b) {
+  let R = r / 255, G = g / 255, B = b / 255;
+  R = R > .04045 ? Math.pow((R + .055) / 1.055, 2.4) : R / 12.92;
+  G = G > .04045 ? Math.pow((G + .055) / 1.055, 2.4) : G / 12.92;
+  B = B > .04045 ? Math.pow((B + .055) / 1.055, 2.4) : B / 12.92;
+  let X = (R * .4124 + G * .3576 + B * .1805) / .95047;
+  let Y = (R * .2126 + G * .7152 + B * .0722) / 1.0;
+  let Z = (R * .0193 + G * .1192 + B * .9505) / 1.08883;
+  const f = t => t > .008856 ? Math.cbrt(t) : (7.787 * t) + 16 / 116;
+  X = f(X); Y = f(Y); Z = f(Z);
+  return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+}
+$("calcBtn").onclick = () => {
+  const a = parse($("c1").value), b = parse($("c2").value);
+  if (!a || !b) return alert("❌ 请输入两个有效颜色（#RRGGBB 或 r,g,b）");
+  const [L1, A1, B1] = rgb2lab(...a), [L2, A2, B2] = rgb2lab(...b);
+  const dE = Math.sqrt((L1 - L2) ** 2 + (A1 - A2) ** 2 + (B1 - B2) ** 2);
+  const score = Math.max(0, Math.min(100, Math.round(100 - dE * 10)));
+  $("score").textContent = score + " 分";
+  $("bar").style.width = score + "%";
+  $("box1").style.background = toHex(...a); $("box1").textContent = toHex(...a);
+  $("box2").style.background = toHex(...b); $("box2").textContent = toHex(...b);
+  let concl;
+  if (dE <= 1) concl = "两种颜色几乎完全一致，人眼无法区分，可视为同一颜色。";
+  else if (dE <= 2) concl = "两种颜色非常接近，仔细对比才能察觉细微差别。";
+  else if (dE <= 10) concl = "两种颜色存在明显差别，一眼可以看出不同。";
+  else concl = "两种颜色差异很大，属于明显不同的颜色。";
+  $("concl").textContent = `色差 ΔE = ${dE.toFixed(2)}。${concl}`;
+};
+$("calcBtn").click();
+</script>
+</body>
+</html>

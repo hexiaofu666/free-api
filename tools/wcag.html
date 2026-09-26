@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WCAG颜色对比度在线检测 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.5"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.5">
+<style>
+.crow { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 14px; flex-wrap: wrap; }
+.crow .fitem { flex: 1; min-width: 180px; }
+.crow .fitem input { display: flex; }
+.swapbtn { height: 38px; padding: 0 16px; }
+.result { border: 1px solid #eee; border-radius: 6px; padding: 14px 16px; margin-bottom: 14px; }
+.result .ratio { font-size: 26px; font-weight: 700; color: #ff6500; font-family: Consolas, monospace; }
+.grade { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px dashed #eee; flex-wrap: wrap; gap: 6px; }
+.grade:last-child { border-bottom: 0; }
+.grade .g-name { font-size: 13px; font-weight: 600; color: #333; }
+.grade .g-req { font-size: 12px; color: #999; }
+.grade .g-ok { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 3px; color: #fff; }
+.g-ok.pass { background: #00b277; }
+.g-ok.fail { background: #e74c3c; }
+html.dark .result { border-color: #2c2f33; }
+html.dark .grade { border-color: #2c2f33; }
+html.dark .grade .g-name { color: #f0f2f5; }
+.demo { border: 1px solid #eee; border-radius: 6px; padding: 14px 16px; }
+.demo p { margin-bottom: 10px; font-size: 16px; }
+.demo p.big { font-size: 19px; font-weight: 700; }
+.demo p.bold { font-size: 15px; font-weight: 700; }
+html.dark .demo { border-color: #2c2f33; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="WCAG 颜色对比度在线检测，评估前景色与背景色是否符合无障碍 AA/AAA 标准">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/wcag.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="wcag" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="crow">
+      <div class="fitem"><label>前景色（文字）</label><input id="fg" value="#ffffff" spellcheck="false"></div>
+      <div class="fitem"><label>背景色</label><input id="bg" value="#ff6500" spellcheck="false"></div>
+      <button class="fbtn blue swapbtn" id="swapBtn" style="margin:0;">⇄ 交换</button>
+    </div>
+    <div class="result">
+      <div style="margin-bottom:8px;font-size:13px;color:#555;">对比度结果：<span class="ratio" id="ratio">--</span></div>
+      <div class="grade">
+        <span class="g-name">WCAG AA <span class="g-req">正常文本 ≥ 4.5:1 · 大文本 ≥ 3:1</span></span>
+        <span id="aa"></span>
+      </div>
+      <div class="grade">
+        <span class="g-name">WCAG AAA <span class="g-req">正常文本 ≥ 7:1 · 大文本 ≥ 4.5:1</span></span>
+        <span id="aaa"></span>
+      </div>
+      <p id="advice" style="font-size:13px;color:#555;line-height:1.9;margin-top:10px;"></p>
+    </div>
+    <div class="demo" id="demo">
+      <p>正常文本 (16px)：文本示例，用于展示颜色对比度效果。</p>
+      <p class="big">大文本 (≥18px)：大号文本示例。</p>
+      <p class="bold">粗体文本 (≥14px 粗体)：粗体文本示例。</p>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于WCAG颜色对比度检测工具介绍：</h4>
+    <p>1、WCAG（Web 内容无障碍指南）是国际通用的网页无障碍标准，对比度不足会让视力障碍用户难以阅读。</p>
+    <p>2、本工具按 WCAG 2.1 相对亮度公式计算前景色与背景色的对比度比率，并按 AA / AAA 级别给出通过与否。</p>
+    <p>3、正常文本要求 ≥ 4.5:1（AA）/ ≥ 7:1（AAA）；大文本（≥18px 或 ≥14px 粗体）要求 ≥ 3:1（AA）/ ≥ 4.5:1（AAA）。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.5"></script>
+<script src="../assets/chrome.js?v=1.5.5"></script>
+<script>
+const $ = id => document.getElementById(id);
+function toHex(r, g, b) { return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase(); }
+function parse(v) {
+  v = v.trim();
+  let m;
+  if ((m = v.match(/^#?([0-9a-fA-F]{6})$/))) { const n = parseInt(m[1], 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  if ((m = v.match(/^#?([0-9a-fA-F]{3})$/))) return m[1].split("").map(c => parseInt(c + c, 16));
+  if ((m = v.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/))) {
+    const [r, g, b] = [+m[1], +m[2], +m[3]];
+    return (r > 255 || g > 255 || b > 255) ? null : [r, g, b];
+  }
+  return null;
+}
+function lum([r, g, b]) {
+  const f = u => { u /= 255; return u <= .04045 ? u / 12.92 : Math.pow((u + .055) / 1.055, 2.4); };
+  return .2126 * f(r) + .7152 * f(g) + .0722 * f(b);
+}
+function badge(el, pass) {
+  el.innerHTML = `<span class="g-ok ${pass ? "pass" : "fail"}">${pass ? "通过" : "未通过"}</span>`;
+}
+function run() {
+  const fg = parse($("fg").value), bg = parse($("bg").value);
+  if (!fg || !bg) { $("advice").textContent = "❌ 请输入有效颜色（#RRGGBB 或 r,g,b）"; return; }
+  const L1 = lum(fg), L2 = lum(bg);
+  const ratio = (Math.max(L1, L2) + .05) / (Math.min(L1, L2) + .05);
+  $("ratio").textContent = ratio.toFixed(2) + " : 1";
+  const aaPass = ratio >= 4.5, aaBig = ratio >= 3, aaaPass = ratio >= 7, aaaBig = ratio >= 4.5;
+  badge($("aa"), aaPass);
+  $("aa").innerHTML = `<span class="g-ok ${aaPass ? "pass" : "fail"}">正常${aaPass ? "通过" : "未过"}</span> <span class="g-ok ${aaBig ? "pass" : "fail"}" style="margin-left:4px;">大文本${aaBig ? "通过" : "未过"}</span>`;
+  $("aaa").innerHTML = `<span class="g-ok ${aaaPass ? "pass" : "fail"}">正常${aaaPass ? "通过" : "未过"}</span> <span class="g-ok ${aaaBig ? "pass" : "fail"}" style="margin-left:4px;">大文本${aaaBig ? "通过" : "未过"}</span>`;
+  let advice;
+  if (aaaPass) advice = "当前颜色组合对比度极佳，完全符合 WCAG 所有级别要求。";
+  else if (aaPass) advice = "当前组合符合 AA 级要求，可满足大多数网站；若需 AAA 级请继续拉开明暗差。";
+  else if (aaBig) advice = "当前组合仅大文本（≥18px 或 ≥14px 粗体）符合 AA 级，正常字号文本不达标，建议加深/提亮其中一方。";
+  else advice = "当前组合对比度不足，未达 WCAG 最低要求，建议明显加深文字或提亮背景。";
+  $("advice").textContent = advice;
+  const fgh = toHex(...fg), bgh = toHex(...bg);
+  $("demo").style.background = bgh;
+  $("demo").style.color = fgh;
+}
+$("swapBtn").onclick = () => { const t = $("fg").value; $("fg").value = $("bg").value; $("bg").value = t; run(); };
+["fg", "bg"].forEach(id => $(id).addEventListener("input", run));
+run();
+</script>
+</body>
+</html>

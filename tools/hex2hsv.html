@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSV与16进制在线转换 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.5"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.5">
+<style>
+.cp-box { height: 100px; border-radius: 6px; background: #ff6500; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-family: Consolas, monospace; text-shadow: 0 1px 3px rgba(0,0,0,.3); margin-bottom: 16px; }
+.crow { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.crow .side { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px; }
+.crow .side .fin { display: flex; align-items: center; gap: 8px; }
+.crow .side label { width: 110px; font-size: 13px; color: #555; text-align: right; flex-shrink: 0; }
+.crow .to { font-weight: 700; color: #ff6500; font-size: 16px; padding: 0 4px; }
+.crow input { flex: 1; height: 36px; border: 1px solid #ddd; border-radius: 3px; padding: 0 10px; font-size: 14px; outline: none; }
+.crow input:focus { border-color: #ff6500; }
+html.dark .crow input { background: #1f2224; border-color: #3a3d40; color: #e8eaed; }
+html.dark .crow .side label { color: #a8adb8; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="HSV 与 16 进制（HEX）颜色在线互相转换，实时预览">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/hex2hsv.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="hex2hsv" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="cp-box" id="preview">#FF6500</div>
+    <div class="crow">
+      <div class="side">
+        <div class="fin"><label>HEX 值</label><input id="hex" value="#FF6500" spellcheck="false"></div>
+        <div class="fin"><label>取色器</label><input type="color" id="picker" value="#ff6500" style="height:36px;width:60px;padding:2px;cursor:pointer;flex:none;"></div>
+      </div>
+      <span class="to">TO</span>
+      <div class="side">
+        <div class="fin"><label>色相 H (0~360)</label><input id="h" type="number" min="0" max="360" step="0.1"></div>
+        <div class="fin"><label>饱和度 S (0~100%)</label><input id="s" type="number" min="0" max="100" step="0.1"></div>
+        <div class="fin"><label>明度 V (0~100%)</label><input id="v" type="number" min="0" max="100" step="0.1"></div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#bbb;line-height:2;">修改任意一侧的值，另一侧实时同步转换。</p>
+  </div>
+  <div class="resttips">
+    <h4>关于HSV/16进制转换工具介绍：</h4>
+    <p>1、HSV 基于色调（Hue）、饱和度（Saturation）和明度（Value）三个维度描述颜色，比 RGB 更符合人的直觉。</p>
+    <p>2、十六进制（HEX）颜色码是网页设计中最常用的颜色表示方式。</p>
+    <p>3、本工具通过修改 HEX 或 HSV 颜色的值让它们之间进行相互转换。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.5"></script>
+<script src="../assets/chrome.js?v=1.5.5"></script>
+<script>
+const $ = id => document.getElementById(id);
+function hex2rgb(hex) {
+  let v = hex.trim().replace(/^#/, "");
+  if (/^[0-9a-fA-F]{3}$/.test(v)) v = v.split("").map(c => c + c).join("");
+  if (!/^[0-9a-fA-F]{6}$/.test(v)) return null;
+  const n = parseInt(v, 16);
+  return [n >> 16 & 255, n >> 8 & 255, n & 255];
+}
+function rgb2hsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  let h = 0;
+  if (d) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h = Math.round(h * 60); if (h < 0) h += 360;
+  }
+  return [h, max ? +(d / max * 100).toFixed(1) : 0, +(max * 100).toFixed(1)];
+}
+function hsv2rgb(h, s, v) {
+  s /= 100; v /= 100;
+  const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+  let rgb;
+  if (h < 60) rgb = [c, x, 0];
+  else if (h < 120) rgb = [x, c, 0];
+  else if (h < 180) rgb = [0, c, x];
+  else if (h < 240) rgb = [0, x, c];
+  else if (h < 300) rgb = [x, 0, c];
+  else rgb = [c, 0, x];
+  return rgb.map(u => Math.round((u + m) * 255));
+}
+function toHex(r, g, b) { return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase(); }
+function paint(r, g, b) {
+  const hex = toHex(r, g, b);
+  $("preview").style.background = hex;
+  $("preview").textContent = hex;
+  $("picker").value = hex;
+}
+function fromHex() {
+  const rgb = hex2rgb($("hex").value);
+  if (!rgb) return;
+  const [h, s, v] = rgb2hsv(...rgb);
+  $("h").value = h; $("s").value = s; $("v").value = v;
+  paint(...rgb);
+}
+function fromHsv() {
+  let h = +$("h").value || 0, s = Math.min(100, Math.max(0, +$("s").value || 0)), v = Math.min(100, Math.max(0, +$("v").value || 0));
+  h = ((h % 360) + 360) % 360;
+  const [r, g, b] = hsv2rgb(h, s, v);
+  $("hex").value = toHex(r, g, b);
+  paint(r, g, b);
+}
+$("hex").addEventListener("input", fromHex);
+$("picker").addEventListener("input", e => { $("hex").value = e.target.value; fromHex(); });
+["h", "s", "v"].forEach(id => $(id).addEventListener("input", fromHsv));
+fromHex();
+</script>
+</body>
+</html>

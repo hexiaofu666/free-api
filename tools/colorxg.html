@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>相反颜色在线计算 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.5"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.5">
+<style>
+.cp-row { display: flex; gap: 12px; margin: 14px 0; flex-wrap: wrap; }
+.cp-item { flex: 1; min-width: 220px; }
+.cp-item .lab { font-size: 13px; color: #555; margin-bottom: 6px; }
+.cp-box { height: 110px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-family: Consolas, monospace; text-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.citem { display: flex; border: 1px solid #eee; border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+.citem label { width: 110px; flex-shrink: 0; background: #f8f8f8; border-right: 1px solid #eee; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #555; }
+.citem span { flex: 1; padding: 10px 12px; font-family: Consolas, Monaco, monospace; font-size: 14px; color: #34495e; }
+html.dark .citem { border-color: #2c2f33; }
+html.dark .citem label { background: #1f2224; border-color: #2c2f33; color: #a8adb8; }
+html.dark .citem span { color: #d5d9e0; }
+html.dark .cp-item .lab { color: #a8adb8; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="在线计算指定颜色的相反颜色（补色），输出 HEX 与 RGB 颜色值">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/colorxg.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="colorxg" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="fbox">
+      <div class="fitem"><label>输入颜色</label><input id="input" placeholder="如 #ff6500 或 255,101,0" value="#ff6500"></div>
+    </div>
+    <button class="fbtn blue" id="calcBtn">开始计算</button>
+    <div class="cp-row">
+      <div class="cp-item">
+        <div class="lab">原颜色</div>
+        <div class="cp-box" id="srcBox">#FF6500</div>
+      </div>
+      <div class="cp-item">
+        <div class="lab">相反颜色（补色）</div>
+        <div class="cp-box" id="dstBox">#009AFF</div>
+      </div>
+    </div>
+    <div class="citem"><label>HEX 颜色值</label><span id="hexOut">#009AFF</span></div>
+    <div class="citem"><label>RGB 颜色值</label><span id="rgbOut">rgb(0, 154, 255)</span></div>
+  </div>
+  <div class="resttips">
+    <h4>关于相反颜色计算工具介绍：</h4>
+    <p>1、此工具可对指定颜色的相反颜色值进行计算（取 RGB 每个通道与 255 的差值，即色环上的补色）。</p>
+    <p>2、输入或选择将要计算的颜色值，并点击「开始计算」按钮。</p>
+    <p>3、输出的结果分为「HEX 颜色值」与「RGB 颜色值」两种颜色值。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.5"></script>
+<script src="../assets/chrome.js?v=1.5.5"></script>
+<script>
+const $ = id => document.getElementById(id);
+function toHex(r, g, b) { return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase(); }
+function parse(v) {
+  v = v.trim();
+  let m;
+  if ((m = v.match(/^#?([0-9a-fA-F]{6})$/))) {
+    const n = parseInt(m[1], 16);
+    return [n >> 16 & 255, n >> 8 & 255, n & 255];
+  }
+  if ((m = v.match(/^#?([0-9a-fA-F]{3})$/))) {
+    return m[1].split("").map(c => parseInt(c + c, 16));
+  }
+  if ((m = v.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/))) {
+    const [r, g, b] = [+m[1], +m[2], +m[3]];
+    if (r > 255 || g > 255 || b > 255) return null;
+    return [r, g, b];
+  }
+  return null;
+}
+$("calcBtn").onclick = () => {
+  const rgb = parse($("input").value);
+  if (!rgb) return alert("❌ 请输入 #RRGGBB 或 r,g,b 格式（0~255）");
+  const inv = rgb.map(u => 255 - u);
+  const hexS = toHex(...rgb), hexI = toHex(...inv);
+  $("srcBox").style.background = hexS;
+  $("srcBox").textContent = hexS;
+  $("dstBox").style.background = hexI;
+  $("dstBox").textContent = hexI;
+  $("hexOut").textContent = hexI;
+  $("rgbOut").textContent = `rgb(${inv.join(", ")})`;
+};
+$("calcBtn").click();
+</script>
+</body>
+</html>

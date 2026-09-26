@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.4"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.4">
+<script src="../assets/theme.js?v=1.5.5"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.5">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -68,13 +68,20 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.5.4"></script>
-<script src="../assets/chrome.js?v=1.5.4"></script>
+<script src="../assets/tools-data.js?v=1.5.5"></script>
+<script src="../assets/chrome.js?v=1.5.5"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.5.5", date: "2026-09-26",
+    items: [
+      ["new", "新增 10 款颜色工具（工具总数 105→115）：RGB/16进制、RGB/HSV、RGB/CMYK、HSV/16进制、CMYK/16进制、HSV/CMYK 转换，相反颜色计算器、颜色中间色计算、颜色匹配度（CIE76色差）、WCAG对比度检测"],
+      ["fix", "补齐 30 个页面缺失的 viewport 标签，修复更新日志/开放API等页面手机端显示为电脑端布局的问题；API 文档页表格支持小屏横向滑动"],
+    ]
+  },
   {
     ver: "v1.5.4", date: "2026-09-25",
     items: [

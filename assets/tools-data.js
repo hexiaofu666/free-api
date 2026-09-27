@@ -1,5 +1,5 @@
 /* 工具清单：新增工具只需在这里加一行
-   ico   = layui 图标类名（与 udtool 同款图标字体）
+   ico   = layui 图标类名
    color = 图标块底色 */
 const TOOLS = [
   /* 生活工具 */
@@ -155,7 +155,7 @@ const CATS = [
   { id: "seo",    name: "站长工具" },
 ];
 
-/* 分类导航图标（与 udtool 同款） */
+/* 分类导航图标 */
 const NAV_ICONS = {
   all:    "layui-icon-app",
   life:   "layui-icon-flag",

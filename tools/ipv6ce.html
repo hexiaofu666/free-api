@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPv6地址压缩展开工具 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.demolist { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.demolist span { border: 1px dashed #ccc; border-radius: 4px; padding: 4px 10px; font-size: 12px; color: #666; cursor: pointer; font-family: Consolas, monospace; }
+.demolist span:hover { border-color: #ff6500; color: #ff6500; }
+.resbox { border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; margin-top: 12px; display: none; }
+.resbox .rlab { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 8px; }
+html.dark .demolist span { border-color: #444; color: #aaa; }
+html.dark .resbox { border-color: #2c2f33; }
+html.dark .resbox .rlab { color: #ccc; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="免费在线 IPv6 地址压缩展开工具，一键转换 IPv6 地址格式，支持完整 8 段展开与最短压缩（RFC 5952），兼容 IPv4 映射地址 ::ffff:x.x.x.x，浏览器本地处理。">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ipv6ce.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ipv6ce" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="fitem" style="margin-bottom:12px;"><label>待处理的 IPv6 地址</label><textarea id="input" rows="4" placeholder="例如：2001:0db8:0000:0000:0000:0000:0000:0001" spellcheck="false"></textarea></div>
+    <div class="demolist" id="demolist"></div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="fbtn blue" id="btnExpand">展开为完整格式</button>
+      <button class="fbtn blue" id="btnCompress">压缩为最短格式</button>
+      <button class="fbtn" id="copyBtn">复制结果</button>
+      <button class="fbtn" id="clearBtn">清空</button>
+    </div>
+    <div class="resbox" id="resbox">
+      <div class="rlab" id="reslab">展开结果</div>
+      <textarea id="output" rows="2" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于IPv6地址压缩展开工具介绍：</h4>
+    <p>1、IPv6 地址由 8 组 16 位十六进制数组成，标准写法每段补满 4 位；压缩规则允许省略每段的前导零，并用 :: 一次性替代最长的一段连续零（RFC 5952）。</p>
+    <p>2、本工具支持双向转换：展开为完整 8 段格式，或压缩为最短格式；自动识别 IPv4 映射地址（如 ::ffff:192.168.1.1）并正确处理。</p>
+    <p>3、支持携带作用域 ID 的地址（如 fe80::1%25），转换时自动忽略 % 后缀。所有处理均在浏览器本地完成。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+function validateIPv6(str) {
+  str = str.trim();
+  if (!str) return { valid: false, error: "请输入 IPv6 地址" };
+  str = str.split("%")[0];
+  const m = str.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i);
+  if (m) {
+    const p = m[1].split(".");
+    if (p.every(x => parseInt(x, 10) <= 255)) {
+      return { valid: true, parts: ["0000","0000","0000","0000","0000","ffff",
+        (parseInt(p[0],10).toString(16).padStart(2,"0") + parseInt(p[1],10).toString(16).padStart(2,"0")),
+        (parseInt(p[2],10).toString(16).padStart(2,"0") + parseInt(p[3],10).toString(16).padStart(2,"0"))] };
+    }
+    return { valid: false, error: "IPv4 映射段的数值必须在 0～255 之间" };
+  }
+  if ((str.match(/::/g) || []).length > 1) return { valid: false, error: "地址中只能有一个 ::" };
+  let parts;
+  if (str.includes("::")) {
+    const seg = str.split("::");
+    const head = seg[0] ? seg[0].split(":") : [];
+    const tail = seg[1] ? seg[1].split(":") : [];
+    const mid = 8 - head.length - tail.length;
+    if (mid < 0) return { valid: false, error: "段数超过8段" };
+    parts = head.concat(Array(mid).fill("0")).concat(tail);
+  } else parts = str.split(":");
+  if (parts.length !== 8) return { valid: false, error: "需要8段，当前" + parts.length + "段" };
+  for (let i = 0; i < parts.length; i++) {
+    if (!/^[0-9a-fA-F]{1,4}$/.test(parts[i])) return { valid: false, error: "第" + (i + 1) + "段无效" };
+  }
+  return { valid: true, parts: parts.map(x => x.toLowerCase()) };
+}
+function expandIPv6(parts) { return parts.map(p => p.padStart(4, "0")).join(":"); }
+function compressIPv6(parts) {
+  const short = parts.map(p => parseInt(p, 16).toString(16));
+  let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0;
+  for (let i = 0; i < parts.length; i++) {
+    if (parseInt(parts[i], 16) === 0) { if (curStart === -1) { curStart = i; curLen = 1; } else curLen++; }
+    else { if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; } curStart = -1; curLen = 0; }
+  }
+  if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+  if (bestLen < 2) return short.join(":");
+  const arr = [];
+  for (let i = 0; i < short.length; i++) {
+    if (i >= bestStart && i < bestStart + bestLen) { if (i === bestStart) arr.push(""); continue; }
+    arr.push(short[i]);
+  }
+  let out = arr.join(":");
+  if (bestStart === 0) out = ":" + out;
+  if (bestStart + bestLen === 8) out = out + ":";
+  return out;
+}
+function doRun(mode) {
+  $("resbox").style.display = "none";
+  const v = $("input").value.trim();
+  if (!v) { alert(mode === "expand" ? "需要展开的IPv6地址不能为空" : "需要压缩的IPv6地址不能为空"); return; }
+  const r = validateIPv6(v);
+  if (!r.valid) { alert(r.error); return; }
+  $("resbox").style.display = "block";
+  if (mode === "expand") { $("reslab").textContent = "展开结果"; $("output").value = expandIPv6(r.parts); }
+  else { $("reslab").textContent = "压缩结果"; $("output").value = compressIPv6(r.parts); }
+}
+$("btnExpand").onclick = () => doRun("expand");
+$("btnCompress").onclick = () => doRun("compress");
+$("copyBtn").onclick = () => {
+  if (!$("output").value) return alert("还没有转换结果");
+  navigator.clipboard.writeText($("output").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("clearBtn").onclick = () => { $("input").value = ""; $("output").value = ""; $("resbox").style.display = "none"; };
+const demos = ["2001:0db8:0000:0000:0000:0000:0000:0001", "fe80::1%25", "::ffff:192.168.1.1", "2001:db8::8a2e:370:7334", "::", "::1", "ff02::1"];
+$("demolist").innerHTML = demos.map(d => `<span data-value="${d}">${d}</span>`).join("");
+$("demolist").addEventListener("click", e => {
+  if (e.target.dataset.value) { $("input").value = e.target.dataset.value; $("resbox").style.display = "none"; }
+});
+</script>
+</body>
+</html>

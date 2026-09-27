@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阿拉伯数字转英文 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="在线阿拉伯数字转英文工具，支持最多 12 位数字（万亿级）转换为标准英文表达，正确处理 negative、thousand / million / billion / trillion 分组与连字符语法。">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/num2en.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="num2en" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="fitem" style="margin-bottom:12px;"><label>阿拉伯数字（最多 12 位，支持负数）</label><input id="input" placeholder="例如：1234567" spellcheck="false"></div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="fbtn blue" id="convBtn">转换</button>
+      <button class="fbtn" id="copyBtn">复制结果</button>
+      <button class="fbtn" id="clearBtn">清空</button>
+    </div>
+    <div class="fitem" style="display:none;" id="outwrap"><label>英文表达</label><textarea id="output" rows="3" readonly spellcheck="false"></textarea></div>
+  </div>
+  <div class="resttips">
+    <h4>关于阿拉伯数字转英文工具介绍：</h4>
+    <p>1、本工具将阿拉伯数字转换为符合英语语法的标准表达，支持最多 12 位数字，即万亿（trillion）级别。</p>
+    <p>2、采用美式分组读法（thousand / million / billion / trillion），两位数 21～99 之间使用连字符（如 twenty-one），负数以 negative 开头，0 读作 zero。</p>
+    <p>3、纯前端转换，无任何网络请求。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+const BELOW20 = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+const TENS = ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+const GROUPS = ["","thousand","million","billion","trillion"];
+function threeDigits(n) { // 0-999
+  let out = [];
+  if (n >= 100) { out.push(BELOW20[Math.floor(n / 100)], "hundred"); n %= 100; }
+  if (n >= 20) { out.push(TENS[Math.floor(n / 10)] + (n % 10 ? "-" + BELOW20[n % 10] : "")); }
+  else if (n > 0) out.push(BELOW20[n]);
+  return out.join(" ");
+}
+function numToEn(numStr) {
+  let s = numStr.trim().replace(/[,，\s]/g, "");
+  let negative = false;
+  if (s.startsWith("-")) { negative = true; s = s.slice(1); }
+  else if (s.startsWith("+")) s = s.slice(1);
+  if (!/^\d+$/.test(s)) throw new Error("请输入有效的整数");
+  if (s.length > 12) throw new Error("最多支持 12 位数字");
+  s = s.replace(/^0+(?=\d)/, "");
+  if (s === "0") return "zero";
+  const groups = [];
+  for (let i = s.length; i > 0; i -= 3) groups.unshift(parseInt(s.slice(Math.max(0, i - 3), i), 10));
+  const parts = [];
+  groups.forEach((g, i) => {
+    if (g === 0) return;
+    parts.push(threeDigits(g) + (GROUPS[groups.length - 1 - i] ? " " + GROUPS[groups.length - 1 - i] : ""));
+  });
+  return (negative ? "negative " : "") + parts.join(" ");
+}
+$("convBtn").onclick = () => {
+  try {
+    $("output").value = numToEn($("input").value);
+    $("outwrap").style.display = "block";
+  } catch (e) {
+    $("output").value = "❌ " + e.message;
+    $("outwrap").style.display = "block";
+  }
+};
+$("copyBtn").onclick = () => {
+  if (!$("output").value) return alert("还没有转换结果");
+  navigator.clipboard.writeText($("output").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("clearBtn").onclick = () => { $("input").value = ""; $("output").value = ""; $("outwrap").style.display = "none"; };
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大文件行数统计工具 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.dropzone { border: 2px dashed #ccc; border-radius: 8px; padding: 30px 20px; text-align: center; color: #888; margin-bottom: 12px; transition: border-color .2s; cursor: pointer; }
+.dropzone.on { border-color: #ff6500; color: #ff6500; }
+.dropzone .layui-icon { font-size: 34px; display: block; margin-bottom: 8px; color: #ff6500; }
+.stats { border: 1px solid #eee; border-radius: 6px; display: none; overflow: hidden; }
+.stats .row { display: flex; border-bottom: 1px dashed #eee; font-size: 13px; }
+.stats .row:last-child { border-bottom: 0; }
+.stats .row span { flex: 0 0 150px; background: #fafafa; padding: 8px 12px; color: #666; border-right: 1px dashed #eee; }
+.stats .row div { flex: 1; padding: 8px 12px; color: #333; font-weight: 600; }
+.prog { height: 6px; background: #eee; border-radius: 3px; margin-top: 12px; display: none; }
+.prog i { display: block; height: 100%; background: #ff6500; border-radius: 3px; width: 0; transition: width .15s; }
+html.dark .dropzone { border-color: #444; color: #aaa; }
+html.dark .stats { border-color: #2c2f33; }
+html.dark .stats .row { border-color: #2c2f33; }
+html.dark .stats .row span { background: #23262a; color: #aaa; border-color: #2c2f33; }
+html.dark .stats .row div { color: #f0f2f5; }
+html.dark .prog { background: #2c2f33; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="在线大文件行数统计工具，支持 GB 级日志文件的行数统计，分块流式读取不卡浏览器，本地处理不上传，同时输出文件大小与空行统计。">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/linecount.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="linecount" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="dropzone" id="zone">
+      <i class="layui-icon layui-icon-upload-drag"></i>
+      点击选择文件，或将文件拖拽到此处
+      <input type="file" id="fileInput" style="display:none;">
+    </div>
+    <div class="prog" id="prog"><i id="progbar"></i></div>
+    <div class="stats" id="res"></div>
+  </div>
+  <div class="resttips">
+    <h4>关于大文件行数统计工具介绍：</h4>
+    <p>1、本工具采用分块流式读取（File.slice + Blob），无需把整个文件读入内存，GB 级日志文件也能统计，文件越大处理时间越长。</p>
+    <p>2、统计结果包含总行数、文件大小、空行数与非空行数。上传成功后自动开始统计，全程在浏览器本地完成，文件不会上传服务器。</p>
+    <p>3、按换行符（\n）计数，与 wc -l 统计口径一致：文件末尾若有换行符，最后一行不计为新行。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+function fmtSize(b) {
+  if (b < 1024) return b + " B";
+  if (b < 1048576) return (b / 1024).toFixed(2) + " KB";
+  if (b < 1073741824) return (b / 1048576).toFixed(2) + " MB";
+  return (b / 1073741824).toFixed(2) + " GB";
+}
+const row = (label, val) => `<div class="row"><span>${label}</span><div>${val}</div></div>`;
+async function countLines(file) {
+  const CHUNK = 8 * 1024 * 1024;
+  let offset = 0, totalLines = 0, blankLines = 0, carry = "";
+  const dec = new TextDecoder("utf-8");
+  $("prog").style.display = "block";
+  $("res").style.display = "none";
+  while (offset < file.size) {
+    const end = Math.min(offset + CHUNK, file.size);
+    const buf = await file.slice(offset, end).arrayBuffer();
+    let text = carry + dec.decode(buf, { stream: offset + end < file.size });
+    if (end < file.size) {
+      const lastNL = text.lastIndexOf("\n");
+      if (lastNL === -1) { carry = text; offset = end; continue; }
+      carry = text.slice(lastNL + 1);
+      text = text.slice(0, lastNL + 1);
+    } else {
+      carry = "";
+    }
+    const lines = text.split("\n");
+    let n;
+    if (end < file.size) n = lines.length - 1;        // 中间块：末尾必有 \n，排除尾部空串
+    else n = text.endsWith("\n") ? lines.length - 1 : (text === "" ? 0 : lines.length); // 末块：与 wc -l 口径一致
+    for (let i = 0; i < n; i++) if (lines[i].trim() === "") blankLines++;
+    totalLines += n;
+    offset = end;
+    $("progbar").style.width = Math.floor(offset / file.size * 100) + "%";
+  }
+  $("prog").style.display = "none";
+  $("res").innerHTML = row("总行数", totalLines.toLocaleString()) + row("文件大小", fmtSize(file.size)) + row("空行数", blankLines.toLocaleString()) + row("非空行数", (totalLines - blankLines).toLocaleString());
+  $("res").style.display = "block";
+}
+function handleFile(f) {
+  if (!f) return;
+  countLines(f).catch(e => alert("读取文件时发生错误：" + e.message));
+}
+$("zone").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", e => handleFile(e.target.files[0]));
+["dragover", "dragenter"].forEach(ev => $("zone").addEventListener(ev, e => { e.preventDefault(); $("zone").classList.add("on"); }));
+["dragleave", "drop"].forEach(ev => $("zone").addEventListener(ev, e => { e.preventDefault(); $("zone").classList.remove("on"); }));
+$("zone").addEventListener("drop", e => handleFile(e.dataTransfer.files[0]));
+</script>
+</body>
+</html>

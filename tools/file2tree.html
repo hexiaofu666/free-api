@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文件目录树生成 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.dropzone { border: 2px dashed #ccc; border-radius: 8px; padding: 30px 20px; text-align: center; color: #888; margin-bottom: 12px; transition: border-color .2s; cursor: pointer; }
+.dropzone.on { border-color: #ff6500; color: #ff6500; }
+.dropzone .layui-icon { font-size: 34px; display: block; margin-bottom: 8px; color: #ff6500; }
+.treeout { white-space: pre; font-family: Consolas, monospace; font-size: 13px; line-height: 1.7; }
+.treeout b { color: #ff6500; }
+html.dark .dropzone { border-color: #444; color: #aaa; }
+html.dark .dropzone.on { border-color: #ff6500; color: #ff6500; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="在线文件目录树生成工具，选择或拖入文件夹自动生成目录树列表，支持复制为 Markdown 代码块，浏览器本地处理，文件不上传。">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/file2tree.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="file2tree" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="dropzone" id="zone">
+      <i class="layui-icon layui-icon-file"></i>
+      点击选择文件夹，或将文件夹拖拽到此处
+      <input type="file" id="fileInput" webkitdirectory multiple style="display:none;">
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="fbtn" id="copyBtn">复制目录树</button>
+      <button class="fbtn" id="mdBtn">复制为 Markdown 代码块</button>
+      <button class="fbtn" id="clearBtn">清空</button>
+    </div>
+    <div class="fitem" style="display:none;" id="outwrap"><label>目录树结果（<span id="fcount"></span>）</label><textarea id="output" class="treeout" rows="16" readonly spellcheck="false"></textarea></div>
+  </div>
+  <div class="resttips">
+    <h4>关于文件目录树生成工具介绍：</h4>
+    <p>1、目录树（Tree）是一种以树状结构表示文件系统目录的视图，常用于项目 README、代码评审与技术文档中，帮助读者快速了解项目结构。</p>
+    <p>2、选择或拖入文件夹即可自动生成目录树，使用 ├─、└─、│ 等 Box Drawing 字符绘制层级，支持一键复制或复制为 Markdown 代码块。</p>
+    <p>3、浏览器仅读取文件路径用于生成目录树，不会读取或上传文件内容。文件夹层级过深（如 node_modules）建议先删除再生成。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+function buildTree(files) {
+  // files: [{rel: "root/a/b.txt", dir:false}]
+  const root = { name: files[0] ? files[0].rel.split("/")[0] : "root", dirs: {}, files: [] };
+  files.forEach(f => {
+    const parts = f.rel.split("/");
+    let node = root;
+    for (let i = 1; i < parts.length - 1; i++) {
+      const name = parts[i];
+      if (!node.dirs[name]) node.dirs[name] = { name, dirs: {}, files: [] };
+      node = node.dirs[name];
+    }
+    node.files.push({ name: parts[parts.length - 1], dir: f.dir });
+  });
+  const sortNode = n => {
+    n.dirs = Object.values(n.dirs).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+    n.files.sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+    n.dirs.forEach(sortNode);
+  };
+  sortNode(root);
+  let count = 0;
+  const lines = [];
+  const walk = (node, prefix) => {
+    const entries = [...node.dirs.map(d => ({ name: d.name, isDir: true, node: d })), ...node.files.map(f => ({ name: f.name, isDir: !!f.dir, node: null }))];
+    entries.forEach((e, i) => {
+      const last = i === entries.length - 1;
+      lines.push(prefix + (last ? "└─ " : "├─ ") + e.name + (e.isDir ? "/" : ""));
+      count++;
+      if (e.isDir) walk(e.node, prefix + (last ? "   " : "│  "));
+    });
+  };
+  lines.push(root.name + "/");
+  walk(root, "");
+  return { text: lines.join("\n"), count };
+}
+function handleFiles(list) {
+  if (!list.length) return alert("未选择文件夹或文件夹内无任何内容！");
+  const files = Array.from(list).map(f => ({ rel: f.webkitRelativePath || f.name, dir: f.type === "" && f.size % 4096 === 0 }));
+  const { text, count } = buildTree(files);
+  $("output").value = text;
+  $("fcount").textContent = "共 " + count + " 个条目";
+  $("outwrap").style.display = "block";
+}
+$("zone").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", e => handleFiles(e.target.files));
+["dragover", "dragenter"].forEach(ev => $("zone").addEventListener(ev, e => { e.preventDefault(); $("zone").classList.add("on"); }));
+["dragleave", "drop"].forEach(ev => $("zone").addEventListener(ev, e => { e.preventDefault(); $("zone").classList.remove("on"); }));
+$("zone").addEventListener("drop", e => handleFiles(e.dataTransfer.files));
+$("copyBtn").onclick = () => {
+  if (!$("output").value) return alert("还没有生成目录树");
+  navigator.clipboard.writeText($("output").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+$("mdBtn").onclick = () => {
+  if (!$("output").value) return alert("还没有生成目录树");
+  navigator.clipboard.writeText("```\n" + $("output").value + "\n```").then(() => alert("✅ 已复制为 Markdown 代码块"));
+};
+$("clearBtn").onclick = () => { $("output").value = ""; $("fileInput").value = ""; $("outwrap").style.display = "none"; };
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线IPv6地址生成器 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.ggrid { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.ggrid .fitem { flex: 1; min-width: 150px; }
+.ggrid .fitem select, .ggrid .fitem input { display: flex; width: 100%; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="专业 IPv6 地址生成器，支持全球单播（2000::/3）、链路本地（fe80::/10）、唯一本地（fc00::/7）、组播（ff00::/8）等多种类型，可自定义 CIDR 前缀显示，批量随机或顺序递增生成，浏览器本地处理。">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ipv6gen.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ipv6gen" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="ggrid">
+      <div class="fitem"><label>地址类型</label><select id="addrType">
+        <option value="global">Global Unicast (2000::/3)</option>
+        <option value="link-local">Link-Local (fe80::/10)</option>
+        <option value="unique-local">Unique Local (fc00::/7)</option>
+        <option value="multicast">Multicast (ff00::/8)</option>
+      </select></div>
+      <div class="fitem"><label>CIDR 位长显示</label><select id="prefixLen">
+        <option value="none">不显示</option>
+        <option value="32">/32</option>
+        <option value="48">/48</option>
+        <option value="56">/56</option>
+        <option value="64" selected>/64</option>
+        <option value="128">/128</option>
+      </select></div>
+      <div class="fitem"><label>输出格式</label><select id="format">
+        <option value="compressed">压缩格式 (::)</option>
+        <option value="full">完整格式 (8段)</option>
+      </select></div>
+      <div class="fitem"><label>十六进制大小写</label><select id="letterCase">
+        <option value="lower">小写 a-f</option>
+        <option value="upper">大写 A-F</option>
+      </select></div>
+      <div class="fitem"><label>生成模式</label><select id="mode">
+        <option value="random">随机生成</option>
+        <option value="sequential">顺序递增</option>
+      </select></div>
+      <div class="fitem"><label>生成数量</label><input id="count" type="number" min="1" max="1000" value="10"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="fbtn blue" id="genBtn">立即生成</button>
+      <button class="fbtn" id="copyBtn">复制结果</button>
+    </div>
+    <div class="fitem" style="display:none;" id="outwrap"><label>生成结果（每行一个）</label><textarea id="output" rows="10" readonly spellcheck="false"></textarea></div>
+  </div>
+  <div class="resttips">
+    <h4>关于IPv6地址生成器介绍：</h4>
+    <p>1、IPv6 地址共 128 位，常见类型：全球单播（2000::/3，公网可路由）、链路本地（fe80::/10，仅同一链路有效）、唯一本地（fc00::/7，相当于 IPv6 私网）、组播（ff00::/8）。</p>
+    <p>2、随机模式在对应地址段内完全随机生成；顺序递增模式以随机起始值逐个 +1，适合批量测试场景。</p>
+    <p>3、可选显示 CIDR 位长后缀（如 /64）、压缩或完整 8 段格式、大小写，单次最多生成 1000 个。生成在浏览器本地完成，不联网。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+function rnd16() { return Math.floor(Math.random() * 0x10000); }
+function genOne(type, mode, seq) {
+  const g = new Array(8).fill(0);
+  if (type === "global") { g[0] = 0x2000 + rnd16() % 0x2000; for (let i = 1; i < 8; i++) g[i] = rnd16(); }
+  else if (type === "link-local") { g[0] = 0xfe80; g[1] = rnd16() & 0x03ff; for (let i = 2; i < 8; i++) g[i] = rnd16(); }
+  else if (type === "unique-local") { g[0] = 0xfd00 + rnd16() % 0x100; for (let i = 1; i < 8; i++) g[i] = rnd16(); }
+  else { g[0] = 0xff00 + rnd16() % 0x100; for (let i = 1; i < 8; i++) g[i] = rnd16(); }
+  if (mode === "sequential") for (let i = 7; i >= 1; i--) { if (seq > 0) { g[i] = (g[i] + seq) % 0x10000; seq = Math.floor(seq / 0x10000) + (seq % 0x10000 ? 0 : 0); } }
+  // sequential：直接把序号加到末 64 位（简化实现：低32位 + seq）
+  return g;
+}
+function genSequential(type, seq) {
+  const g = new Array(8).fill(0);
+  if (type === "global") { g[0] = 0x2000 + rnd16() % 0x2000; for (let i = 1; i < 4; i++) g[i] = rnd16(); }
+  else if (type === "link-local") { g[0] = 0xfe80; g[1] = rnd16() & 0x03ff; for (let i = 2; i < 4; i++) g[i] = rnd16(); }
+  else if (type === "unique-local") { g[0] = 0xfd00 + rnd16() % 0x100; for (let i = 1; i < 4; i++) g[i] = rnd16(); }
+  else { g[0] = 0xff00 + rnd16() % 0x100; for (let i = 1; i < 4; i++) g[i] = rnd16(); }
+  g[4] = Math.floor(seq / 0x100000000) % 0x10000;
+  g[5] = Math.floor(seq / 0x100000000 / 0x10000) % 0x10000;
+  g[6] = Math.floor(seq / 0x10000) % 0x10000;
+  g[7] = seq % 0x10000;
+  return g;
+}
+function fmt(g, format, lower) {
+  let out;
+  if (format === "full") out = g.map(x => x.toString(16).padStart(4, "0")).join(":");
+  else {
+    const parts = g.map(x => x.toString(16));
+    let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0;
+    for (let i = 0; i < 8; i++) {
+      if (g[i] === 0) { if (curStart === -1) { curStart = i; curLen = 1; } else curLen++; }
+      else { if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; } curStart = -1; curLen = 0; }
+    }
+    if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+    if (bestLen >= 2) {
+      const head = parts.slice(0, bestStart).join(":"), tail = parts.slice(bestStart + bestLen).join(":");
+      out = head === "" ? "::" + tail : (tail === "" ? head + "::" : head + "::" + tail);
+    } else out = parts.join(":");
+  }
+  if (!lower) out = out.toUpperCase();
+  return out;
+}
+$("genBtn").onclick = () => {
+  const type = $("addrType").value, format = $("format").value, lower = $("letterCase").value === "lower";
+  const mode = $("mode").value, prefix = $("prefixLen").value;
+  let n = parseInt($("count").value, 10);
+  if (isNaN(n) || n < 1) n = 1; if (n > 1000) n = 1000;
+  const seqBase = Math.floor(Math.random() * 0xffffffffffff);
+  const lines = [];
+  for (let i = 0; i < n; i++) {
+    const g = mode === "random" ? genOne(type) : genSequential(type, seqBase + i);
+    let addr = fmt(g, format, lower);
+    if (prefix !== "none") addr += "/" + prefix;
+    lines.push(addr);
+  }
+  $("output").value = lines.join("\n");
+  $("outwrap").style.display = "block";
+};
+$("copyBtn").onclick = () => {
+  if (!$("output").value) return alert("还没有生成结果");
+  navigator.clipboard.writeText($("output").value).then(() => alert("✅ 已复制到剪贴板"));
+};
+</script>
+</body>
+</html>

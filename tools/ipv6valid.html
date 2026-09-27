@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线IPv6地址验证工具 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.demolist { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.demolist span { border: 1px dashed #ccc; border-radius: 4px; padding: 4px 10px; font-size: 12px; color: #666; cursor: pointer; font-family: Consolas, monospace; }
+.demolist span:hover { border-color: #ff6500; color: #ff6500; }
+.verdict { border: 1px solid #eee; border-radius: 6px; margin-top: 12px; display: none; overflow: hidden; }
+.verdict .row { display: flex; border-bottom: 1px dashed #eee; font-size: 13px; }
+.verdict .row:last-child { border-bottom: 0; }
+.verdict .row span { flex: 0 0 130px; background: #fafafa; padding: 8px 12px; color: #666; border-right: 1px dashed #eee; }
+.verdict .row div { flex: 1; padding: 8px 12px; word-break: break-all; font-family: Consolas, monospace; color: #333; }
+.verdict .ok { font-weight: 700; color: #00b277; }
+.verdict .bad { font-weight: 700; color: #e74c3c; }
+.verdict .type-tag { display: inline-block; background: #ff6500; color: #fff; border-radius: 3px; padding: 1px 8px; font-size: 12px; font-family: inherit; }
+html.dark .demolist span { border-color: #444; color: #aaa; }
+html.dark .verdict { border-color: #2c2f33; }
+html.dark .verdict .row { border-color: #2c2f33; }
+html.dark .verdict .row span { background: #23262a; color: #aaa; border-color: #2c2f33; }
+html.dark .verdict .row div { color: #f0f2f5; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<meta name="description" content="在线 IPv6 地址验证工具，支持 IPv6 格式校验、自动展开与压缩，识别全球单播、链路本地、唯一本地、组播、环回、未指定、文档地址、IPv4 映射等类型，浏览器本地处理。">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ipv6valid.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ipv6valid" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="fitem" style="margin-bottom:12px;"><label>待验证的 IPv6 地址</label><input id="input" placeholder="例如：2001:db8::8a2e:370:7334" spellcheck="false"></div>
+    <div class="demolist" id="demolist"></div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="fbtn blue" id="valBtn">立即验证</button>
+      <button class="fbtn" id="clearBtn">清空</button>
+    </div>
+    <div class="verdict" id="res"></div>
+  </div>
+  <div class="resttips">
+    <h4>关于IPv6地址验证工具介绍：</h4>
+    <p>1、本工具对输入的地址做严格格式校验（8 组 16 位十六进制、:: 只能出现一次、支持前导零省略与 IPv4 映射写法），并给出详细错误原因。</p>
+    <p>2、验证通过后自动识别地址类别：环回地址（::1）、未指定地址（::）、全球单播（2000::/3）、链路本地（fe80::/10）、唯一本地（fc00::/7）、组播（ff00::/8）、文档地址（2001:db8::/32）、IPv4 映射地址（::ffff:0:0/96）。</p>
+    <p>3、同时输出该地址的完整展开形式与 RFC 5952 最短压缩形式，方便核对。全部计算在浏览器本地完成。</p>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+function parseIPv6(str) {
+  str = str.trim();
+  if (!str) return { valid: false, error: "请输入 IPv6 地址" };
+  str = str.split("%")[0];
+  const m = str.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i);
+  if (m) {
+    const p = m[1].split(".");
+    if (p.every(x => /^\d+$/.test(x) && parseInt(x, 10) <= 255)) {
+      return { valid: true, parts: ["0000","0000","0000","0000","0000","ffff",
+        (parseInt(p[0],10).toString(16).padStart(2,"0") + parseInt(p[1],10).toString(16).padStart(2,"0")),
+        (parseInt(p[2],10).toString(16).padStart(2,"0") + parseInt(p[3],10).toString(16).padStart(2,"0"))] };
+    }
+    return { valid: false, error: "IPv4 映射段的数值必须在 0～255 之间" };
+  }
+  if ((str.match(/::/g) || []).length > 1) return { valid: false, error: "地址中只能有一个 ::" };
+  let parts;
+  if (str.includes("::")) {
+    const seg = str.split("::");
+    const head = seg[0] ? seg[0].split(":") : [];
+    const tail = seg[1] ? seg[1].split(":") : [];
+    const mid = 8 - head.length - tail.length;
+    if (mid < 0) return { valid: false, error: "段数超过8段" };
+    parts = head.concat(Array(mid).fill("0")).concat(tail);
+  } else parts = str.split(":");
+  if (parts.length !== 8) return { valid: false, error: "需要8段，当前" + parts.length + "段" };
+  for (let i = 0; i < parts.length; i++) {
+    if (!/^[0-9a-fA-F]{1,4}$/.test(parts[i])) return { valid: false, error: "第" + (i + 1) + "段无效" };
+  }
+  return { valid: true, parts: parts.map(x => x.toLowerCase()) };
+}
+function detectType(parts) {
+  const g = parts.map(x => parseInt(x, 16));
+  const hex = parts.join(":");
+  if (hex === "0000:0000:0000:0000:0000:0000:0000:0001") return "环回地址（Loopback）";
+  if (hex === "0000:0000:0000:0000:0000:0000:0000:0000") return "未指定地址（Unspecified）";
+  if ((g[0] & 0xfff0) === 0x2001 && g[1] === 0x0db8) return "文档地址（2001:db8::/32，仅示例用）";
+  if (g[0] >= 0x2000 && g[0] <= 0x3fff) return "全球单播（Global Unicast 2000::/3）";
+  if ((g[0] & 0xffc0) === 0xfe80) return "链路本地（Link-Local fe80::/10）";
+  if ((g[0] & 0xfe00) === 0xfc00) return "唯一本地（Unique Local fc00::/7）";
+  if ((g[0] & 0xff00) === 0xff00) return "组播（Multicast ff00::/8）";
+  if (g[0] === 0 && g[1] === 0 && g[2] === 0 && g[3] === 0 && g[4] === 0 && g[5] === 0xffff) return "IPv4 映射地址（::ffff:0:0/96）";
+  return "其他（保留/特殊用途段）";
+}
+function compressIPv6(parts) {
+  const short = parts.map(p => parseInt(p, 16).toString(16));
+  let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0;
+  for (let i = 0; i < parts.length; i++) {
+    if (parseInt(parts[i], 16) === 0) { if (curStart === -1) { curStart = i; curLen = 1; } else curLen++; }
+    else { if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; } curStart = -1; curLen = 0; }
+  }
+  if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+  if (bestLen < 2) return short.join(":");
+  const arr = [];
+  for (let i = 0; i < short.length; i++) {
+    if (i >= bestStart && i < bestStart + bestLen) { if (i === bestStart) arr.push(""); continue; }
+    arr.push(short[i]);
+  }
+  let out = arr.join(":");
+  if (bestStart === 0) out = ":" + out;
+  if (bestStart + bestLen === 8) out = out + ":";
+  return out;
+}
+const row = (label, val) => `<div class="row"><span>${label}</span><div>${val}</div></div>`;
+$("valBtn").onclick = () => {
+  const r = parseIPv6($("input").value);
+  if (!r.valid) {
+    $("res").innerHTML = row("验证结果", `<span class="bad">❌ 无效</span>`) + row("错误原因", r.error);
+  } else {
+    const full = r.parts.map(p => p.padStart(4, "0")).join(":");
+    $("res").innerHTML = row("验证结果", `<span class="ok">✅ 有效</span>`) + row("地址类型", `<span class="type-tag">${detectType(r.parts)}</span>`) + row("完整展开形式", full) + row("最短压缩形式", compressIPv6(r.parts));
+  }
+  $("res").style.display = "block";
+};
+$("clearBtn").onclick = () => { $("input").value = ""; $("res").style.display = "none"; };
+const demos = ["2001:db8::8a2e:370:7334", "::1", "::", "fe80::1", "fd12:3456:789a::1", "ff02::1", "::ffff:192.168.1.1", "2001:0db8::1::", "12345::"];
+$("demolist").innerHTML = demos.map(d => `<span data-value="${d}">${d}</span>`).join("");
+$("demolist").addEventListener("click", e => {
+  if (e.target.dataset.value) { $("input").value = e.target.dataset.value; $("res").style.display = "none"; }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>robots.txt文件生成器 - 词海工具箱</title>
+<meta name="description" content="robots.txt 在线生成器：可视化配置搜索引擎蜘蛛的抓取规则（允许/禁止目录、抓取间隔、Sitemap），一键生成 robots.txt 文件内容。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.io-input:focus { border-color: #d0d0d0; }
+textarea.io-input { height: 90px; resize: vertical; line-height: 1.7; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.io-area { width: 100%; height: 240px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.rsel { border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px 8px; font-size: 13px; color: #34495e; outline: none; background: #fff; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/robots.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="robots" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">针对的蜘蛛</p>
+        <select class="rsel" id="agent" style="width:100%;">
+          <option value="*" selected>全部搜索引擎（*）</option>
+          <option value="Baiduspider">仅百度（Baiduspider）</option>
+          <option value="Googlebot">仅谷歌（Googlebot）</option>
+          <option value="Bingbot">仅必应（Bingbot）</option>
+          <option value="360Spider">仅360（360Spider）</option>
+          <option value="Sogou web spider">仅搜狗（Sogou）</option>
+        </select>
+        <p class="io-label">默认策略</p>
+        <select class="rsel" id="policy" style="width:100%;">
+          <option value="allow" selected>允许抓取全部</option>
+          <option value="disallow">禁止抓取全部</option>
+        </select>
+        <p class="io-label">禁止抓取的目录或文件（每行一个，如 /admin/）</p>
+        <textarea class="io-input" id="disallow" placeholder="/admin/&#10;/private/*.pdf">/admin/
+/private/*.pdf</textarea>
+        <p class="io-label">Sitemap 地址（选填）</p>
+        <input class="io-input" id="sitemap" placeholder="https://example.com/sitemap.xml">
+        <p class="io-label">抓取间隔 Crawl-delay（秒，选填，0 表示不设置）</p>
+        <input class="io-input" id="delay" value="0">
+        <p class="io-label">生成的 robots.txt</p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">生成文件</button>
+        <button class="fbtn plain" id="copyBtn">复制内容</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于robots.txt文件生成器介绍：</h4>
+    <ol>
+      <li>robots.txt 是放在网站根目录下的文本文件（文件名统一小写），用于告诉搜索引擎蜘蛛哪些内容可以收录、哪些不可以。</li>
+      <li>生成的文件创建为空白文本文件并命名为 robots.txt，把内容复制进去后上传到网站根目录，访问 域名/robots.txt 确认可访问。</li>
+      <li>robots 协议只是约定而非强制规范，不能保证隐私内容绝对不被访问，敏感目录还应配合服务器权限控制。</li>
+      <li>注意 robots.txt 用字符串前缀匹配 URL，目录末尾带不带斜杠「/」表示的是不同路径。</li>
+      <li>Crawl-delay 用于限制蜘蛛抓取频率（百度不支持该字段，谷歌已于 2019 年停用，主要用于必应等）。</li>
+      <li>本工具在本地生成内容，不联网、不上传任何数据。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function buildRobots(f) {
+  const L = ["User-agent: " + f.agent];
+  if (f.policy === "disallow") {
+    L.push("Disallow: /");
+  } else {
+    L.push("Allow: /");
+    (f.disallow || []).forEach(d => { if (d.trim()) L.push("Disallow: " + d.trim()); });
+  }
+  if (f.delay > 0) L.push("Crawl-delay: " + f.delay);
+  if (f.sitemap) L.push("", "Sitemap: " + f.sitemap);
+  return L.join("\n");
+}
+
+window.__xfRobots = buildRobots;
+
+function run() {
+  const delay = parseInt($("delay").value, 10);
+  $("res").value = buildRobots({
+    agent: $("agent").value,
+    policy: $("policy").value,
+    disallow: $("disallow").value.split("\n"),
+    sitemap: $("sitemap").value.trim(),
+    delay: isNaN(delay) ? 0 : delay
+  });
+}
+["agent", "policy", "disallow", "sitemap", "delay"].forEach(id => $(id).addEventListener("input", run));
+$("policy").addEventListener("change", run);
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("res").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制内容", 1200);
+});
+$("clearBtn").addEventListener("click", () => {
+  $("disallow").value = ""; $("sitemap").value = ""; $("delay").value = "0"; run();
+});
+run();
+</script>
+</body>
+</html>

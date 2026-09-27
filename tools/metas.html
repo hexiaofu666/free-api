@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网页Meta标签生成 - 词海工具箱</title>
+<meta name="description" content="网页 Meta 标签在线生成工具：可视化填写标题、描述、关键词、作者、编码、viewport、robots 等选项，一键生成 head 区域 meta 代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.io-input:focus { border-color: #d0d0d0; }
+textarea.io-input { height: 64px; resize: vertical; line-height: 1.7; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.io-area { width: 100%; height: 260px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.mchk { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 8px 0 4px; font-size: 13px; color: #555; }
+.mchk label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/metas.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="metas" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">网页标题（title）</p>
+        <input class="io-input" id="title" value="这是网页标题">
+        <p class="io-label">网页描述（description）</p>
+        <textarea class="io-input" id="desc" placeholder="简述网页内容，建议 80-120 字">这是网页描述，会显示在搜索结果摘要中。</textarea>
+        <p class="io-label">关键词（keywords，英文逗号分隔）</p>
+        <input class="io-input" id="kw" placeholder="例如：在线工具,免费,工具箱">
+        <p class="io-label">作者 / 版权（选填）</p>
+        <input class="io-input" id="author" placeholder="author 姓名">
+        <p class="io-label">通用选项</p>
+        <div class="mchk">
+          <label><input type="checkbox" id="charset" checked> charset=utf-8</label>
+          <label><input type="checkbox" id="viewport" checked> viewport 自适应</label>
+          <label><input type="checkbox" id="robots"> robots 控制</label>
+          <label><input type="checkbox" id="renderer"> renderer 渲染内核</label>
+        </div>
+        <div class="mchk" id="robotsOpts" style="display:none;">
+          <span style="color:#888;">robots：</span>
+          <label><input type="checkbox" id="noindex"> noindex</label>
+          <label><input type="checkbox" id="nofollow"> nofollow</label>
+          <label><input type="checkbox" id="noarchive"> noarchive</label>
+        </div>
+        <p class="io-label">生成的 Meta 代码</p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">生成代码</button>
+        <button class="fbtn plain" id="copyBtn">复制代码</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于网页Meta标签介绍：</h4>
+    <ol>
+      <li>meta 标签位于 HTML 文档的 head 部分，为浏览器和搜索引擎提供网页元数据，不直接显示在页面上。</li>
+      <li>charset 声明字符编码（一般用 utf-8）；viewport 控制移动端自适应显示，两者是现代网页的基础配置。</li>
+      <li>title 与 description 直接影响搜索结果中的标题与摘要展示，是 SEO 的重点字段。</li>
+      <li>keywords 现已不被主流搜索引擎作为排名依据，可按需填写；robots 指令可控制索引与链接跟踪行为。</li>
+      <li>本工具通过可视化设置生成 meta 代码，复制后粘贴到网页 head 中即可使用，全部计算在本地完成。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function buildMeta(f) {
+  const L = [];
+  if (f.charset) L.push('<meta charset="utf-8">');
+  if (f.viewport) L.push('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+  if (f.title) L.push("<title>" + f.title + "</title>");
+  if (f.desc) L.push('<meta name="description" content="' + f.desc + '">');
+  if (f.kw) L.push('<meta name="keywords" content="' + f.kw + '">');
+  if (f.author) L.push('<meta name="author" content="' + f.author + '">');
+  if (f.robots) {
+    const d = [];
+    if (f.noindex) d.push("noindex");
+    if (f.nofollow) d.push("nofollow");
+    if (f.noarchive) d.push("noarchive");
+    if (d.length) L.push('<meta name="robots" content="' + d.join(",") + '">');
+  }
+  if (f.renderer) L.push('<meta name="renderer" content="webkit">');
+  return L.join("\n");
+}
+
+window.__xfMeta = buildMeta;
+
+function run() {
+  $("res").value = buildMeta({
+    title: $("title").value.trim(),
+    desc: $("desc").value.trim(),
+    kw: $("kw").value.trim(),
+    author: $("author").value.trim(),
+    charset: $("charset").checked,
+    viewport: $("viewport").checked,
+    robots: $("robots").checked,
+    noindex: $("noindex").checked,
+    nofollow: $("nofollow").checked,
+    noarchive: $("noarchive").checked,
+    renderer: $("renderer").checked
+  });
+}
+["title", "desc", "kw", "author", "charset", "viewport", "robots", "noindex", "nofollow", "noarchive", "renderer"]
+  .forEach(id => $(id).addEventListener("input", run));
+["charset", "viewport", "robots", "noindex", "nofollow", "noarchive", "renderer"]
+  .forEach(id => $(id).addEventListener("change", run));
+$("robots").addEventListener("change", () => {
+  $("robotsOpts").style.display = $("robots").checked ? "flex" : "none";
+});
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("res").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制代码", 1200);
+});
+$("clearBtn").addEventListener("click", () => {
+  ["title", "desc", "kw", "author"].forEach(id => $(id).value = "");
+  run();
+});
+run();
+</script>
+</body>
+</html>

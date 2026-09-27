@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL在线解析 - 词海工具箱</title>
+<meta name="description" content="URL在线解析工具：输入网址自动拆解协议、域名、主机名、端口、路径、查询参数、哈希等各组成部分，支持中文编码显示，纯本地解析。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
+<style>
+.io-area { width: 100%; height: 90px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.up-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.up-item { flex: 1 1 220px; border: 1px solid #eee; border-radius: 6px; padding: 10px 12px; background: #fafafa; }
+.up-item dt { font-size: 12px; color: #888; margin-bottom: 4px; }
+.up-item dd { font-size: 13px; color: #34495e; word-break: break-all; font-family: Consolas, Monaco, monospace; }
+.up-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+.up-table th, .up-table td { border: 1px solid #eee; padding: 6px 10px; text-align: left; word-break: break-all; }
+.up-table th { background: #f7f8fa; color: #555; }
+.up-empty { color: #999; font-size: 13px; margin-top: 10px; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/urlparser.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="urlparser" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">输入要解析的 URL（输入即自动解析）</p>
+        <textarea class="io-area" id="src" placeholder="例如：https://tools.hdemba.cn:443/tools/urlparser.html?from=seo&id=88#top"></textarea>
+        <div id="parts"></div>
+        <p class="io-label" style="margin-top:16px;">查询参数明细</p>
+        <div id="params"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于URL解析器工具介绍：</h4>
+    <ol>
+      <li>URL解析器可把一个完整网址拆解为协议（Scheme）、域名（Hostname）、端口（Port）、路径（Path）、查询参数（Query）和哈希（Hash）等组成部分。</li>
+      <li>解析基于浏览器原生 URL API 与正则双重引擎，兼容 http、https、ftp 等常见协议格式。</li>
+      <li>查询参数部分会自动按 &amp; 分隔并逐项解码展示，方便核对参数名与参数值。</li>
+      <li>支持中文与特殊字符：解析结果同时给出编码原值与解码后的可读值。</li>
+      <li>所有解析均在本地浏览器完成，数据不会上传服务器，安全放心。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function parseUrl(raw) {
+  raw = (raw || "").trim();
+  if (!raw) return null;
+  try { return new URL(raw); } catch (e) {}
+  // 无协议时补 http:// 再试，并标记
+  try { const u = new URL("http://" + raw); u._addedProto = true; return u; } catch (e) {}
+  return null;
+}
+
+// 暴露给自动化验证
+window.__xfParse = parseUrl;
+
+function render() {
+  const raw = $("src").value;
+  const u = parseUrl(raw);
+  const parts = $("parts"), params = $("params");
+  if (!u) {
+    parts.innerHTML = raw.trim() ? '<p class="up-empty">URL 格式无法解析，请检查后重试。</p>' : "";
+    params.innerHTML = "";
+    return;
+  }
+  const items = [
+    ["协议", u.protocol.replace(":", "")],
+    ["域名", u.hostname],
+    ["端口", u.port || (u.protocol === "https:" ? "443（默认）" : u.protocol === "http:" ? "80（默认）" : "无")],
+    ["路径", u.pathname],
+    ["查询字符串", u.search ? u.search.replace("?", "") : "无"],
+    ["哈希", u.hash ? u.hash.replace("#", "") : "无"],
+    ["源 Origin", u.origin && u.origin !== "null" ? u.origin : u.protocol + "//" + u.host],
+    ["完整地址", decodeURI(u.href)]
+  ];
+  parts.innerHTML = '<div class="up-row">' + items.map(it =>
+    '<dl class="up-item"><dt>' + it[0] + '</dt><dd>' + esc(it[1]) + "</dd></dl>").join("") + "</div>";
+
+  const qs = u.search ? u.search.replace(/^\?/, "") : "";
+  if (!qs) { params.innerHTML = '<p class="up-empty">该 URL 没有查询参数。</p>'; return; }
+  const rows = qs.split("&").map(kv => {
+    const i = kv.indexOf("=");
+    const k = i < 0 ? kv : kv.slice(0, i), v = i < 0 ? "" : kv.slice(i + 1);
+    return '<tr><td>' + esc(k) + '</td><td>' + esc(v) + '</td><td>' + esc(safeDecode(v)) + "</td></tr>";
+  }).join("");
+  params.innerHTML = '<table class="up-table"><tr><th>参数名</th><th>原值</th><th>解码值</th></tr>' + rows + "</table>";
+}
+
+function safeDecode(s) { try { return decodeURIComponent(s); } catch (e) { return s; } }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+$("src").addEventListener("input", render);
+render();
+</script>
+</body>
+</html>

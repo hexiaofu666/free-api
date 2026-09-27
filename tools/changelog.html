@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.6"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.6">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -68,13 +68,20 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.5.6"></script>
-<script src="../assets/chrome.js?v=1.5.6"></script>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.5.7", date: "2026-09-27",
+    items: [
+      ["new", "新增「站长工具」分类及 10 款站长/SEO 工具（工具总数 125→135）：URL解析器、URL Slug生成器、URL参数生成器、主域名提取（支持多级后缀）、URL提取文件名、UTM网址生成器、Meta标签生成、robots.txt生成器、HTTP状态码大全（可搜索）、UserAgent解析"],
+      ["opt", "首页与导航新增站长工具分类入口，共 7 大分类"],
+    ]
+  },
   {
     ver: "v1.5.6", date: "2026-09-27",
     items: [

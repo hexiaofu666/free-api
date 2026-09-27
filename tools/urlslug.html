@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL Slug在线生成 - 词海工具箱</title>
+<meta name="description" content="URL Slug 生成器：把文章标题批量转为 SEO 友好的网址别名，支持英文小写、空格转连字符、去停用词与自定义分隔符，纯本地处理。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
+<style>
+.io-area { width: 100%; height: 150px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.fops { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 10px 0 14px; font-size: 13px; color: #555; }
+.fops select { border: 1px solid #e0e0e0; border-radius: 4px; padding: 5px 8px; font-size: 13px; color: #34495e; outline: none; background: #fff; }
+.fops label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/urlslug.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="urlslug" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">输入标题（每行一个，批量生成）</p>
+        <textarea class="io-area" id="src" placeholder="例如：&#10;10 Best SEO Tools for Beginners&#10;如何快速提升网站收录">10 Best SEO Tools for Beginners
+如何快速提升网站收录</textarea>
+        <div class="fops">
+          <span>分隔符</span>
+          <select id="sep"><option value="-">连字符 -</option><option value="_">下划线 _</option></select>
+          <label><input type="checkbox" id="stop" checked> 去英文停用词（a/an/the/of…）</label>
+          <label><input type="checkbox" id="dropcn"> 中文直接剔除</label>
+        </div>
+        <p class="io-label">Slug 结果</p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">生成 Slug</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于URL Slug生成器介绍：</h4>
+    <ol>
+      <li>Slug 是网址中用于标识页面的可读别名，如 /posts/seo-friendly-url 中的 seo-friendly-url 部分。</li>
+      <li>好的 Slug 应简短、全小写、用连字符分隔单词，并包含页面核心关键词，有利于 SEO 收录与用户理解。</li>
+      <li>本工具把每行标题转换为 Slug：去除特殊符号、空白转分隔符、英文字母统一小写。</li>
+      <li>可选去除英文停用词（a、an、the、of、for 等），让 Slug 更精炼，更贴近搜索引擎偏好。</li>
+      <li>勾选「中文直接剔除」可只保留英文与数字；默认会保留中文字符（部分系统对中文 URL 会自动编码）。</li>
+      <li>所有转换在本地浏览器完成，支持批量多行处理，可一键复制结果。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
+<script>
+const $ = id => document.getElementById(id);
+const STOP = new Set(("a,an,and,are,as,at,be,but,by,for,from,has,have,he,in,is,it,its,of,on,or,that,the,to,was,were,will,with").split(","));
+
+function slugify(line, sep, useStop, dropCn) {
+  let s = line.trim();
+  if (!s) return "";
+  if (dropCn) s = s.replace(/[\u4e00-\u9fff\u3400-\u4dbf]/g, " ");
+  // 特殊符号转空格（保留字母、数字、中文、空白）
+  s = s.replace(/[^\w\s\u4e00-\u9fff\u3400-\u4dbf-]+/g, " ");
+  let words = s.split(/[\s_\-]+/).filter(Boolean);
+  if (useStop && words.length > 1) words = words.filter(w => !STOP.has(w.toLowerCase()));
+  return words.join(sep).toLowerCase();
+}
+
+window.__xfSlug = slugify;
+
+function run() {
+  const sep = $("sep").value, useStop = $("stop").checked, dropCn = $("dropcn").checked;
+  const lines = $("src").value.split("\n");
+  $("res").value = lines.map(l => slugify(l, sep, useStop, dropCn)).join("\n");
+}
+$("run").addEventListener("click", run);
+$("sep").addEventListener("change", run);
+$("stop").addEventListener("change", run);
+$("dropcn").addEventListener("change", run);
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("res").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制结果", 1200);
+});
+$("clearBtn").addEventListener("click", () => { $("src").value = ""; $("res").value = ""; });
+run();
+</script>
+</body>
+</html>

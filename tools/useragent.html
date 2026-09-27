@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UserAgent在线解析 - 词海工具箱</title>
+<meta name="description" content="UserAgent（UA）在线解析工具：查看并解析当前浏览器 UA，识别浏览器、内核、操作系统与设备类型，支持手动输入任意 UA 分析。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
+<style>
+.io-area { width: 100%; height: 100px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.ua-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.ua-item { flex: 1 1 200px; border: 1px solid #eee; border-radius: 6px; padding: 10px 12px; background: #fafafa; }
+.ua-item dt { font-size: 12px; color: #888; margin-bottom: 4px; }
+.ua-item dd { font-size: 13px; color: #34495e; word-break: break-all; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/useragent.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="useragent" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">UserAgent 内容（默认为您当前浏览器的 UA，可手动修改解析）</p>
+        <textarea class="io-area" id="src"></textarea>
+        <div id="parts"></div>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="resetBtn">用当前浏览器 UA</button>
+        <button class="fbtn plain" id="copyBtn">复制 UA</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于UserAgent分析和查询介绍：</h4>
+    <ol>
+      <li>UserAgent（UA）是浏览器发起请求时携带的身份标识字符串，包含浏览器、内核、操作系统与设备信息。</li>
+      <li>本工具默认展示并解析您当前浏览器的 UA，也可粘贴任意 UA 字符串（如蜘蛛 UA）进行识别。</li>
+      <li>站长可用它辨别访问者身份：Baiduspider、Googlebot、Bingbot 等搜索引擎蜘蛛的 UA 均有固定特征。</li>
+      <li>解析结果包括浏览器名称与版本、渲染内核、操作系统、设备类型（桌面/移动/平板/蜘蛛）。</li>
+      <li>UA 由客户端自行声明、可以伪造，身份判断建议结合反向 DNS 等手段核实。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function parseUA(ua) {
+  ua = (ua || "").trim();
+  const r = { browser: "未知", engine: "未知", os: "未知", device: "桌面设备", raw: ua };
+  if (!ua) return r;
+  const v = (re) => { const m = ua.match(re); return m ? m[1] : ""; };
+  // 浏览器（先判特殊壳，再判主浏览器，避免 Chrome 误吞 Edge/OPR）
+  if (/Edg(e|A|iOS)?\//.test(ua)) r.browser = "Microsoft Edge " + ((ua.match(/Edg(?:e|A|iOS)?\/([\d.]+)/) || [0, ""])[1]);
+  else if (/OPR\/|Opera/.test(ua)) r.browser = "Opera " + v(/(?:OPR|Opera)[/ ]([\d.]+)/);
+  else if (/Firefox\/|FxiOS/.test(ua)) r.browser = "Firefox " + v(/(?:Firefox|FxiOS)\/([\d.]+)/);
+  else if (/QQBrowser\//.test(ua)) r.browser = "QQ浏览器 " + v(/QQBrowser\/([\d.]+)/);
+  else if (/MicroMessenger\//.test(ua)) r.browser = "微信内置浏览器 " + v(/MicroMessenger\/([\d.]+)/);
+  else if (/Chrome\/|CriOS/.test(ua)) r.browser = "Chrome " + v(/(?:Chrome|CriOS)\/([\d.]+)/);
+  else if (/Safari\//.test(ua)) r.browser = "Safari " + v(/Version\/([\d.]+)/);
+  // 内核
+  if (/Gecko\/|Firefox/.test(ua) && !/like Gecko/.test(ua.replace(/like Gecko/, ""))) r.engine = "Gecko";
+  else if (/AppleWebKit\//.test(ua)) r.engine = /Chrome\/|Edg\/|OPR\//.test(ua) ? "Blink (AppleWebKit)" : "WebKit (AppleWebKit)";
+  else if (/Trident\//.test(ua)) r.engine = "Trident (IE)";
+  // 操作系统
+  if (/Windows NT ([\d.]+)/.test(ua)) {
+    const nt = v(/Windows NT ([\d.]+)/);
+    const map = { "10.0": "Windows 10/11", "6.3": "Windows 8.1", "6.2": "Windows 8", "6.1": "Windows 7" };
+    r.os = map[nt] || "Windows NT " + nt;
+  }
+  else if (/Android ([\d.]+)/.test(ua)) r.os = "Android " + v(/Android ([\d.]+)/);
+  else if (/(iPhone|iPad|iPod)/.test(ua)) r.os = "iOS " + (v(/OS ([\d_]+)/).replace(/_/g, ".") || "");
+  else if (/Mac OS X ([\d_.]+)/.test(ua)) r.os = "macOS " + v(/Mac OS X ([\d_.]+)/).replace(/_/g, ".");
+  else if (/Linux/.test(ua)) r.os = "Linux";
+  // 设备类型
+  if (/bot|spider|crawl|slurp/i.test(ua)) r.device = "搜索引擎蜘蛛";
+  else if (/iPad|Tablet/.test(ua)) r.device = "平板设备";
+  else if (/Mobile|iPhone|Android/.test(ua)) r.device = "移动设备";
+  return r;
+}
+
+window.__xfUA = parseUA;
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+function render() {
+  const r = parseUA($("src").value);
+  const items = [
+    ["浏览器", r.browser], ["渲染内核", r.engine],
+    ["操作系统", r.os], ["设备类型", r.device]
+  ];
+  $("parts").innerHTML = '<div class="ua-row">' + items.map(it =>
+    '<dl class="ua-item"><dt>' + it[0] + '</dt><dd>' + esc(it[1] || "未知") + "</dd></dl>").join("") + "</div>";
+}
+
+$("src").value = navigator.userAgent;
+$("src").addEventListener("input", render);
+$("resetBtn").addEventListener("click", () => { $("src").value = navigator.userAgent; render(); });
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("src").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制 UA", 1200);
+});
+$("clearBtn").addEventListener("click", () => { $("src").value = ""; render(); });
+render();
+</script>
+</body>
+</html>

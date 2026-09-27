@@ -132,6 +132,17 @@ const TOOLS = [
   { id: "imgpixel",    name: "图片像素化",       desc: "马赛克像素风格处理，可只处理中央区域",       ico: "layui-icon-component",    cat: "color",  color: "#8c7ae6" },
   { id: "imgchunse",   name: "纯色背景图生成",   desc: "自定义尺寸颜色生成纯色底图下载",             ico: "layui-icon-template-1",   cat: "color",  color: "#ff6500" },
   { id: "imgzhanwei",  name: "占位图片生成器",   desc: "生成网页占位图，纯色/透明/渐变背景",         ico: "layui-icon-picture",      cat: "color",  color: "#3d7eff" },
+  /* 站长工具 */
+  { id: "urlparser",   name: "URL解析器",        desc: "拆解网址协议域名端口路径与参数",             ico: "layui-icon-link",         cat: "seo",    color: "#3f7ad6" },
+  { id: "urlslug",     name: "URL Slug生成器",   desc: "标题批量转SEO友好网址别名",                  ico: "layui-icon-website",      cat: "seo",    color: "#2f9e8f" },
+  { id: "urlparams",   name: "URL参数生成器",    desc: "批量拼接查询参数生成完整链接",               ico: "layui-icon-add-circle",   cat: "seo",    color: "#5b7ee0" },
+  { id: "extractdomain", name: "主域名提取",     desc: "批量提取URL主域名支持多级后缀",              ico: "layui-icon-chart",        cat: "seo",    color: "#16a7aa" },
+  { id: "urlfilename", name: "URL提取文件名",    desc: "批量提取网址文件名可解码中文",               ico: "layui-icon-file",         cat: "seo",    color: "#c08b2d" },
+  { id: "urltoutm",    name: "UTM网址生成器",    desc: "添加UTM追踪参数生成推广链接",                ico: "layui-icon-flag",         cat: "seo",    color: "#d66853" },
+  { id: "metas",       name: "Meta标签生成",     desc: "可视化生成网页head元信息代码",               ico: "layui-icon-code-circle",  cat: "seo",    color: "#7a5cf0" },
+  { id: "robots",      name: "robots.txt生成器", desc: "可视化配置蜘蛛规则生成文件",                 ico: "layui-icon-engine",       cat: "seo",    color: "#3d7eff" },
+  { id: "htmlcode",    name: "HTTP状态码",       desc: "HTTP状态码大全与含义速查",                   ico: "layui-icon-survey",       cat: "seo",    color: "#e6a23c" },
+  { id: "useragent",   name: "UserAgent解析",    desc: "解析UA识别浏览器系统与蜘蛛",                 ico: "layui-icon-username",     cat: "seo",    color: "#656599" },
 ];
 
 const CATS = [
@@ -141,6 +152,7 @@ const CATS = [
   { id: "dev",    name: "编程开发" },
   { id: "math",   name: "数学工具" },
   { id: "color",  name: "图片颜色" },
+  { id: "seo",    name: "站长工具" },
 ];
 
 /* 分类导航图标（与 udtool 同款） */
@@ -151,4 +163,5 @@ const NAV_ICONS = {
   dev:    "layui-icon-fonts-code",
   math:   "layui-icon-at",
   color:  "layui-icon-picture",
+  seo:    "layui-icon-console",
 };

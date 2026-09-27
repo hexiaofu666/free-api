@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网址主域名提取 - 词海工具箱</title>
+<meta name="description" content="网址主域名批量提取工具：从 URL 或域名列表中提取主域名（注册域），正确处理 com.cn、co.jp 等多级后缀，支持去重与计数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
+<style>
+.io-area { width: 100%; height: 180px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.fops { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 14px; font-size: 13px; color: #555; }
+.fops label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/extractdomain.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="extractdomain" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">输入 URL 或域名（每行一个）</p>
+        <textarea class="io-area" id="src" placeholder="例如：&#10;https://www.example.com/page?id=1&#10;news.sohu.com&#10;www.gov.cn:8080/list">https://www.example.com/page?id=1
+news.sohu.com
+sub.blog.example.com.cn</textarea>
+        <div class="fops">
+          <label><input type="checkbox" id="uniq" checked> 去重</label>
+          <label><input type="checkbox" id="count"> 显示出现次数</label>
+        </div>
+        <p class="io-label">主域名提取结果</p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">提取主域名</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于网址主域名提取工具介绍：</h4>
+    <ol>
+      <li>主域名（注册域）指去掉子域名与协议、端口后剩下的核心域名，如 sub.example.com 的主域名是 example.com。</li>
+      <li>工具内置多级后缀表（com.cn、net.cn、org.cn、gov.cn、co.jp、com.hk 等），可正确识别这类「伪二级」后缀。</li>
+      <li>输入既可以是完整 URL（自动去掉协议、路径、参数），也可以是裸域名。</li>
+      <li>支持批量多行处理，可勾选去重或显示每个主域名出现的次数，常用于外链分析与友链整理。</li>
+      <li>无法识别的行会被跳过并标注，所有处理均在本地浏览器完成。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
+<script>
+const $ = id => document.getElementById(id);
+// 常见多级后缀（二级公共后缀）
+const SUFFIX2 = new Set(("com.cn,net.cn,org.cn,gov.cn,edu.cn,ac.cn,mil.cn,com.hk,org.hk,edu.hk,gov.hk,net.hk,com.tw,org.tw,edu.tw,gov.tw,com.jp,co.jp,ne.jp,or.jp,ac.jp,co.kr,or.kr,ne.kr,com.sg,co.uk,org.uk,ac.uk,gov.uk,com.au,net.au,org.au,edu.au,gov.au,com.br,com.mx,co.in,co.nz,co.za,com.tr,com.ar,com.hk").split(","));
+
+function extractMainDomain(input) {
+  let s = (input || "").trim();
+  if (!s) return "";
+  // 去 协议://
+  s = s.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, "");
+  // 去 用户名@、路径、参数、端口
+  s = s.split("@").pop().split(/[/?#]/)[0].split(":")[0];
+  // 去掉 www. 前缀（纯www子域不属于主域名信息）
+  s = s.replace(/^www\./i, "");
+  // 去 IP 直连场景之外的部分
+  const parts = s.toLowerCase().split(".").filter(Boolean);
+  if (parts.length < 2) return "";
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(s)) return s; // IP 地址原样返回
+  // 倒数判断：若最后两段是已知多级后缀，取三段
+  const last2 = parts.slice(-2).join(".");
+  if (SUFFIX2.has(last2)) {
+    return parts.length >= 3 ? parts.slice(-3).join(".") : last2;
+  }
+  return parts.slice(-2).join(".");
+}
+
+window.__xfDomain = extractMainDomain;
+
+function run() {
+  const uniq = $("uniq").checked, showCount = $("count").checked;
+  const map = new Map();
+  $("src").value.split("\n").forEach(line => {
+    const d = extractMainDomain(line);
+    if (!d) { return; }
+    map.set(d, (map.get(d) || 0) + 1);
+  });
+  let out;
+  if (showCount) {
+    out = [...map.entries()].sort((a, b) => b[1] - a[1]).map(e => e[0] + "  ×" + e[1]).join("\n");
+  } else {
+    const arr = [...map.keys()];
+    out = (uniq ? arr : arr).join("\n");
+    if (!uniq) { // 不去重时按原顺序重复输出
+      const all = $("src").value.split("\n").map(extractMainDomain).filter(Boolean);
+      out = all.join("\n");
+    }
+  }
+  $("res").value = out;
+}
+$("run").addEventListener("click", run);
+$("uniq").addEventListener("change", run);
+$("count").addEventListener("change", run);
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("res").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制结果", 1200);
+});
+$("clearBtn").addEventListener("click", () => { $("src").value = ""; $("res").value = ""; });
+run();
+</script>
+</body>
+</html>

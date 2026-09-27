@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL提取文件名在线 - 词海工具箱</title>
+<meta name="description" content="URL 批量提取文件名工具：从网址列表中提取文件名，支持保留/去掉扩展名、URL 解码与去重，纯本地处理。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
+<style>
+.io-area { width: 100%; height: 180px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.fops { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 14px; font-size: 13px; color: #555; }
+.fops label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/urlfilename.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="urlfilename" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">输入 URL 列表（每行一个）</p>
+        <textarea class="io-area" id="src" placeholder="例如：&#10;https://example.com/files/report-2026.pdf&#10;https://example.com/img/%E9%A3%8E%E6%99%AF.jpg?v=2">https://example.com/files/report-2026.pdf
+https://example.com/img/%E9%A3%8E%E6%99%AF.jpg?v=2
+https://example.com/docs/</textarea>
+        <div class="fops">
+          <label><input type="checkbox" id="keepext" checked> 保留扩展名</label>
+          <label><input type="checkbox" id="dec"> URL 解码（还原中文）</label>
+          <label><input type="checkbox" id="uniq" checked> 去重</label>
+        </div>
+        <p class="io-label">提取结果</p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">提取文件名</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于URL提取文件名工具介绍：</h4>
+    <ol>
+      <li>本工具从 URL 列表中批量提取最后一节文件名，例如 /files/report.pdf 提取出 report.pdf。</li>
+      <li>自动忽略查询参数（?v=2）与哈希（#top），只取路径中的文件部分。</li>
+      <li>目录型 URL（以 / 结尾或无文件名）会被跳过并标注，避免输出空行干扰。</li>
+      <li>勾选「URL 解码」可把 %E9%A3%8E%E6%99%AF.jpg 还原为 风景.jpg，便于查看中文文件名。</li>
+      <li>支持去重与保留/去掉扩展名选项，常用于下载清单整理、资源盘点。</li>
+      <li>所有处理均在本地浏览器完成，数据不上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function urlFilename(input, keepExt, dec) {
+  let s = (input || "").trim();
+  if (!s) return { name: "", skip: "空行" };
+  s = s.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, "");
+  s = s.split("#")[0].split("?")[0];
+  if (!s || s.endsWith("/")) return { name: "", skip: "目录" };
+  const segs = s.split("/").filter(Boolean);
+  if (!segs.length) return { name: "", skip: "目录" };
+  let name = segs[segs.length - 1];
+  if (!keepExt) name = name.replace(/\.[^.]*$/, "");
+  if (dec) { try { name = decodeURIComponent(name); } catch (e) {} }
+  return { name: name, skip: "" };
+}
+
+window.__xfName = urlFilename;
+
+function run() {
+  const keepExt = $("keepext").checked, dec = $("dec").checked, uniq = $("uniq").checked;
+  const out = [], seen = new Set();
+  let skipped = 0;
+  $("src").value.split("\n").forEach(line => {
+    const r = urlFilename(line, keepExt, dec);
+    if (!r.name || (uniq && seen.has(r.name))) { if (r.skip) skipped++; return; }
+    seen.add(r.name); out.push(r.name);
+  });
+  let text = out.join("\n");
+  if (skipped) text += (text ? "\n" : "") + "（已跳过 " + skipped + " 行目录/无效项）";
+  $("res").value = text;
+}
+$("run").addEventListener("click", run);
+["keepext", "dec", "uniq"].forEach(id => $(id).addEventListener("change", run));
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("res").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制结果", 1200);
+});
+$("clearBtn").addEventListener("click", () => { $("src").value = ""; $("res").value = ""; });
+run();
+</script>
+</body>
+</html>

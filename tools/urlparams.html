@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL参数生成器在线 - 词海工具箱</title>
+<meta name="description" content="URL 参数批量生成工具：输入基础网址与多行键值对参数，自动拼接为完整 URL，支持编码选项与批量生成，纯本地处理。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
+<style>
+.io-area { width: 100%; height: 150px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.io-input:focus { border-color: #d0d0d0; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/urlparams.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="urlparams" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">基础 URL</p>
+        <input class="io-input" id="base" value="https://example.com/page" placeholder="https://example.com/page">
+        <p class="io-label" style="margin-top:14px;">参数列表（每行一个，格式：参数名=参数值 或 参数名 参数值）</p>
+        <textarea class="io-area" id="src" placeholder="例如：&#10;utm_source=baidu&#10;utm_medium cpc&#10;keyword=在线工具">utm_source=baidu
+utm_medium cpc
+keyword=在线工具</textarea>
+        <p class="io-label" style="margin-top:14px;"><label style="cursor:pointer;"><input type="checkbox" id="enc" checked> 对参数值进行 URL 编码（推荐，含中文时必选）</label></p>
+        <p class="io-label">生成结果</p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">生成 URL</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于URL参数生成器介绍：</h4>
+    <ol>
+      <li>URL 参数生成器用于快速拼接带查询参数的网址，常用于投放链接、推广监测与接口调试。</li>
+      <li>每行一个参数，支持「参数名=参数值」和「参数名 空格 参数值」两种写法，自动按 &amp; 连接。</li>
+      <li>基础 URL 已含问号（?）时会自动续接参数，不会产生重复的问号。</li>
+      <li>参数值含中文或特殊字符时请保持勾选「URL 编码」，避免链接在传输中出错。</li>
+      <li>所有拼接均在本地浏览器完成，支持一键复制，数据不上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function buildUrl(base, kvLines, enc) {
+  const kvs = [];
+  kvLines.forEach(line => {
+    const t = line.trim();
+    if (!t) return;
+    let k, v;
+    const i = t.indexOf("=");
+    if (i >= 0) { k = t.slice(0, i).trim(); v = t.slice(i + 1).trim(); }
+    else { const m = t.split(/\s+/); k = m[0]; v = m.slice(1).join(" "); }
+    if (k) kvs.push([k, v]);
+  });
+  const qs = kvs.map(kv => kv[0] + "=" + (enc ? encodeURIComponent(kv[1]) : kv[1])).join("&");
+  if (!qs) return base;
+  return base + (base.indexOf("?") >= 0 ? "&" : "?") + qs;
+}
+
+window.__xfBuild = buildUrl;
+
+function run() {
+  const base = $("base").value.trim() || "https://example.com/page";
+  $("res").value = buildUrl(base, $("src").value.split("\n"), $("enc").checked);
+}
+$("run").addEventListener("click", run);
+$("enc").addEventListener("change", run);
+$("base").addEventListener("input", run);
+$("src").addEventListener("input", run);
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("res").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制结果", 1200);
+});
+$("clearBtn").addEventListener("click", () => { $("src").value = ""; $("res").value = ""; });
+run();
+</script>
+</body>
+</html>

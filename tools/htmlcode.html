@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP状态码查询 - 词海工具箱</title>
+<meta name="description" content="HTTP 状态码大全：1xx 信息响应、2xx 成功、3xx 重定向、4xx 客户端错误、5xx 服务器错误，含状态码含义速查表与分类说明。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.7"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.7">
+<style>
+.hc-group { margin-bottom: 22px; }
+.hc-group h4 { font-size: 15px; color: #333; margin: 0 0 10px; padding-left: 8px; border-left: 3px solid #ff6500; }
+.hc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.hc-table th, .hc-table td { border: 1px solid #eee; padding: 8px 10px; text-align: left; vertical-align: top; line-height: 1.7; }
+.hc-table th { background: #f7f8fa; color: #555; white-space: nowrap; }
+.hc-code { font-family: Consolas, Monaco, monospace; font-weight: bold; white-space: nowrap; }
+.hc-1xx .hc-code { color: #5b9df9; } .hc-2xx .hc-code { color: #2e9e5b; }
+.hc-3xx .hc-code { color: #d98b00; } .hc-4xx .hc-code { color: #e05a4e; }
+.hc-5xx .hc-code { color: #c0392b; }
+.hc-filter { margin-bottom: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.hc-filter input { border: 1px solid #e0e0e0; border-radius: 4px; padding: 7px 10px; font-size: 13px; outline: none; width: 240px; max-width: 60vw; color: #34495e; }
+html.dark .hc-table th { background: #2a2d35; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/htmlcode.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="htmlcode" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <div class="hc-filter">
+          <input id="q" placeholder="输入状态码或关键词筛选，如 404 / 重定向">
+          <span style="font-size:12px;color:#999;" id="cnt"></span>
+        </div>
+        <div id="list"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTTP状态码介绍：</h4>
+    <ol>
+      <li>HTTP 状态码是服务器响应客户端请求时返回的三位数字，用于表示请求的处理结果。</li>
+      <li>状态码分五类：1xx 信息响应、2xx 成功、3xx 重定向、4xx 客户端错误、5xx 服务器错误。</li>
+      <li>站长最常见的是：200（正常）、301/302（跳转）、304（缓存命中）、403（禁止访问）、404（页面不存在）、500（服务器错误）、502/504（网关异常）。</li>
+      <li>SEO 角度：页面应尽量返回 200；已删除页面用 410 或 404；改版换域名务必用 301 永久跳转以传递权重。</li>
+      <li>在顶部搜索框输入状态码或关键词（如「404」「重定向」）可快速定位。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.7"></script>
+<script src="../assets/chrome.js?v=1.5.7"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+const GROUPS = [
+  { cls: "hc-1xx", name: "消息响应（1xx）", codes: [
+    [100, "Continue（继续）", "客户端应当继续发送请求。此临时响应通知客户端部分请求已被接收且未被拒绝，客户端应继续发送剩余部分。"],
+    [101, "Switching Protocol（切换协议）", "服务器理解并通过 Upgrade 消息头通知客户端切换协议，切换到新协议（如 WebSocket、HTTP/2）更有好处时使用。"]
+  ]},
+  { cls: "hc-2xx", name: "成功响应（2xx）", codes: [
+    [200, "OK（成功）", "请求成功。GET：资源已作为响应体传回；POST：服务器已处理传来的数据；HEAD：实体头已作为响应头传回。"],
+    [201, "Created（已创建）", "请求成功且新资源已依据请求建立，通常是 PUT 方法的响应码。"],
+    [202, "Accepted（已接受）", "服务器已接受请求但尚未处理，常用于异步批处理场景，响应体中可包含处理状态信息。"],
+    [203, "Non-Authoritative Information（未授权信息）", "请求成功，但返回的元信息不是原始服务器的确定集合，而是本地或第三方的拷贝。"],
+    [204, "No Content（无内容）", "响应没有内容只有响应头，用户代理可根据响应头更新缓存的对应资源。"],
+    [205, "Reset Content（重置内容）", "告诉用户代理重置发送该请求的窗口的文档视图。"],
+    [206, "Partial Content（部分内容）", "客户端通过 Range 头进行文件分段下载时使用。"]
+  ]},
+  { cls: "hc-3xx", name: "重定向（3xx）", codes: [
+    [300, "Multiple Choices（多种选择）", "请求有多种可能的响应，用户代理或用户必须选择其中一个。"],
+    [301, "Moved Permanently（永久移动）", "请求的资源已永久移到新 URL，新地址在 Location 头中。SEO 换域名/改版务必使用 301 传递权重。"],
+    [302, "Found（临时移动）", "资源临时改变位置，客户端以后仍应使用原 URI 访问。"],
+    [303, "See Other（查看其他位置）", "服务器引导客户端用 GET 方法访问另一个 URI。"],
+    [304, "Not Modified（未修改）", "内容与上次访问相比没有变化，客户端可直接使用浏览器缓存。"],
+    [305, "Use Proxy（使用代理）", "所请求资源必须通过代理访问，因安全原因未被广泛支持。"],
+    [306, "unused（未使用）", "已废弃，早期用于 HTTP/1.1 旧版本。"],
+    [307, "Temporary Redirect（临时重定向）", "引导客户端用相同方法访问另一 URI 获取资源，语义同 302 但前后请求方法必须一致。"],
+    [308, "Permanent Redirect（永久重定向）", "资源永久位于另一 URI，语义同 301 但前后请求方法必须一致。"]
+  ]},
+  { cls: "hc-4xx", name: "客户端错误（4xx）", codes: [
+    [400, "Bad Request（错误请求）", "请求语法错误，服务器无法正常读取。"],
+    [401, "Unauthorized（未授权）", "需要身份验证后才能获取内容；正确输入账号密码后验证可通过。"],
+    [402, "Payment Required（需要付款）", "为数字支付系统预留的状态码，目前未投入使用。"],
+    [403, "Forbidden（禁止访问）", "客户端没有权限访问所请求内容，服务器拒绝本次请求。"],
+    [404, "Not Found（未找到）", "服务器找不到所请求的资源，上网时最常见的错误之一。"],
+    [405, "Method Not Allowed（方法不允许）", "请求使用的方法被服务器禁止；GET 和 HEAD 按规范不能被禁止。"],
+    [406, "Not Acceptable（无法接受）", "服务器驱动内容协商后，没有找到合适的内容返回给客户端。"],
+    [407, "Proxy Authentication Required（要求代理认证）", "类似于 401，但需要先通过代理完成验证。"],
+    [408, "Request Timeout（请求超时）", "客户端未在服务器等待时间内完成请求发送，服务器切断连接。"],
+    [409, "Conflict（冲突）", "请求与服务器的当前状态存在冲突。"],
+    [410, "Gone（已失效）", "所请求的资源已被永久删除。SEO 中告知搜索引擎该页彻底移除。"],
+    [411, "Length Required（需要内容长度）", "服务器要求 Content-Length 头字段而客户端未发送，请求被拒绝。"],
+    [412, "Precondition Failed（预处理失败）", "服务器未能满足请求头中设置的先决条件。"],
+    [413, "Payload Too Large（请求实体过大）", "请求体超过服务器限制，服务器可能关闭连接并返回 Retry-After。"],
+    [414, "URI Too Long（网址过长）", "客户端请求的 URI 太长，服务器无法处理。"],
+    [415, "Unsupported Media Type（媒体类型不支持）", "服务器不支持请求的媒体格式，拒绝处理。"],
+    [416, "Range Not Satisfiable（范围不合要求）", "请求的 Range 范围超出资源实际大小。"],
+    [417, "Expectation Failed（预期结果失败）", "请求头 Expect 中指定的预期内容无法被服务器满足。"],
+    [418, "I'm a teapot（我是一个茶壶）", "出自恶搞 RFC 2324（超文本咖啡壶控制协议 HTCPCP），服务器拒绝用茶壶煮咖啡。"]
+  ]},
+  { cls: "hc-5xx", name: "服务器错误（5xx）", codes: [
+    [500, "Internal Server Error（内部服务器错误）", "服务器遇到未知错误无法完成请求，最常见的程序异常状态码。"],
+    [501, "Not Implemented（未实现）", "服务器不支持请求中使用的方法，如未实现的 POST/PUT。"],
+    [502, "Bad Gateway（网关错误）", "服务器作为网关从上游服务器收到了无效响应，常见于后端进程崩溃。"],
+    [503, "Service Unavailable（服务不可用）", "服务器临时维护或过载无法处理请求，可携带 Retry-After 提示恢复时间。"],
+    [504, "Gateway Timeout（网关超时）", "服务器作为网关未能及时从上游服务器得到响应。"],
+    [505, "HTTP Version Not Supported（HTTP版本不受支持）", "服务器不支持请求所使用的 HTTP 协议版本。"]
+  ]}
+];
+
+window.__xfGroups = GROUPS;
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+function render(filter) {
+  const q = (filter || "").trim().toLowerCase();
+  let total = 0;
+  const html = GROUPS.map(g => {
+    const codes = g.codes.filter(c =>
+      !q || String(c[0]).includes(q) || c[1].toLowerCase().includes(q) || c[2].toLowerCase().includes(q));
+    if (!codes.length) return "";
+    total += codes.length;
+    return '<div class="hc-group"><h4>' + g.name + '</h4><table class="hc-table ' + g.cls + '">' +
+      '<tr><th>状态码</th><th>原因短语</th><th>代表含义</th></tr>' +
+      codes.map(c => '<tr><td class="hc-code">' + c[0] + '</td><td>' + esc(c[1]) + '</td><td>' + esc(c[2]) + "</td></tr>").join("") +
+      "</table></div>";
+  }).join("");
+  $("list").innerHTML = html || '<p style="color:#999;font-size:13px;">没有匹配的状态码。</p>';
+  $("cnt").textContent = total ? "共 " + total + " 条" : "";
+}
+
+$("q").addEventListener("input", e => render(e.target.value));
+render("");
+</script>
+</body>
+</html>

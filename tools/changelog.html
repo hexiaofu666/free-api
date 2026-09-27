@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.5"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.5">
+<script src="../assets/theme.js?v=1.5.6"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.6">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -68,13 +68,20 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.5.5"></script>
-<script src="../assets/chrome.js?v=1.5.5"></script>
+<script src="../assets/tools-data.js?v=1.5.6"></script>
+<script src="../assets/chrome.js?v=1.5.6"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.5.6", date: "2026-09-27",
+    items: [
+      ["new", "新增 10 款图片处理工具：九宫格切图（行列/宽高双模式+ZIP打包下载）、图片尺寸调整（锁比例缩放）、图片旋转（批量90/180/270°）、图片翻转（水平/垂直/对角镜像）、图像反相（底片效果）、图片转黑白（5种灰度算法）、图片拼接（横/纵长图）、图片像素化（马赛克）、纯色背景图生成、占位图片生成器（纯色/透明/渐变背景）"],
+      ["opt", "自研零依赖 ZIP 打包器（store模式+CRC32+UTF-8文件名），批量工具支持一键打包下载"],
+    ]
+  },
   {
     ver: "v1.5.5", date: "2026-09-26",
     items: [

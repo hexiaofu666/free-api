@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片转黑白在线 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.6"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.6">
+<meta name="description" content="在线彩图转黑白模式工具，批量将照片转为黑白灰度图片，浏览器本地处理不上传">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/imgheibai.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="imgheibai" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>选择图片（可多张）</label><input type="file" id="file" accept="image/*" multiple style="height:38px;padding:6px 10px;"></div>
+      <div class="fitem"><label>灰度算法</label>
+        <select id="algo">
+          <option value="bt709">标准灰度（Rec.709 推荐）</option>
+          <option value="bt601">经典灰度（Rec.601）</option>
+          <option value="avg">平均灰度</option>
+          <option value="light">最亮值</option>
+          <option value="dark">最暗值</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始处理</button>
+      <button class="fbtn brown" id="zipBtn" style="display:none;">打包下载全部</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>黑白效果</strong><span id="cnt"></span></div>
+      <div id="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:10px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于图片转黑白图片工具介绍：</h4>
+    <ol>
+      <li>本工具可以批量将图片转为黑白模式。</li>
+      <li>先上传图片支持批量上传，上传完成后会在网页上显示上传的图片。</li>
+      <li>提供 5 种灰度算法：Rec.709 加权（最接近人眼感知）、Rec.601 经典加权、平均、最亮、最暗。</li>
+      <li>注意：本工具只在前台运行，不会将您上传的图片上传至服务器，请放心使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.6"></script>
+<script src="../assets/chrome.js?v=1.5.6"></script>
+<script src="../assets/lib/zip.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let imgs=[];
+const GRAY={bt709:(r,g,b)=>0.2126*r+0.7152*g+0.0722*b, bt601:(r,g,b)=>0.299*r+0.587*g+0.114*b,
+  avg:(r,g,b)=>(r+g+b)/3, light:(r,g,b)=>Math.max(r,g,b), dark:(r,g,b)=>Math.min(r,g,b)};
+function loadFiles(fs){
+  imgs=[];
+  const tasks=[...fs].map(f=>new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{imgs.push({name:f.name,img});res();};
+    img.src=URL.createObjectURL(f);
+  }));
+  Promise.all(tasks).then(()=>{ if(imgs.length)$("runBtn").click(); });
+}
+$("file").onchange=e=>loadFiles(e.target.files);
+$("runBtn").onclick=()=>{
+  if(!imgs.length){alert("请先选择图片");return;}
+  const fn=GRAY[$("algo").value], list=$("list");
+  list.innerHTML=""; window._out=[];
+  imgs.forEach(it=>{
+    const cv=document.createElement("canvas");
+    cv.width=it.img.width; cv.height=it.img.height;
+    const ctx=cv.getContext("2d");
+    ctx.drawImage(it.img,0,0);
+    const d=ctx.getImageData(0,0,cv.width,cv.height);
+    for(let i=0;i<d.data.length;i+=4){
+      const v=Math.round(fn(d.data[i],d.data[i+1],d.data[i+2]));
+      d.data[i]=d.data[i+1]=d.data[i+2]=v;
+    }
+    ctx.putImageData(d,0,0);
+    const url=cv.toDataURL("image/png");
+    const base=it.name.replace(/\.[^.]+$/,"");
+    window._out.push({name:`${base}_bw.png`,dataUrl:url});
+    const box=document.createElement("div");
+    box.style.textAlign="center";
+    box.innerHTML=`<img src="${url}" style="max-width:100%;max-height:120px;border:1px solid #eee;border-radius:4px;display:block;margin:0 auto;">
+      <a download="${base}_bw.png" href="${url}" style="font-size:12px;color:#ff6500;">下载</a>`;
+    list.appendChild(box);
+  });
+  $("cnt").textContent=`共 ${imgs.length} 张`;
+  $("zipBtn").style.display=imgs.length>1?"":"none";
+  $("outBox").classList.add("on");
+};
+$("zipBtn").onclick=()=>{
+  const files=window._out.map(p=>({name:p.name,data:new Uint8Array(Array.from(atob(p.dataUrl.split(",")[1]),c=>c.charCodeAt(0)))}));
+  const a=document.createElement("a");
+  a.download="blackwhite.zip"; a.href=URL.createObjectURL(zipMake(files)); a.click();
+};
+$("clearBtn").onclick=()=>{$("outBox").classList.remove("on");$("list").innerHTML="";imgs=[];$("zipBtn").style.display="none";};
+</script>
+</body>
+</html>

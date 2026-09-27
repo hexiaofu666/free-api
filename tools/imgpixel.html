@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片像素化在线 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.6"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.6">
+<meta name="description" content="在线图片像素化/马赛克工具，自定义像素块大小，一键生成像素风格图片，本地处理">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/imgpixel.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="imgpixel" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>选择图片</label><input type="file" id="file" accept="image/*" style="height:38px;padding:6px 10px;"></div>
+      <div class="fitem"><label>像素块大小</label>
+        <select id="block">
+          <option value="4">轻微（4px）</option>
+          <option value="8">轻度（8px）</option>
+          <option value="16" selected>中等（16px）</option>
+          <option value="32">重度（32px）</option>
+          <option value="64">极致（64px）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>处理范围</label>
+        <select id="scope">
+          <option value="all">全图马赛克</option>
+          <option value="face">中央区域（常见人脸位置）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始像素化</button>
+      <button class="fbtn gray" id="dlBtn" style="display:none;">下载图片</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>处理结果</strong><span id="info"></span></div>
+      <div style="text-align:center;padding:10px;">
+        <img id="preview" style="max-width:100%;border:1px solid #eee;border-radius:6px;">
+        <div style="font-size:12px;color:#999;margin-top:6px;">上：原图 · 下：像素化后</div>
+        <img id="origin" style="max-width:100%;border:1px solid #eee;border-radius:6px;margin-top:8px;">
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于图片像素化工具介绍：</h4>
+    <ol>
+      <li>本工具可以将图片进行像素化（马赛克）处理，用于保护隐私或制作像素风格图。</li>
+      <li>支持全图马赛克或仅处理中央区域（常见人脸/主体位置）。</li>
+      <li>像素化原理：将图片缩小到 1/N 再放大 N 倍，实现块状马赛克效果。</li>
+      <li>本工具在您的浏览器中本地处理，图片不会上传至服务器，请放心使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.6"></script>
+<script src="../assets/chrome.js?v=1.5.6"></script>
+<script>
+const $=id=>document.getElementById(id);
+let img=null;
+$("file").onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  img=new Image();
+  img.onload=()=>{$("runBtn").click();};
+  img.src=URL.createObjectURL(f);
+};
+$("runBtn").onclick=()=>{
+  if(!img){alert("请先选择图片");return;}
+  const N=+$("block").value||16, scope=$("scope").value;
+  const cv=document.createElement("canvas");
+  cv.width=img.width; cv.height=img.height;
+  const ctx=cv.getContext("2d");
+  ctx.drawImage(img,0,0);
+  let sx=0,sy=0,sw=img.width,sh=img.height;
+  if(scope==="face"){
+    sw=Math.round(img.width*0.5); sh=Math.round(img.height*0.5);
+    sx=Math.round(img.width*0.25); sy=Math.round(img.height*0.15);
+  }
+  const bw=Math.max(1,Math.round(sw/N)), bh=Math.max(1,Math.round(sh/N));
+  const sw2=Math.max(1,Math.floor(sw/bw)*bw), sh2=Math.max(1,Math.floor(sh/bh)*bh);
+  const small=document.createElement("canvas");
+  small.width=Math.max(1,Math.round(sw2/bw)); small.height=Math.max(1,Math.round(sh2/bh));
+  small.getContext("2d").drawImage(cv,sx,sy,sw2,sh2,0,0,small.width,small.height);
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(small,0,0,small.width,small.height,sx,sy,sw2,sh2);
+  const url=cv.toDataURL("image/png");
+  $("origin").src=img.src;
+  $("preview").src=url;
+  $("info").textContent=`像素块 ${bw}×${bh}px`;
+  $("dlBtn").style.display="";
+  $("outBox").classList.add("on");
+  $("dlBtn").onclick=()=>{const a=document.createElement("a");a.download="pixelated.png";a.href=url;a.click();};
+};
+$("clearBtn").onclick=()=>{$("outBox").classList.remove("on");img=null;};
+</script>
+</body>
+</html>

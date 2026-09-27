@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>占位图片生成器 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.6"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.6">
+<meta name="description" content="在线占位图片生成器，自定义尺寸颜色文字圆角，支持纯色透明渐变背景，生成占位图下载">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/imgzhanwei.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="imgzhanwei" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>图片宽度(px)</label><input type="number" id="w" value="600" min="1" max="8000"></div>
+      <div class="fitem"><label>图片高度(px)</label><input type="number" id="h" value="400" min="1" max="8000"></div>
+      <div class="fitem"><label>图片圆角(px)</label><input type="number" id="radius" value="0" min="0" max="500"></div>
+      <div class="fitem"><label>背景模式</label>
+        <select id="bgMode">
+          <option value="solid">纯色</option>
+          <option value="transparent">透明</option>
+          <option value="gradient">渐变</option>
+        </select>
+      </div>
+      <div class="fitem" id="bgItem"><label>背景颜色</label><input type="color" id="bg" value="#3d7eff" style="height:38px;padding:4px;"></div>
+      <div class="fitem" id="g1Item" style="display:none;"><label>渐变第一颜色</label><input type="color" id="g1" value="#3d7eff" style="height:38px;padding:4px;"></div>
+      <div class="fitem" id="g2Item" style="display:none;"><label>渐变第二颜色</label><input type="color" id="g2" value="#7f4dfc" style="height:38px;padding:4px;"></div>
+      <div class="fitem" id="trItem" style="display:none;"><label>透明程度(%)</label><input type="range" id="tr" value="0" min="0" max="100" style="height:38px;"></div>
+      <div class="fitem"><label>文字内容</label><input type="text" id="txt" value="600 × 400"></div>
+      <div class="fitem"><label>文字大小</label><input type="number" id="fs" value="48" min="6" max="400"></div>
+      <div class="fitem"><label>文字颜色</label><input type="color" id="tc" value="#ffffff" style="height:38px;padding:4px;"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成占位图</button>
+      <button class="fbtn gray" id="dlBtn" style="display:none;">下载图片</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>生成结果</strong><span id="info"></span></div>
+      <div style="text-align:center;padding:10px;background-image:repeating-conic-gradient(#eee 0 25%,#fff 0 50%);background-size:20px 20px;border-radius:6px;">
+        <img id="preview" style="max-width:100%;border-radius:6px;">
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于占位图片生成工具介绍：</h4>
+    <ol>
+      <li>图片占位通常指网页、文档中暂时替代最终展示图片的空间，具有简洁、指示性强的特点。</li>
+      <li>本工具可以自定义图片的宽度、高度与圆角。</li>
+      <li>背景支持纯色、透明、双色线性渐变三种模式。</li>
+      <li>支持自定义文字内容、字号与颜色，生成后直接下载。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.6"></script>
+<script src="../assets/chrome.js?v=1.5.6"></script>
+<script>
+const $=id=>document.getElementById(id);
+$("bgMode").onchange=()=>{
+  const m=$("bgMode").value;
+  $("bgItem").style.display=m==="solid"?"":"none";
+  $("g1Item").style.display=m==="gradient"?"":"none";
+  $("g2Item").style.display=m==="gradient"?"":"none";
+};
+function roundRect(ctx,x,y,w,h,r){
+  r=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+$("runBtn").onclick=()=>{
+  const w=Math.min(Math.max(+$("w").value||600,1),8000);
+  const h=Math.min(Math.max(+$("h").value||400,1),8000);
+  const r=Math.min(Math.max(+$("radius").value||0,0),500);
+  const m=$("bgMode").value;
+  const cv=document.createElement("canvas");
+  cv.width=w; cv.height=h;
+  const ctx=cv.getContext("2d");
+  if(m!=="transparent"){
+    if(m==="solid"){ ctx.fillStyle=$("bg").value; ctx.fillRect(0,0,w,h); }
+    else{
+      const g=ctx.createLinearGradient(0,0,w,h);
+      g.addColorStop(0,$("g1").value); g.addColorStop(1,$("g2").value);
+      ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    }
+  }
+  if(r>0){
+    const out=document.createElement("canvas");
+    out.width=w; out.height=h;
+    const octx=out.getContext("2d");
+    roundRect(octx,0,0,w,h,r); octx.clip();
+    octx.drawImage(cv,0,0);
+    octx.font=`${+$("fs").value||48}px sans-serif`;
+    octx.fillStyle=$("tc").value;
+    octx.textAlign="center"; octx.textBaseline="middle";
+    octx.fillText($("txt").value,w/2,h/2);
+    cv.getContext("2d").clearRect(0,0,w,h);
+    cv.getContext("2d").drawImage(out,0,0);
+  }else{
+    ctx.font=`${+$("fs").value||48}px sans-serif`;
+    ctx.fillStyle=$("tc").value;
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText($("txt").value,w/2,h/2);
+  }
+  const url=cv.toDataURL("image/png");
+  $("preview").src=url;
+  $("info").textContent=`${w}×${h} · ${m==="transparent"?"透明":m==="gradient"?"渐变":"纯色"}`;
+  $("dlBtn").style.display="";
+  $("outBox").classList.add("on");
+  $("dlBtn").onclick=()=>{const a=document.createElement("a");a.download=`placeholder_${w}x${h}.png`;a.href=url;a.click();};
+};
+</script>
+</body>
+</html>

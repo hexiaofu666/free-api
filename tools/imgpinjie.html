@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片拼接在线 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.6"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.6">
+<meta name="description" content="在线图片拼接工具，支持横向纵向拼接多张图片，可设间距与背景色，浏览器本地处理">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/imgpinjie.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="imgpinjie" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>选择图片（按顺序拼接）</label><input type="file" id="file" accept="image/*" multiple style="height:38px;padding:6px 10px;"></div>
+      <div class="fitem"><label>拼接方向</label>
+        <select id="dir">
+          <option value="h">横向拼接（左右排）</option>
+          <option value="v">纵向拼接（上下排）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>间距(px)</label><input type="number" id="gap" value="0" min="0" max="100"></div>
+      <div class="fitem"><label>背景颜色</label><input type="color" id="bg" value="#ffffff" style="height:38px;padding:4px;"></div>
+      <div class="fitem"><label>对齐方式</label>
+        <select id="align">
+          <option value="start">顶部/左对齐</option>
+          <option value="center">居中对齐</option>
+          <option value="end">底部/右对齐</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始拼接</button>
+      <button class="fbtn gray" id="clearBtn">清空数据</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>拼接结果</strong><span id="dlBtn">下载图片</span></div>
+      <div style="text-align:center;padding:10px;">
+        <img id="preview" style="max-width:100%;border:1px solid #eee;border-radius:6px;">
+        <div id="info" style="font-size:13px;color:#666;margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于图片拼接工具介绍：</h4>
+    <ol>
+      <li>本工具可以将多张图片按上传顺序拼接为一张长图或宽图。</li>
+      <li>支持横向（左右）与纵向（上下）两种拼接方向，可自定义图片间距与背景色。</li>
+      <li>对齐方式：拼接时尺寸不一致的图片可选择顶部、居中或底部对齐。</li>
+      <li>本工具在浏览器中处理，你上传的图片不会上传至服务器，请放心使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.6"></script>
+<script src="../assets/chrome.js?v=1.5.6"></script>
+<script>
+const $=id=>document.getElementById(id);
+let imgs=[];
+function loadFiles(fs){
+  imgs=[];
+  const tasks=[...fs].map(f=>new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{imgs.push({name:f.name,img});res();};
+    img.src=URL.createObjectURL(f);
+  }));
+  Promise.all(tasks).then(()=>{ if(imgs.length)$("runBtn").click(); });
+}
+$("file").onchange=e=>loadFiles(e.target.files);
+$("runBtn").onclick=()=>{
+  if(imgs.length<2){alert("请至少选择2张图片");return;}
+  const dir=$("dir").value, gap=+$("gap").value||0, bg=$("bg").value, align=$("align").value;
+  let W,H;
+  if(dir==="h"){ W=imgs.reduce((s,i)=>s+i.img.width,0)+gap*(imgs.length-1); H=Math.max(...imgs.map(i=>i.img.height)); }
+  else{ H=imgs.reduce((s,i)=>s+i.img.height,0)+gap*(imgs.length-1); W=Math.max(...imgs.map(i=>i.img.width)); }
+  const cv=document.createElement("canvas");
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext("2d");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  let pos=0;
+  imgs.forEach(it=>{
+    const cross=dir==="h"?it.img.height:it.img.width;
+    const main=dir==="h"?it.img.width:it.img.height;
+    const off=align==="center"?( (dir==="h"?H:W)-cross)/2 : align==="end"?((dir==="h"?H:W)-cross) : 0;
+    if(dir==="h")ctx.drawImage(it.img,pos,off);
+    else ctx.drawImage(it.img,off,pos);
+    pos+=main+gap;
+  });
+  $("preview").src=cv.toDataURL("image/png");
+  $("info").textContent=`${imgs.length} 张图片拼接为 ${W}×${H}`;
+  $("outBox").classList.add("on");
+  $("dlBtn").onclick=()=>{const a=document.createElement("a");a.download="joined.png";a.href=$("preview").src;a.click();};
+};
+$("clearBtn").onclick=()=>{$("outBox").classList.remove("on");$("info").textContent="";imgs=[];};
+</script>
+</body>
+</html>

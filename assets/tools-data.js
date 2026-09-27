@@ -122,6 +122,16 @@ const TOOLS = [
   { id: "deadpixel",   name: "屏幕坏点检测",     desc: "纯色全屏轮播检查屏幕坏点亮点",               ico: "layui-icon-theme",        cat: "color",  color: "#34495e" },
   { id: "imgwatermark", name: "图片加水印",      desc: "文字水印/平铺水印，本地处理不上传",          ico: "layui-icon-picture",      cat: "color",  color: "#5b9df9" },
   { id: "imgradius",   name: "图片圆角制作",     desc: "图片四角裁圆，支持透明背景PNG",              ico: "layui-icon-picture-fine", cat: "color",  color: "#ba3498" },
+  { id: "imgsplit",    name: "九宫格切图",       desc: "按行列或宽高切分图片，一键打包下载",         ico: "layui-icon-cols",         cat: "color",  color: "#16baaa" },
+  { id: "imgresize",   name: "图片尺寸调整",     desc: "按像素或百分比缩放图片，可锁比例",           ico: "layui-icon-slider",       cat: "color",  color: "#e6a23c" },
+  { id: "imgrotate",   name: "图片旋转",         desc: "批量旋转90/180/270度，打包下载",             ico: "layui-icon-refresh-1",    cat: "color",  color: "#7c6af2" },
+  { id: "imgflip",     name: "图片翻转",         desc: "水平/垂直/对角镜像翻转，批量处理",           ico: "layui-icon-transfer",     cat: "color",  color: "#4791f5" },
+  { id: "imginvert",   name: "图像反相工具",     desc: "图片反色底片效果，反相强度可调",             ico: "layui-icon-eye-invisible",  cat: "color",  color: "#4a4a4a" },
+  { id: "imgheibai",   name: "图片转黑白",       desc: "批量转黑白灰度，五种灰度算法",               ico: "layui-icon-camera",       cat: "color",  color: "#333333" },
+  { id: "imgpinjie",   name: "图片拼接",         desc: "横向纵向拼接长图，间距背景可调",             ico: "layui-icon-layouts",      cat: "color",  color: "#2f9e8f" },
+  { id: "imgpixel",    name: "图片像素化",       desc: "马赛克像素风格处理，可只处理中央区域",       ico: "layui-icon-component",    cat: "color",  color: "#8c7ae6" },
+  { id: "imgchunse",   name: "纯色背景图生成",   desc: "自定义尺寸颜色生成纯色底图下载",             ico: "layui-icon-template-1",   cat: "color",  color: "#ff6500" },
+  { id: "imgzhanwei",  name: "占位图片生成器",   desc: "生成网页占位图，纯色/透明/渐变背景",         ico: "layui-icon-picture",      cat: "color",  color: "#3d7eff" },
 ];
 
 const CATS = [

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>纯色背景图片生成 - 词海工具箱</title>
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.6"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.6">
+<meta name="description" content="在线纯色背景图片生成器，自定义尺寸颜色格式，生成纯色底图下载">
+<link rel="canonical" href="https://tools.hdemba.cn/tools/imgchunse.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="imgchunse" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>图片宽度(px)</label><input type="number" id="w" value="800" min="1" max="8000"></div>
+      <div class="fitem"><label>图片高度(px)</label><input type="number" id="h" value="600" min="1" max="8000"></div>
+      <div class="fitem"><label>背景颜色</label><input type="color" id="color" value="#ff6500" style="height:38px;padding:4px;"></div>
+      <div class="fitem"><label>输出格式</label>
+        <select id="fmt">
+          <option value="image/png">PNG（无损）</option>
+          <option value="image/jpeg">JPG（体积小）</option>
+          <option value="image/webp">WebP（现代格式）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>常用尺寸</label>
+        <select id="preset">
+          <option value="">-- 快速选择 --</option>
+          <option value="1080,1920">手机壁纸 1080×1920</option>
+          <option value="1920,1080">电脑壁纸 1920×1080</option>
+          <option value="1080,1080">朋友圈方图 1080×1080</option>
+          <option value="750,1334">公众号首图 750×1334</option>
+          <option value="2560,1440">2K 壁纸 2560×1440</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成图片</button>
+      <button class="fbtn gray" id="dlBtn" style="display:none;">下载图片</button>
+    </div>
+    <div class="vout" id="outBox">
+      <div class="vhead"><strong>生成结果</strong><span id="info"></span></div>
+      <div style="text-align:center;padding:10px;"><img id="preview" style="max-width:100%;border:1px solid #eee;border-radius:6px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于纯色背景图片生成器介绍：</h4>
+    <ol>
+      <li>本工具可以生成一张自定义尺寸与颜色的纯色底图。</li>
+      <li>常用于：视频剪辑底图、设计留白、聊天背景、测试用图等场景。</li>
+      <li>内置手机壁纸、朋友圈方图、公众号首图等常用尺寸快速选择。</li>
+      <li>支持 PNG、JPG、WebP 三种输出格式，生成后直接下载。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.6"></script>
+<script src="../assets/chrome.js?v=1.5.6"></script>
+<script>
+const $=id=>document.getElementById(id);
+$("preset").onchange=()=>{const v=$("preset").value; if(!v)return; const [w,h]=v.split(","); $("w").value=w; $("h").value=h;};
+$("runBtn").onclick=()=>{
+  const w=Math.min(Math.max(+$("w").value||800,1),8000);
+  const h=Math.min(Math.max(+$("h").value||600,1),8000);
+  const cv=document.createElement("canvas");
+  cv.width=w; cv.height=h;
+  const ctx=cv.getContext("2d");
+  ctx.fillStyle=$("color").value; ctx.fillRect(0,0,w,h);
+  const url=cv.toDataURL($("fmt").value,0.95);
+  $("preview").src=url;
+  $("info").textContent=`${w}×${h} · ${$("fmt").value.split("/")[1].toUpperCase()} · ${(Math.round(url.length*0.75)/1024).toFixed(1)}KB`;
+  $("dlBtn").style.display="";
+  $("outBox").classList.add("on");
+  $("dlBtn").onclick=()=>{const a=document.createElement("a");a.download=`solid_${w}x${h}.${$("fmt").value.split("/")[1]}`;a.href=url;a.click();};
+};
+</script>
+</body>
+</html>

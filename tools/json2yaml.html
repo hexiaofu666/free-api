@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON与YAML互转在线工具 - 词海工具箱</title>
+<meta name="description" content="在线 JSON 转 YAML、YAML 转 JSON 双向转换工具：支持嵌套对象、数组、多行缩进与引号规则的完整处理，常用于 K8s 配置、CI 流水线与接口调试。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.9"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; line-height: 1.7; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.cp-tabs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.cp-tabs button { border: 1px solid #e5e5e5; background: #fff; border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #666; cursor: pointer; }
+.cp-tabs button.on, .cp-tabs button:hover { border-color: #ff6500; color: #ff6500; }
+.cp-err { margin-top: 10px; font-size: 12px; color: #e5533d; }
+.cp-out { width: 100%; box-sizing: border-box; margin-top: 12px; background: #f8f9fb; border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.75; color: #2c3e50; white-space: pre; overflow: auto; max-height: 420px; min-height: 120px; }
+html.dark .cp-out { background: #1e2126; border-color: #333; color: #cfd6e4; }
+html.dark .cp-tabs button { background: #23262d; border-color: #333; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/json2yaml.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="json2yaml" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">输入 JSON 或 YAML（自动识别方向）</p>
+        <textarea class="io-input" id="src" rows="9" spellcheck="false">{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": { "name": "web", "labels": { "app": "nginx" } },
+  "spec": {
+    "replicas": 3,
+    "containers": [
+      { "name": "nginx", "image": "nginx:1.25", "ports": [80, 443] },
+      { "name": "sidecar", "image": "busybox", "args": ["sleep", "3600"] }
+    ],
+    "enabled": true,
+    "ratio": 0.75,
+    "remark": null
+  }
+}</textarea>
+        <div class="cp-tabs" id="tabs">
+          <button data-k="j2y" class="on">JSON → YAML</button>
+          <button data-k="y2j">YAML → JSON</button>
+        </div>
+        <div class="cp-err" id="err"></div>
+        <pre class="cp-out" id="out"></pre>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">转换</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="swapBtn">反向</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JSON与YAML互转介绍：</h4>
+    <ol>
+      <li>YAML 以缩进表达层级，可读性优于 JSON，广泛用于 Kubernetes、Docker Compose、GitHub Actions 等配置文件。</li>
+      <li>JSON 转 YAML：支持对象、数组、嵌套结构，标量自动判断是否需加引号（含特殊字符、看起来像数字或布尔的字符串会被引号包裹）。</li>
+      <li>YAML 转 JSON：支持块级映射、序列（<code>-</code> 开头）、<code>- key: value</code> 内联映射、行内注释（<code>#</code>）、单双引号字符串与常见标量类型。</li>
+      <li>提示：YAML 的 <code>true/false/null/数字</code> 会被还原为对应 JSON 类型，加了引号的 <code>"123"</code> 会保持字符串。</li>
+      <li>转换全程在本地浏览器完成，不上传任何数据。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.9"></script>
+<script src="../assets/chrome.js?v=1.5.9"></script>
+<script>
+const $ = id => document.getElementById(id);
+let MODE = "j2y";
+
+/* ---------- JSON → YAML ---------- */
+function __xfYamlScalar(v) {
+  if (v === null || v === undefined) return "null";
+  if (typeof v === "boolean") return String(v);
+  if (typeof v === "number") return isFinite(v) ? String(v) : "null";
+  const s = String(v);
+  if (s === "") return '""';
+  const needQuote = /^[\s]|[\s]$/.test(s) ||
+    /^[-?:,\[\]{}#&*!|>'"%@`]/.test(s) ||
+    /[:#]\s/.test(s) || /[\n\t]/.test(s) ||
+    /^(true|false|null|yes|no|on|off|~)$/i.test(s) ||
+    /^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(s) ||
+    s.indexOf(": ") >= 0 || s.endsWith(":");
+  if (!needQuote) return s;
+  return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n") + '"';
+}
+
+function __xfOk(v) {
+  return v !== null && typeof v === "object" && (Array.isArray(v) ? v.length > 0 : Object.keys(v).length > 0);
+}
+
+function __xfToYaml(v, ind) {
+  ind = ind || 0;
+  const pad = "  ".repeat(ind);
+  if (v === null || typeof v !== "object") return __xfYamlScalar(v);
+  if (Array.isArray(v)) {
+    if (!v.length) return "[]";
+    return v.map(it => {
+      if (__xfOk(it)) {
+        const body = __xfToYaml(it, ind + 1);
+        const lines = body.split("\n");
+        lines[0] = lines[0].replace(/^\s+/, "");
+        return pad + "- " + lines.join("\n");
+      }
+      return pad + "- " + __xfToYaml(it, 0);
+    }).join("\n");
+  }
+  const keys = Object.keys(v);
+  if (!keys.length) return "{}";
+  return keys.map(k => {
+    const val = v[k];
+    const key = /[:#{}\[\]&*!|>'"%@`,\s]/.test(k) || /^(true|false|null|\d)/i.test(k) ? __xfYamlScalar(k) : k;
+    if (__xfOk(val)) return pad + key + ":\n" + __xfToYaml(val, ind + 1);
+    return pad + key + ": " + __xfToYaml(val, 0);
+  }).join("\n");
+}
+
+/* ---------- YAML → JSON ---------- */
+function __xfStripComment(line) {
+  let q = null;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (q) { if (c === q) q = null; }
+    else if (c === '"' || c === "'") q = c;
+    else if (c === "#" && (i === 0 || /\s/.test(line[i - 1]))) return line.slice(0, i);
+  }
+  return line;
+}
+
+function __xfYamlVal(s) {
+  const t = s.trim();
+  if (t === "" ) return null;
+  if (t === "~" || /^null$/i.test(t)) return null;
+  if (/^(true|yes|on)$/i.test(t)) return true;
+  if (/^(false|no|off)$/i.test(t)) return false;
+  if (/^-?\d+$/.test(t)) return parseInt(t, 10);
+  if (/^-?\d*\.\d+([eE][-+]?\d+)?$/.test(t) || /^-?\d+[eE][-+]?\d+$/.test(t)) return parseFloat(t);
+  if (/^".*"$/.test(t)) return t.slice(1, -1).replace(/\\n/g, "\n").replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+  if (/^'.*'$/.test(t)) return t.slice(1, -1).replace(/''/g, "'");
+  if (t === "[]") return [];
+  if (t === "{}") return {};
+  if (t[0] === "[" || t[0] === "{") {
+    try { return JSON.parse(t.replace(/'/g, '"').replace(/([{,]\s*)([A-Za-z_][\w-]*)\s*:/g, '$1"$2":')); } catch (e) { return t; }
+  }
+  return t;
+}
+
+function __xfParseYaml(text) {
+  const all = String(text).split(/\r?\n/);
+  const lines = [];
+  for (const raw of all) {
+    const stripped = __xfStripComment(raw.replace(/\t/g, "  "));
+    if (!stripped.trim()) continue;
+    if (/^---\s*$/.test(stripped.trim())) continue;
+    lines.push({ ind: stripped.length - stripped.replace(/^\s+/, "").length, txt: stripped.trim() });
+  }
+  let i = 0;
+  function parseBlock(indent) {
+    if (i >= lines.length) return null;
+    const isSeq = /^-(\s|$)/.test(lines[i].txt);
+    if (isSeq) {
+      const arr = [];
+      while (i < lines.length && lines[i].ind === indent && /^-(\s|$)/.test(lines[i].txt)) {
+        const rest = lines[i].txt.replace(/^-\s*/, "");
+        i++;
+        if (rest === "") { arr.push(i < lines.length && lines[i].ind > indent ? parseBlock(lines[i].ind) : null); continue; }
+        const mm = rest.match(/^([^:\s][^:]*?)\s*:\s*(.*)$/);
+        if (mm) {
+          const o = {};
+          const k = __xfYamlVal(mm[1]);
+          if (mm[2] === "") o[k] = (i < lines.length && lines[i].ind > indent) ? parseBlock(lines[i].ind) : null;
+          else o[k] = __xfYamlVal(mm[2]);
+          while (i < lines.length && lines[i].ind > indent && !/^-(\s|$)/.test(lines[i].txt)) {
+            const m2 = lines[i].txt.match(/^([^:\s][^:]*?)\s*:\s*(.*)$/);
+            if (!m2) break;
+            const k2 = __xfYamlVal(m2[1]), v2 = m2[2];
+            const curInd = lines[i].ind; i++;
+            o[k2] = v2 === "" ? (i < lines.length && lines[i].ind > curInd ? parseBlock(lines[i].ind) : null) : __xfYamlVal(v2);
+          }
+          arr.push(o);
+        } else arr.push(__xfYamlVal(rest));
+      }
+      return arr;
+    }
+    const o = {};
+    while (i < lines.length && lines[i].ind === indent && !/^-(\s|$)/.test(lines[i].txt)) {
+      const m = lines[i].txt.match(/^([^:\s][^:]*?)\s*:\s*(.*)$/);
+      if (!m) { i++; continue; }
+      const key = __xfYamlVal(m[1]), rest = m[2];
+      const curInd = lines[i].ind; i++;
+      o[key] = rest === "" ? (i < lines.length && lines[i].ind > curInd ? parseBlock(lines[i].ind) : null) : __xfYamlVal(rest);
+    }
+    return o;
+  }
+  if (!lines.length) return null;
+  return parseBlock(lines[0].ind);
+}
+
+window.__xfToYaml = __xfToYaml;
+window.__xfParseYaml = __xfParseYaml;
+
+function render() {
+  const src = $("src").value;
+  $("err").textContent = "";
+  if (!src.trim()) { $("out").textContent = ""; return; }
+  try {
+    if (MODE === "j2y") {
+      $("out").textContent = __xfToYaml(JSON.parse(src), 0);
+    } else {
+      $("out").textContent = JSON.stringify(__xfParseYaml(src), null, 2);
+    }
+  } catch (e) {
+    $("out").textContent = "";
+    $("err").textContent = "转换失败：" + e.message;
+  }
+}
+
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  MODE = b.dataset.k;
+  [...$("tabs").children].forEach(x => x.classList.toggle("on", x === b));
+  if ($("out").textContent) $("src").value = $("out").textContent;
+  render();
+});
+$("swapBtn").addEventListener("click", () => {
+  MODE = MODE === "j2y" ? "y2j" : "j2y";
+  [...$("tabs").children].forEach(x => x.classList.toggle("on", x.dataset.k === MODE));
+  if ($("out").textContent) { $("src").value = $("out").textContent; render(); }
+});
+$("run").addEventListener("click", render);
+$("src").addEventListener("input", render);
+$("copyBtn").addEventListener("click", () => {
+  const txt = $("out").textContent;
+  if (!txt) return;
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { $("copyBtn").textContent = "已复制"; setTimeout(() => $("copyBtn").textContent = "复制结果", 1200); });
+});
+render();
+</script>
+</body>
+</html>

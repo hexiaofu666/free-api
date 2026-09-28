@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XML与JSON互转在线工具 - 词海工具箱</title>
+<meta name="description" content="在线 XML 转 JSON、JSON 转 XML 双向转换工具：自动解析节点、属性、文本与数组，支持属性前缀、文本键名自定义，实时输出可复制的转换结果。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.9"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; line-height: 1.7; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.cp-tabs, .cp-opt { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+.cp-tabs button { border: 1px solid #e5e5e5; background: #fff; border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #666; cursor: pointer; }
+.cp-tabs button.on, .cp-tabs button:hover { border-color: #ff6500; color: #ff6500; }
+.cp-opt label { font-size: 12px; color: #666; display: flex; align-items: center; gap: 5px; }
+.cp-opt input[type=text] { width: 56px; border: 1px solid #e5e5e5; border-radius: 4px; padding: 3px 6px; font-size: 12px; font-family: Consolas, monospace; outline: none; color: #34495e; }
+.cp-opt select { border: 1px solid #e5e5e5; border-radius: 4px; padding: 4px 8px; font-size: 12px; color: #555; outline: none; background: #fff; }
+.cp-err { margin-top: 10px; font-size: 12px; color: #e5533d; }
+.cp-out { width: 100%; box-sizing: border-box; margin-top: 12px; background: #f8f9fb; border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.75; color: #2c3e50; white-space: pre; overflow: auto; max-height: 420px; min-height: 120px; }
+html.dark .cp-out { background: #1e2126; border-color: #333; color: #cfd6e4; }
+html.dark .cp-tabs button, html.dark .cp-opt select, html.dark .cp-opt input[type=text] { background: #23262d; border-color: #333; color: #b9c3d4; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/xml2json.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="xml2json" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">输入 XML 或 JSON（自动识别方向，也可手动切换）</p>
+        <textarea class="io-input" id="src" rows="8" spellcheck="false"><?xml version="1.0" encoding="UTF-8"?>
+<bookstore>
+  <book category="COOKING" id="1">
+    <title lang="en">Everyday Italian</title>
+    <author>Giada De Laurentiis</author>
+    <price>30.00</price>
+  </book>
+  <book category="WEB" id="2">
+    <title lang="en">Learning XML</title>
+    <author>Erik T. Ray</author>
+    <price>39.95</price>
+  </book>
+</bookstore></textarea>
+        <div class="cp-tabs" id="tabs">
+          <button data-k="x2j" class="on">XML → JSON</button>
+          <button data-k="j2x">JSON → XML</button>
+        </div>
+        <div class="cp-opt">
+          <label>属性前缀 <input type="text" id="attrPrefix" value="@"></label>
+          <label>文本键名 <input type="text" id="textKey" value="#text"></label>
+          <label>缩进
+            <select id="indent"><option value="2">2 空格</option><option value="4">4 空格</option><option value="0">压缩</option></select>
+          </label>
+        </div>
+        <div class="cp-err" id="err"></div>
+        <pre class="cp-out" id="out"></pre>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">转换</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于XML与JSON互转介绍：</h4>
+    <ol>
+      <li>XML 与 JSON 是两种常见的数据交换格式，本工具支持双向转换，方便接口调试与数据迁移。</li>
+      <li>XML 转 JSON 规则：元素名作为键；属性名加前缀（默认 <code>@</code>）；纯文本节点直接取值或多键时放入 <code>#text</code>；同名重复元素自动合并为数组。</li>
+      <li>JSON 转 XML 规则：以 <code>@</code> 开头的键作为属性；<code>#text</code> 作为元素文本；数组会展开为多个同名元素；空对象输出自闭合标签。</li>
+      <li>支持解析 XML 声明、注释、CDATA 段，自动还原 <code>&amp;lt; &amp;gt; &amp;amp; &amp;quot;</code> 等实体。</li>
+      <li>转换在浏览器本地完成，数据不会上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.9"></script>
+<script src="../assets/chrome.js?v=1.5.9"></script>
+<script>
+const $ = id => document.getElementById(id);
+let MODE = "x2j";
+
+function __xfUnesc(s) {
+  return String(s).replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (m, d) => String.fromCharCode(+d)).replace(/&amp;/g, "&");
+}
+function __xfEsc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function __xfAttrs(str) {
+  const o = {};
+  const re = /([A-Za-z_][\w:.-]*)\s*=\s*("([^"]*)"|'([^']*)')/g;
+  let m;
+  while ((m = re.exec(str))) o[m[1]] = __xfUnesc(m[3] !== undefined ? m[3] : m[4]);
+  return o;
+}
+
+/* 轻量 XML 解析器：返回 { children: [...] } 虚拟根 */
+function __xfParseXml(xml) {
+  const s = String(xml)
+    .replace(/<\?[\s\S]*?\?>/g, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, (m, c) => c.replace(/&/g, "&amp;").replace(/</g, "&lt;"))
+    .replace(/<!DOCTYPE[^>]*>/gi, "");
+  const root = { name: "#root", attrs: {}, children: [], text: "" };
+  const stack = [root];
+  let i = 0;
+  while (i < s.length) {
+    const lt = s.indexOf("<", i);
+    if (lt < 0) { stack[stack.length - 1].text += s.slice(i); break; }
+    if (lt > i) stack[stack.length - 1].text += s.slice(i, lt);
+    const gt = s.indexOf(">", lt);
+    if (gt < 0) { stack[stack.length - 1].text += s.slice(lt); break; }
+    let tag = s.slice(lt + 1, gt).trim();
+    i = gt + 1;
+    if (tag[0] === "/") {
+      const nm = tag.slice(1).trim();
+      for (let k = stack.length - 1; k > 0; k--) { if (stack[k].name === nm) { stack.length = k; break; } }
+      continue;
+    }
+    const selfClose = tag.endsWith("/");
+    if (selfClose) tag = tag.slice(0, -1).trim();
+    const sp = tag.search(/\s/);
+    const name = (sp < 0 ? tag : tag.slice(0, sp));
+    if (!name) continue;
+    const node = { name: name, attrs: __xfAttrs(sp < 0 ? "" : tag.slice(sp + 1)), children: [], text: "" };
+    stack[stack.length - 1].children.push(node);
+    if (!selfClose) stack.push(node);
+  }
+  return root;
+}
+
+function __xfNodeVal(node, opt) {
+  const hasAttr = Object.keys(node.attrs).length > 0;
+  const kids = node.children;
+  const text = __xfUnesc(node.text.replace(/\s+/g, " ")).trim();
+  if (!hasAttr && !kids.length) return text;
+  const o = {};
+  for (const k in node.attrs) o[opt.attr + k] = node.attrs[k];
+  const groups = {};
+  kids.forEach(c => { (groups[c.name] = groups[c.name] || []).push(c); });
+  for (const nm in groups) {
+    const arr = groups[nm];
+    o[nm] = arr.length === 1 ? __xfNodeVal(arr[0], opt) : arr.map(c => __xfNodeVal(c, opt));
+  }
+  if (text) o[opt.text] = text;
+  return o;
+}
+
+function __xfXml2Json(xml, opt) {
+  opt = Object.assign({ attr: "@", text: "#text" }, opt || {});
+  const root = __xfParseXml(xml);
+  const o = {};
+  const groups = {};
+  root.children.forEach(c => { (groups[c.name] = groups[c.name] || []).push(c); });
+  for (const nm in groups) {
+    const arr = groups[nm];
+    o[nm] = arr.length === 1 ? __xfNodeVal(arr[0], opt) : arr.map(c => __xfNodeVal(c, opt));
+  }
+  return o;
+}
+
+function __xfBuildXml(name, val, opt, lvl, indent) {
+  const unit = indent > 0 ? " ".repeat(indent) : "";
+  const pad = indent > 0 ? unit.repeat(lvl) : "";
+  const nl = indent > 0 ? "\n" : "";
+  if (Array.isArray(val)) {
+    if (!val.length) return pad + "<" + name + "/>";
+    return val.map(v => __xfBuildXml(name, v, opt, lvl, indent)).join(nl);
+  }
+  if (val === null || val === undefined) return pad + "<" + name + "/>";
+  if (typeof val !== "object") {
+    if (val === "") return pad + "<" + name + "/>";
+    return pad + "<" + name + ">" + __xfEsc(val) + "</" + name + ">";
+  }
+  const attrs = [], kids = [];
+  let text = null;
+  for (const k in val) {
+    if (k.indexOf(opt.attr) === 0) attrs.push([k.slice(opt.attr.length), val[k]]);
+    else if (k === opt.text) text = val[k];
+    else kids.push(k);
+  }
+  const a = attrs.map(x => " " + x[0] + '="' + __xfEsc(x[1]) + '"').join("");
+  if (!kids.length) {
+    if (text === null || text === "") return pad + "<" + name + a + "/>";
+    return pad + "<" + name + a + ">" + __xfEsc(text) + "</" + name + ">";
+  }
+  const inner = kids.map(k => __xfBuildXml(k, val[k], opt, lvl + 1, indent)).join(nl);
+  if (text !== null && text !== "") {
+    if (indent === 0) return "<" + name + a + ">" + __xfEsc(text) + inner + "</" + name + ">";
+    return pad + "<" + name + a + ">" + __xfEsc(text) + nl + inner + nl + pad + "</" + name + ">";
+  }
+  if (indent === 0) return "<" + name + a + ">" + inner + "</" + name + ">";
+  return pad + "<" + name + a + ">" + nl + inner + nl + pad + "</" + name + ">";
+}
+
+function __xfJson2Xml(obj, opt, indent) {
+  opt = Object.assign({ attr: "@", text: "#text" }, opt || {});
+  const idx = indent === undefined ? 2 : indent;
+  const keys = Object.keys(obj);
+  if (!keys.length) return "";
+  if (keys.length === 1) return __xfBuildXml(keys[0], obj[keys[0]], opt, 0, idx);
+  return keys.map(k => __xfBuildXml(k, obj[k], opt, 0, idx)).join("\n");
+}
+
+window.__xfXml2Json = __xfXml2Json;
+window.__xfJson2Xml = __xfJson2Xml;
+window.__xfParseXml = __xfParseXml;
+
+function render() {
+  const src = $("src").value.trim();
+  const opt = { attr: $("attrPrefix").value || "@", text: $("textKey").value || "#text" };
+  const indent = parseInt($("indent").value, 10);
+  $("err").textContent = "";
+  if (!src) { $("out").textContent = ""; return; }
+  try {
+    if (MODE === "x2j") {
+      $("out").textContent = JSON.stringify(__xfXml2Json(src, opt), null, indent === 0 ? 0 : indent);
+    } else {
+      $("out").textContent = __xfJson2Xml(JSON.parse(src), opt, indent);
+    }
+  } catch (e) {
+    $("out").textContent = "";
+    $("err").textContent = "转换失败：" + e.message;
+  }
+}
+
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  MODE = b.dataset.k;
+  [...$("tabs").children].forEach(x => x.classList.toggle("on", x === b));
+  if (MODE === "j2x" && $("src").value.trim().indexOf("<") === 0) {
+    $("src").value = JSON.stringify(__xfXml2Json($("src").value, { attr: "@", text: "#text" }), null, 2);
+  } else if (MODE === "x2j" && $("src").value.trim().indexOf("{") === 0) {
+    $("src").value = __xfJson2Xml(JSON.parse($("src").value), { attr: "@", text: "#text" }, 2);
+  }
+  render();
+});
+["attrPrefix", "textKey", "indent"].forEach(id => $(id).addEventListener("change", render));
+["run"].forEach(id => $(id).addEventListener("click", render));
+$("src").addEventListener("input", render);
+$("copyBtn").addEventListener("click", () => {
+  const txt = $("out").textContent;
+  if (!txt) return;
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { $("copyBtn").textContent = "已复制"; setTimeout(() => $("copyBtn").textContent = "复制结果", 1200); });
+});
+render();
+</script>
+</body>
+</html>

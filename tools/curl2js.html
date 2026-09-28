@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cURL转JS代码在线转换 - 词海工具箱</title>
+<meta name="description" content="在线 cURL 转 JavaScript 代码工具：粘贴 cURL 命令一键生成 fetch 或 axios 请求代码，自动解析请求方法、请求头、请求体、认证等参数，前端调试必备。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.9"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; line-height: 1.7; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.cp-tabs { display: flex; gap: 8px; margin-top: 12px; }
+.cp-tabs button { border: 1px solid #e5e5e5; background: #fff; border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #666; cursor: pointer; }
+.cp-tabs button.on, .cp-tabs button:hover { border-color: #ff6500; color: #ff6500; }
+.cp-out { width: 100%; box-sizing: border-box; margin-top: 12px; background: #f8f9fb; border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.75; color: #2c3e50; white-space: pre; overflow-x: auto; }
+.cp-meta { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.cp-meta span { font-size: 12px; background: #f2f4f8; color: #5a6a85; border-radius: 12px; padding: 3px 10px; }
+html.dark .cp-out { background: #1e2126; border-color: #333; color: #cfd6e4; }
+html.dark .cp-tabs button { background: #23262d; border-color: #333; }
+html.dark .cp-meta span { background: #23262d; color: #9aa7bd; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/curl2js.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="curl2js" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">粘贴 cURL 命令，生成 fetch / axios 代码</p>
+        <textarea class="io-input" id="src" rows="6" spellcheck="false">curl 'https://api.example.com/v1/list?page=1' -H 'Authorization: Bearer abc123' -H 'Accept: application/json'</textarea>
+        <div class="cp-tabs" id="tabs">
+          <button data-k="fetch" class="on">fetch</button>
+          <button data-k="axios">axios</button>
+          <button data-k="node">Node.js</button>
+        </div>
+        <div class="cp-meta" id="meta"></div>
+        <pre class="cp-out" id="out"></pre>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">转换</button>
+        <button class="fbtn plain" id="copyBtn">复制代码</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于cURL转JS介绍：</h4>
+    <ol>
+      <li>把浏览器复制的 cURL 命令转换为可直接使用的 JavaScript 请求代码，支持三种目标：原生 <code>fetch</code>、<code>axios</code>、Node.js 原生 <code>http/https</code> 模块。</li>
+      <li>自动解析请求方法、请求头、请求体；识别 JSON 请求体时会生成 <code>JSON.stringify()</code> 或对象字面量写法。</li>
+      <li>axios 版本需要先 <code>npm install axios</code>；Node.js 版本使用内置模块，无需依赖。</li>
+      <li>GET 请求带查询参数时会保留在 URL 中；POST 表单（<code>-F</code>）会转换为 <code>FormData</code>。</li>
+      <li>所有解析均在本地完成，不联网、不上传数据。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.9"></script>
+<script src="../assets/chrome.js?v=1.5.9"></script>
+<script>
+const $ = id => document.getElementById(id);
+let ENGINE = "fetch";
+
+function __xfTokenize(cmd) {
+  const s = String(cmd).replace(/\\\r?\n/g, " ").replace(/\^\r?\n/g, " ");
+  const out = [];
+  let cur = "", q = null, has = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (q) {
+      if (c === q) q = null;
+      else if (c === "\\" && q === '"' && i + 1 < s.length) { const n = s[i + 1]; if (n === '"' || n === "\\") { cur += n; i++; } else cur += c; }
+      else cur += c;
+    } else {
+      if (c === "'" || c === '"') { q = c; has = true; }
+      else if (/\s/.test(c)) { if (cur !== "" || has) { out.push(cur); cur = ""; has = false; } }
+      else cur += c;
+    }
+  }
+  if (cur !== "" || has) out.push(cur);
+  return out;
+}
+
+function __xfCurl(cmd) {
+  const t = __xfTokenize(cmd);
+  const r = { url: "", method: "", headers: [], data: [], form: [], user: "", cookies: [], insecure: false, follow: false, compressed: false, head: false, get: false };
+  for (let i = 0; i < t.length; i++) {
+    const x = t[i];
+    if (x === "curl" || x === "/usr/bin/curl" || x === "curl.exe") continue;
+    if (x === "-X" || x === "--request") r.method = (t[++i] || "").toUpperCase();
+    else if (x === "-H" || x === "--header") { const h = t[++i] || ""; const p = h.indexOf(":"); if (p > 0) r.headers.push([h.slice(0, p).trim(), h.slice(p + 1).trim()]); }
+    else if (x === "-d" || x === "--data" || x === "--data-raw" || x === "--data-binary" || x === "--data-urlencode" || x === "--data-ascii") r.data.push(t[++i] || "");
+    else if (x === "-F" || x === "--form" || x === "--form-string") r.form.push(t[++i] || "");
+    else if (x === "-u" || x === "--user") r.user = t[++i] || "";
+    else if (x === "-b" || x === "--cookie") r.cookies.push(t[++i] || "");
+    else if (x === "-A" || x === "--user-agent") r.headers.push(["User-Agent", t[++i] || ""]);
+    else if (x === "-e" || x === "--referer") r.headers.push(["Referer", t[++i] || ""]);
+    else if (x === "--url") r.url = t[++i] || "";
+    else if (x === "-k" || x === "--insecure") r.insecure = true;
+    else if (x === "-L" || x === "--location") r.follow = true;
+    else if (x === "--compressed") r.compressed = true;
+    else if (x === "-I" || x === "--head") r.head = true;
+    else if (x === "-G" || x === "--get") r.get = true;
+    else if (x === "-s" || x === "--silent" || x === "-v" || x === "--verbose" || x === "-i" || x === "--include") { }
+    else if (x[0] === "-") { }
+    else if (!r.url) r.url = x;
+  }
+  if (r.head) r.method = "HEAD";
+  if (!r.method) r.method = (r.data.length || r.form.length) ? "POST" : "GET";
+  return r;
+}
+
+function __xfJsonHeader(r) { return r.headers.some(h => /^content-type$/i.test(h[0]) && /json/i.test(h[1])); }
+
+function q(s) { return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"'; }
+
+function __xfJs(r, engine) {
+  engine = engine || ENGINE;
+  const L = [];
+  const m = (r.method || "GET").toUpperCase();
+  const body = r.data.length ? r.data.join("&") : "";
+  const isJson = __xfJsonHeader(r);
+  const hdr = r.headers.length ? r.headers : [];
+  const ck = r.cookies.join("; ");
+
+  if (engine === "fetch") {
+    L.push("// 现代浏览器 / Node 18+ 内置 fetch");
+    L.push("const res = await fetch(" + q(r.url) + ", {");
+    L.push("  method: " + q(m) + ",");
+    if (hdr.length || ck) {
+      L.push("  headers: {");
+      hdr.forEach(h => L.push("    " + q(h[0]) + ": " + q(h[1]) + ","));
+      if (ck) L.push("    " + q("Cookie") + ": " + q(ck) + ",");
+      L.push("  },");
+    }
+    if (body) L.push("  body: " + (isJson ? "JSON.stringify(" + body + ")" : q(body)) + ",");
+    if (r.form.length) {
+      L.push("  body: (() => { const fd = new FormData();");
+      r.form.forEach(f => { const p = f.indexOf("="); L.push("    fd.append(" + q(p > 0 ? f.slice(0, p) : f) + ", " + q(p > 0 ? f.slice(p + 1) : "") + ");"); });
+      L.push("    return fd; })() ,");
+    }
+    L.push("});");
+    L.push("");
+    L.push("const text = await res.text();");
+    L.push("console.log(res.status, text);");
+  } else if (engine === "axios") {
+    L.push("// 需先安装：npm install axios");
+    L.push('import axios from "axios";');
+    L.push("");
+    L.push("const res = await axios({");
+    L.push("  url: " + q(r.url) + ",");
+    L.push("  method: " + q(m) + ",");
+    if (hdr.length) {
+      L.push("  headers: {");
+      hdr.forEach(h => L.push("    " + q(h[0]) + ": " + q(h[1]) + ","));
+      L.push("  },");
+    }
+    if (body) L.push("  data: " + (isJson ? body : q(body)) + ",");
+    if (r.form.length) {
+      L.push("  data: (() => { const fd = new FormData();");
+      r.form.forEach(f => { const p = f.indexOf("="); L.push("    fd.append(" + q(p > 0 ? f.slice(0, p) : f) + ", " + q(p > 0 ? f.slice(p + 1) : "") + ");"); });
+      L.push("    return fd; })(),");
+    }
+    if (r.user) { const p = r.user.split(":"); L.push("  auth: { username: " + q(p[0] || "") + ", password: " + q(p.slice(1).join(":") || "") + " },"); }
+    L.push("});");
+    L.push("");
+    L.push("console.log(res.status, res.data);");
+  } else {
+    L.push("// Node.js 原生模块，无需依赖");
+    L.push('const https = require("https");');
+    L.push('const http = require("http");');
+    L.push("");
+    L.push("const options = {");
+    L.push("  method: " + q(m) + ",");
+    if (hdr.length) {
+      L.push("  headers: {");
+      hdr.forEach(h => L.push("    " + q(h[0]) + ": " + q(h[1]) + ","));
+      L.push("  },");
+    }
+    if (r.user) { const p = r.user.split(":"); L.push("  auth: " + q(r.user) + ","); }
+    L.push("};");
+    L.push("");
+    L.push("const lib = " + q(r.url) + ".startsWith(\"https\") ? https : http;");
+    L.push("const req = lib.request(" + q(r.url) + ", options, (res) => {");
+    L.push("  let data = \"\";");
+    L.push("  res.on(\"data\", (c) => data += c);");
+    L.push('  res.on("end", () => console.log(res.statusCode, data));');
+    L.push("});");
+    L.push("req.on(\"error\", console.error);");
+    if (body) L.push("req.write(" + (isJson ? "JSON.stringify(" + body + ")" : q(body)) + ");");
+    L.push("req.end();");
+  }
+  return L.join("\n");
+}
+
+window.__xfCurl = __xfCurl;
+window.__xfJs = __xfJs;
+
+function render() {
+  const cmd = $("src").value;
+  if (!cmd.trim()) { $("out").textContent = ""; $("meta").innerHTML = ""; return; }
+  const r = __xfCurl(cmd);
+  if (!r.url) { $("out").textContent = "未能识别出 URL，请检查 cURL 命令格式"; $("meta").innerHTML = ""; return; }
+  $("out").textContent = __xfJs(r, ENGINE);
+  const tags = ["方法 " + r.method, (r.url.length > 44 ? r.url.slice(0, 44) + "…" : r.url)];
+  if (r.headers.length) tags.push(r.headers.length + " 个请求头");
+  if (r.data.length) tags.push("请求体");
+  if (r.form.length) tags.push("表单 " + r.form.length + " 项");
+  $("meta").innerHTML = tags.map(t => "<span>" + t + "</span>").join("");
+}
+
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  ENGINE = b.dataset.k;
+  [...$("tabs").children].forEach(x => x.classList.toggle("on", x === b));
+  render();
+});
+$("run").addEventListener("click", render);
+$("src").addEventListener("input", render);
+$("copyBtn").addEventListener("click", () => {
+  const txt = $("out").textContent;
+  if (!txt) return;
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { $("copyBtn").textContent = "已复制"; setTimeout(() => $("copyBtn").textContent = "复制代码", 1200); });
+});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSONPath查询提取在线工具 - 词海工具箱</title>
+<meta name="description" content="在线 JSONPath 查询工具：支持 $ 根节点、点号与方括号取值、通配符 *、递归下降 ..、数组下标与切片、过滤表达式 ?(@.price>10)，实时提取 JSON 匹配结果。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.9"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; line-height: 1.7; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.jp-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.jp-row input { flex: 1 1 260px; border: 1px solid #eee; border-radius: 4px; padding: 9px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; }
+.jp-row input:focus { border-color: #d0d0d0; }
+.jp-eg { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.jp-eg button { border: 1px solid #e5e5e5; background: #fff; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #666; cursor: pointer; font-family: Consolas, monospace; }
+.jp-eg button:hover { border-color: #ff6500; color: #ff6500; }
+.cp-err { margin-top: 10px; font-size: 12px; color: #e5533d; }
+.jp-cnt { margin-top: 10px; font-size: 12px; color: #3f7ad6; }
+.cp-out { width: 100%; box-sizing: border-box; margin-top: 8px; background: #f8f9fb; border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.75; color: #2c3e50; white-space: pre; overflow: auto; max-height: 380px; min-height: 120px; }
+html.dark .cp-out { background: #1e2126; border-color: #333; color: #cfd6e4; }
+html.dark .jp-eg button { background: #23262d; border-color: #333; }
+html.dark .jp-row input { background: #23262d; border-color: #333; color: #b9c3d4; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jsonpath.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jsonpath" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">输入 JSON 数据</p>
+        <textarea class="io-input" id="src" rows="7" spellcheck="false">{
+  "store": {
+    "books": [
+      { "title": "深入理解计算机系统", "price": 128, "stock": 12, "tags": ["计算机", "经典"] },
+      { "title": "JavaScript高级程序设计", "price": 99, "stock": 0, "tags": ["前端"] },
+      { "title": "Python编程从入门到实践", "price": 89, "stock": 5, "tags": ["编程", "入门"] }
+    ],
+    "owner": { "name": "词海书店", "city": "西安" }
+  }
+}</textarea>
+        <p class="io-label">JSONPath 表达式</p>
+        <div class="jp-row">
+          <input id="path" value="$.store.books[?(@.stock>0)].title">
+        </div>
+        <div class="jp-eg" id="egs"></div>
+        <div class="cp-err" id="err"></div>
+        <div class="jp-cnt" id="cnt"></div>
+        <pre class="cp-out" id="out"></pre>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">查询</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JSONPath查询介绍：</h4>
+    <ol>
+      <li>JSONPath 是 JSON 的「XPath」，用路径表达式从复杂结构中提取需要的数据。</li>
+      <li>支持语法：<code>$</code> 根节点、<code>.key</code> 子节点、<code>['key']</code> 方括号取值、<code>[*]</code> 或 <code>.*</code> 通配、<code>..key</code> 递归下降、<code>[0]</code> 下标（支持负数）、<code>[1:3]</code> 切片、<code>[0,2]</code> 联合、<code>[?(@.price&gt;10)]</code> 过滤。</li>
+      <li>过滤表达式支持 <code>==</code>、<code>!=</code>、<code>&gt;</code>、<code>&lt;</code>、<code>&gt;=</code>、<code>&lt;=</code>、<code>=~</code>（正则匹配），右侧可写数字、字符串或布尔值。</li>
+      <li>查询结果统一以数组形式展示，未匹配到结果显示空数组 <code>[]</code>。</li>
+      <li>所有计算在本地完成，数据不会上传。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.9"></script>
+<script src="../assets/chrome.js?v=1.5.9"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function __xfMatchBracket(p, start) {
+  let q = null;
+  for (let i = start + 1; i < p.length; i++) {
+    const c = p[i];
+    if (q) { if (c === q) q = null; }
+    else if (c === "'" || c === '"') q = c;
+    else if (c === "]") return i;
+  }
+  return p.length;
+}
+
+function __xfParsePath(path) {
+  const toks = [];
+  let p = String(path).trim(), i = 0;
+  if (p[0] === "$") i = 1;
+  while (i < p.length) {
+    const c = p[i];
+    if (c === ".") {
+      if (p[i + 1] === ".") {
+        toks.push({ t: "rec" }); i += 2;
+        if (p[i] === "*") { toks.push({ t: "wild" }); i++; }
+        continue;
+      }
+      i++;
+      if (p[i] === "*") { toks.push({ t: "wild" }); i++; continue; }
+      let name = "";
+      while (i < p.length && p[i] !== "." && p[i] !== "[") name += p[i++];
+      name = name.trim();
+      if (name) toks.push({ t: "key", v: name });
+    } else if (c === "[") {
+      const end = __xfMatchBracket(p, i);
+      const inner = p.slice(i + 1, end).trim();
+      i = end + 1;
+      let q = null, hasComma = false;
+      for (let j = 0; j < inner.length; j++) {
+        const ch = inner[j];
+        if (q) { if (ch === q) q = null; }
+        else if (ch === "'" || ch === '"') q = ch;
+        else if (ch === ",") hasComma = true;
+      }
+      if (inner === "*") toks.push({ t: "wild" });
+      else if (inner[0] === "?") toks.push({ t: "filter", v: inner });
+      else if (/^-?\d+$/.test(inner)) toks.push({ t: "index", v: parseInt(inner, 10) });
+      else if (/^-?\d*\s*:\s*-?\d*$/.test(inner)) toks.push({ t: "slice", v: inner });
+      else if (hasComma) toks.push({ t: "union", v: inner.split(",").map(x => x.trim().replace(/^['"]|['"]$/g, "")) });
+      else toks.push({ t: "key", v: inner.replace(/^['"]|['"]$/g, "") });
+    } else {
+      let name = "";
+      while (i < p.length && p[i] !== "." && p[i] !== "[") name += p[i++];
+      name = name.trim();
+      if (name) toks.push({ t: "key", v: name });
+    }
+  }
+  return toks;
+}
+
+function __xfRec(node, out) {
+  out.push(node);
+  if (Array.isArray(node)) node.forEach(v => { if (v && typeof v === "object") __xfRec(v, out); });
+  else if (node && typeof node === "object") Object.keys(node).forEach(k => { const v = node[k]; if (v && typeof v === "object") __xfRec(v, out); });
+}
+
+function __xfGetIn(node, dotted) {
+  let cur = node;
+  for (const seg of String(dotted).split(".")) {
+    if (cur === null || cur === undefined) return undefined;
+    cur = cur[seg];
+  }
+  return cur;
+}
+
+function __xfLit(s) {
+  const t = s.trim();
+  if (/^'.*'$/.test(t) || /^".*"$/.test(t)) return t.slice(1, -1);
+  if (/^-?\d+(\.\d+)?$/.test(t)) return parseFloat(t);
+  if (t === "true") return true;
+  if (t === "false") return false;
+  if (t === "null") return null;
+  return t;
+}
+
+function __xfCmp(v, op, lit) {
+  if (op === "=~") return new RegExp(String(lit).replace(/^\/|\/$|^\/|\/i$/g, "")).test(String(v));
+  if (op === "==") return v === lit || (v !== null && typeof v === "object" ? false : String(v) === String(lit));
+  if (op === "!=") return !(v === lit || String(v) === String(lit));
+  const a = typeof v === "number" ? v : parseFloat(v);
+  const b = typeof lit === "number" ? lit : parseFloat(lit);
+  if (isNaN(a) || isNaN(b)) {
+    const sa = String(v), sb = String(lit);
+    if (op === ">") return sa > sb;
+    if (op === "<") return sa < sb;
+    if (op === ">=") return sa >= sb;
+    if (op === "<=") return sa <= sb;
+    return false;
+  }
+  if (op === ">") return a > b;
+  if (op === "<") return a < b;
+  if (op === ">=") return a >= b;
+  if (op === "<=") return a <= b;
+  return false;
+}
+
+function __xfApplyFilter(node, expr, out) {
+  const body = expr.replace(/^\?\s*\(?/, "").replace(/\)\s*$/, "").trim();
+  const m = body.match(/^@\.?([\w.$\[\]']*)\s*(==|!=|>=|<=|=~|>|<)\s*(.+)$/);
+  if (!m) return;
+  const field = m[1], op = m[2], lit = __xfLit(m[3]);
+  const items = Array.isArray(node) ? node : (node && typeof node === "object" ? Object.keys(node).map(k => node[k]) : []);
+  items.forEach(it => {
+    if (it === null || typeof it !== "object") return;
+    const v = field ? __xfGetIn(it, field) : it;
+    if (__xfCmp(v, op, lit)) out.push(it);
+  });
+}
+
+function __xfEval(data, path) {
+  const toks = __xfParsePath(path);
+  let cur = [data];
+  for (const tk of toks) {
+    const next = [];
+    for (const node of cur) {
+      if (tk.t === "key") { if (node && typeof node === "object" && tk.v in node) next.push(node[tk.v]); }
+      else if (tk.t === "index") {
+        if (Array.isArray(node)) { const idx = tk.v < 0 ? node.length + tk.v : tk.v; if (idx >= 0 && idx < node.length) next.push(node[idx]); }
+      } else if (tk.t === "wild") {
+        if (Array.isArray(node)) node.forEach(v => next.push(v));
+        else if (node && typeof node === "object") Object.keys(node).forEach(k => next.push(node[k]));
+      } else if (tk.t === "rec") { if (node && typeof node === "object") __xfRec(node, next); }
+      else if (tk.t === "union") {
+        tk.v.forEach(k => {
+          if (Array.isArray(node) && /^-?\d+$/.test(k)) { const idx = +k < 0 ? node.length + +k : +k; if (idx >= 0 && idx < node.length) next.push(node[idx]); }
+          else if (node && typeof node === "object" && k in node) next.push(node[k]);
+        });
+      } else if (tk.t === "slice") {
+        if (Array.isArray(node)) {
+          const pr = tk.v.split(":");
+          const a = pr[0].trim() === "" ? undefined : parseInt(pr[0], 10);
+          const b = pr[1].trim() === "" ? undefined : parseInt(pr[1], 10);
+          node.slice(a, b).forEach(v => next.push(v));
+        }
+      } else if (tk.t === "filter") { __xfApplyFilter(node, tk.v, next); }
+    }
+    cur = next;
+  }
+  return cur;
+}
+
+window.__xfEval = __xfEval;
+window.__xfParsePath = __xfParsePath;
+
+const EGS = ["$.store.books[*].title", "$..price", "$.store.books[?(@.stock>0)].title", "$.store.books[0]", "$.store.books[-1].tags", "$.store.books[1:3]", "$.store.owner", "$..tags[*]"];
+$("egs").innerHTML = EGS.map(e => "<button>" + e + "</button>").join("");
+$("egs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; $("path").value = b.textContent; render(); });
+
+function render() {
+  const src = $("src").value.trim();
+  $("err").textContent = "";
+  $("cnt").textContent = "";
+  if (!src) { $("out").textContent = ""; return; }
+  try {
+    const data = JSON.parse(src);
+    const path = $("path").value.trim();
+    if (!path) { $("out").textContent = ""; return; }
+    const r = __xfEval(data, path);
+    $("cnt").textContent = "匹配到 " + r.length + " 条结果";
+    $("out").textContent = JSON.stringify(r, null, 2);
+  } catch (e) {
+    $("out").textContent = "";
+    $("err").textContent = "执行失败：" + e.message;
+  }
+}
+
+$("run").addEventListener("click", render);
+$("src").addEventListener("input", render);
+$("path").addEventListener("input", render);
+$("copyBtn").addEventListener("click", () => {
+  const txt = $("out").textContent;
+  if (!txt) return;
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { $("copyBtn").textContent = "已复制"; setTimeout(() => $("copyBtn").textContent = "复制结果", 1200); });
+});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON转TypeScript接口在线工具 - 词海工具箱</title>
+<meta name="description" content="在线 JSON 转 TypeScript interface 工具：粘贴 JSON 自动生成 TS 类型定义，支持嵌套对象、数组、联合类型、可选字段（?）识别，可自定义根接口名。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.9"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; line-height: 1.7; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.cp-opt { display: flex; gap: 14px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+.cp-opt label { font-size: 12px; color: #666; display: flex; align-items: center; gap: 5px; }
+.cp-opt input[type=text] { width: 110px; border: 1px solid #e5e5e5; border-radius: 4px; padding: 4px 8px; font-size: 12px; font-family: Consolas, monospace; outline: none; color: #34495e; }
+.cp-opt select { border: 1px solid #e5e5e5; border-radius: 4px; padding: 4px 8px; font-size: 12px; color: #555; outline: none; background: #fff; }
+.cp-err { margin-top: 10px; font-size: 12px; color: #e5533d; }
+.cp-out { width: 100%; box-sizing: border-box; margin-top: 12px; background: #f8f9fb; border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.75; color: #2c3e50; white-space: pre; overflow: auto; max-height: 460px; min-height: 140px; }
+html.dark .cp-out { background: #1e2126; border-color: #333; color: #cfd6e4; }
+html.dark .cp-opt select, html.dark .cp-opt input[type=text] { background: #23262d; border-color: #333; color: #b9c3d4; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/json2ts.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="json2ts" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">粘贴 JSON，自动生成 TypeScript 类型定义</p>
+        <textarea class="io-input" id="src" rows="8" spellcheck="false">{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "total": 2,
+    "list": [
+      { "id": 1, "name": "词海工具箱", "url": "https://tools.hdemba.cn", "tags": ["工具", "免费"], "vip": true, "score": 4.8 },
+      { "id": 2, "name": "句悦集", "url": "https://shop186.com", "tags": [], "vip": false, "score": 4.2 }
+    ]
+  }
+}</textarea>
+        <div class="cp-opt">
+          <label>根接口名 <input type="text" id="rootName" value="ApiResponse"></label>
+          <label>导出方式
+            <select id="expMode">
+              <option value="export">export interface</option>
+              <option value="plain">interface</option>
+            </select>
+          </label>
+          <label>可选字段
+            <select id="optMode">
+              <option value="mark">数组内缺失标记为可选</option>
+              <option value="never">全部必填</option>
+            </select>
+          </label>
+        </div>
+        <div class="cp-err" id="err"></div>
+        <pre class="cp-out" id="out"></pre>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">生成</button>
+        <button class="fbtn plain" id="copyBtn">复制代码</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JSON转TypeScript介绍：</h4>
+    <ol>
+      <li>前端调用接口后，把返回的 JSON 粘贴进来即可得到完整 TypeScript 类型定义，省去手写 interface 的时间。</li>
+      <li>类型推断规则：字符串 → <code>string</code>、整数与小数 → <code>number</code>、真假 → <code>boolean</code>、<code>null</code> 与混合类型 → 联合类型或 <code>any</code>。</li>
+      <li>数组会自动合并所有元素的字段，某个字段不是每个元素都存在时会标记为可选（<code>field?: T</code>）。</li>
+      <li>嵌套对象会根据键名生成独立的 interface，命名冲突时自动加序号后缀。</li>
+      <li>空数组推断为 <code>any[]</code>，可生成后手动替换为具体类型。</li>
+      <li>所有转换都在本地完成，接口数据不会上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.9"></script>
+<script src="../assets/chrome.js?v=1.5.9"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function __xfPascal(s) {
+  const r = String(s).replace(/[^A-Za-z0-9]+/g, " ").trim().split(/\s+/).map(w => w ? w[0].toUpperCase() + w.slice(1) : "").join("");
+  if (!r) return "Item";
+  return /^\d/.test(r) ? "N" + r : r;
+}
+function __xfKey(k) { return /^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k); }
+function __xfIsObj(v) { return v !== null && typeof v === "object" && !Array.isArray(v); }
+
+/* 生成 TypeScript interface 代码 */
+function __xfTs(root, rootName, opt) {
+  rootName = rootName || "Root";
+  opt = opt || {};
+  const decls = [];
+  const used = {};
+
+  function scalarType(v) {
+    if (v === null || v === undefined) return "null";
+    const t = typeof v;
+    if (t === "string") return "string";
+    if (t === "number") return "number";
+    if (t === "boolean") return "boolean";
+    return "any";
+  }
+  function uniq(arr) { const o = []; arr.forEach(t => { if (t && o.indexOf(t) < 0) o.push(t); }); return o; }
+  function unionOf(types) {
+    const set = uniq(types);
+    const nn = set.filter(t => t !== "null");
+    if (nn.length > 1) return "(" + set.join(" | ") + ")";
+    if (nn.length === 1) return set.length > 1 ? "(" + set.join(" | ") + ")" : nn[0];
+    return set.length ? set[0] : "any";
+  }
+  function uniqueName(hint) {
+    let n = hint, i = 2;
+    while (used[n]) n = hint + i++;
+    used[n] = true;
+    return n;
+  }
+  function fieldsOf(objs, hint) {
+    const keys = [], count = {};
+    objs.forEach(o => Object.keys(o).forEach(k => { if (!(k in count)) { count[k] = 0; keys.push(k); } count[k]++; }));
+    return keys.map(k => {
+      const vals = objs.filter(o => k in o).map(o => o[k]);
+      return { key: k, type: typeOfVals(vals, __xfPascal(k)), optional: count[k] < objs.length };
+    });
+  }
+  function typeOfVal(v, hint) {
+    if (Array.isArray(v)) {
+      if (!v.length) return "any[]";
+      if (v.every(__xfIsObj)) return objInterface(v, hint + "Item") + "[]";
+      const inner = unionOf(v.map(x => typeOfVal(x, hint + "Item")));
+      return inner.indexOf("|") >= 0 ? "(" + inner + ")[]" : inner + "[]";
+    }
+    if (__xfIsObj(v)) return objInterface([v], hint);
+    return scalarType(v);
+  }
+  function typeOfVals(vals, hint) { return unionOf(vals.map(v => typeOfVal(v, hint))); }
+  function objInterface(objs, hint) {
+    const name = uniqueName(hint);
+    const fields = fieldsOf(objs, name);
+    decls.push({ name: name, fields: fields });
+    return name;
+  }
+  function render() {
+    const head = opt.expMode === "plain" ? "" : "export ";
+    return decls.map(d => {
+      const lines = d.fields.map(f => "  " + __xfKey(f.key) + ((f.optional && opt.optMode !== "never") ? "?" : "") + ": " + f.type + ";");
+      return head + "interface " + d.name + " {\n" + lines.join("\n") + "\n}";
+    }).join("\n\n");
+  }
+
+  if (Array.isArray(root)) {
+    if (!root.length) return "// 空数组，无法推断类型";
+    if (!root.every(__xfIsObj)) return "// 根节点是数组，元素类型：" + typeOfVal(root, rootName) + "\n\n" + render();
+    objInterface(root, rootName);
+  } else if (__xfIsObj(root)) {
+    objInterface([root], rootName);
+  } else {
+    return "// 根节点是" + scalarType(root) + "，无法生成 interface";
+  }
+  return render();
+}
+
+window.__xfTs = __xfTs;
+
+function render() {
+  const src = $("src").value.trim();
+  $("err").textContent = "";
+  if (!src) { $("out").textContent = ""; return; }
+  try {
+    const json = JSON.parse(src);
+    $("out").textContent = __xfTs(json, $("rootName").value.trim() || "Root", { expMode: $("expMode").value, optMode: $("optMode").value });
+  } catch (e) {
+    $("out").textContent = "";
+    $("err").textContent = "JSON 解析失败：" + e.message;
+  }
+}
+
+$("run").addEventListener("click", render);
+$("src").addEventListener("input", render);
+["rootName", "expMode", "optMode"].forEach(id => $(id).addEventListener("change", render));
+$("copyBtn").addEventListener("click", () => {
+  const txt = $("out").textContent;
+  if (!txt) return;
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { $("copyBtn").textContent = "已复制"; setTimeout(() => $("copyBtn").textContent = "复制代码", 1200); });
+});
+render();
+</script>
+</body>
+</html>

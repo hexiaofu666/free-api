@@ -154,6 +154,17 @@ const TOOLS = [
   { id: "cron",        name: "Cron表达式解析",   desc: "解析crontab并计算下次执行时间",              ico: "layui-icon-time",         cat: "dev",    color: "#7a5cf0" },
   { id: "ipcalc",      name: "IP子网计算器",     desc: "CIDR网段掩码与可用地址范围计算",             ico: "layui-icon-engine",       cat: "dev",    color: "#16a7aa" },
   { id: "mime",        name: "MIME类型对照表",   desc: "扩展名对应Content-Type速查",                 ico: "layui-icon-file",         cat: "dev",    color: "#4791f5" },
+  /* 编程开发（第10批：格式转换与代码生成） */
+  { id: "curl2py",     name: "cURL转Python",     desc: "cURL命令转requests请求代码",                 ico: "layui-icon-transfer",     cat: "dev",    color: "#3d7eff" },
+  { id: "curl2php",    name: "cURL转PHP",        desc: "cURL命令转PHP cURL请求代码",                 ico: "layui-icon-engine",       cat: "dev",    color: "#6f42c1" },
+  { id: "curl2js",     name: "cURL转JS",         desc: "cURL命令转fetch/axios请求代码",              ico: "layui-icon-util",         cat: "dev",    color: "#e8a33d" },
+  { id: "xml2json",    name: "XML与JSON互转",    desc: "XML/JSON双向转换，支持属性与数组",           ico: "layui-icon-code-circle",  cat: "dev",    color: "#16a085" },
+  { id: "json2yaml",   name: "JSON与YAML互转",   desc: "JSON/YAML双向转换，K8s配置常用",             ico: "layui-icon-file",         cat: "dev",    color: "#4791f5" },
+  { id: "json2ts",     name: "JSON转TypeScript", desc: "自动生成TS interface类型定义",               ico: "layui-icon-template-1",   cat: "dev",    color: "#007acc" },
+  { id: "json2go",     name: "JSON转Go结构体",   desc: "自动生成Golang struct与json标签",            ico: "layui-icon-cols",         cat: "dev",    color: "#00add8" },
+  { id: "json2sql",    name: "JSON转SQL建表",    desc: "生成建表语句与INSERT，智能推断类型",         ico: "layui-icon-table",        cat: "dev",    color: "#f29111" },
+  { id: "jsonpath",    name: "JSONPath查询",     desc: "按JSONPath表达式提取JSON节点",               ico: "layui-icon-search",       cat: "dev",    color: "#9b59b6" },
+  { id: "codefmt",     name: "代码格式化压缩",   desc: "HTML/CSS/JS美化与压缩，附体积对比",          ico: "layui-icon-set",          cat: "dev",    color: "#e5533d" },
 ];
 
 const CATS = [

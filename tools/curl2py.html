@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cURL转Python代码在线转换 - 词海工具箱</title>
+<meta name="description" content="在线 cURL 转 Python requests 代码工具：粘贴浏览器复制的 cURL 命令，自动解析 URL、请求方法、请求头、Body、认证、Cookie，一键生成可直接运行的 Python 代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.9"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; line-height: 1.7; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.cp-out { width: 100%; box-sizing: border-box; margin-top: 14px; background: #f8f9fb; border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.75; color: #2c3e50; white-space: pre; overflow-x: auto; }
+.cp-meta { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.cp-meta span { font-size: 12px; background: #f2f4f8; color: #5a6a85; border-radius: 12px; padding: 3px 10px; }
+html.dark .cp-out { background: #1e2126; border-color: #333; color: #cfd6e4; }
+html.dark .cp-meta span { background: #23262d; color: #9aa7bd; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/curl2py.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="curl2py" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">粘贴 cURL 命令（浏览器开发者工具 → 网络 → 右键 Copy as cURL）</p>
+        <textarea class="io-input" id="src" rows="7" spellcheck="false">curl 'https://api.example.com/v1/user/login' -X POST -H 'Content-Type: application/json' -H 'User-Agent: Mozilla/5.0' -d '{"username":"admin","password":"123456"}' --compressed</textarea>
+        <div class="cp-meta" id="meta"></div>
+        <pre class="cp-out" id="out"></pre>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">转换</button>
+        <button class="fbtn plain" id="copyBtn">复制代码</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于cURL转Python介绍：</h4>
+    <ol>
+      <li>cURL 是命令行 HTTP 请求工具，浏览器的「Copy as cURL」可把任意请求完整复制下来，本工具将其转换为 Python requests 代码。</li>
+      <li>支持解析：<code>-X</code> 请求方法、<code>-H</code> 请求头、<code>-d/--data</code> 请求体、<code>-F</code> 表单上传、<code>-u</code> basic 认证、<code>-b</code> Cookie、<code>-k</code> 忽略证书、<code>-L</code> 跟随跳转、<code>--compressed</code>。</li>
+      <li>自动识别 JSON 请求体：当 Content-Type 为 application/json 时会给出 <code>json=</code> 的写法提示。</li>
+      <li>生成的代码使用标准 <code>requests</code> 库，需 <code>pip install requests</code> 后运行。</li>
+      <li>所有解析均在浏览器本地完成，请求内容不会上传服务器，可放心处理含 Token 的命令。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.9"></script>
+<script src="../assets/chrome.js?v=1.5.9"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* 把 cURL 命令拆成 token：处理 \ 与 ^ 续行、单双引号、引号内空格 */
+function __xfTokenize(cmd) {
+  const s = String(cmd).replace(/\\\r?\n/g, " ").replace(/\^\r?\n/g, " ");
+  const out = [];
+  let cur = "", q = null, has = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (q) {
+      if (c === q) q = null;
+      else if (c === "\\" && q === '"' && i + 1 < s.length) { const n = s[i + 1]; if (n === '"' || n === "\\") { cur += n; i++; } else cur += c; }
+      else cur += c;
+    } else {
+      if (c === "'" || c === '"') { q = c; has = true; }
+      else if (/\s/.test(c)) { if (cur !== "" || has) { out.push(cur); cur = ""; has = false; } }
+      else cur += c;
+    }
+  }
+  if (cur !== "" || has) out.push(cur);
+  return out;
+}
+
+/* 解析 cURL → 结构化请求 */
+function __xfCurl(cmd) {
+  const t = __xfTokenize(cmd);
+  const r = { url: "", method: "", headers: [], data: [], form: [], files: [], user: "", cookies: [], insecure: false, follow: false, compressed: false, head: false, get: false };
+  for (let i = 0; i < t.length; i++) {
+    const x = t[i];
+    if (x === "curl" || x === "/usr/bin/curl" || x === "curl.exe") continue;
+    if (x === "-X" || x === "--request") { r.method = (t[++i] || "").toUpperCase(); }
+    else if (x === "-H" || x === "--header") {
+      const h = t[++i] || ""; const p = h.indexOf(":");
+      if (p > 0) r.headers.push([h.slice(0, p).trim(), h.slice(p + 1).trim()]);
+    }
+    else if (x === "-d" || x === "--data" || x === "--data-raw" || x === "--data-binary" || x === "--data-urlencode" || x === "--data-ascii") r.data.push(t[++i] || "");
+    else if (x === "-F" || x === "--form" || x === "--form-string") r.form.push(t[++i] || "");
+    else if (x === "-u" || x === "--user") r.user = t[++i] || "";
+    else if (x === "-b" || x === "--cookie") r.cookies.push(t[++i] || "");
+    else if (x === "-A" || x === "--user-agent") r.headers.push(["User-Agent", t[++i] || ""]);
+    else if (x === "-e" || x === "--referer") r.headers.push(["Referer", t[++i] || ""]);
+    else if (x === "--url") r.url = t[++i] || "";
+    else if (x === "-k" || x === "--insecure") r.insecure = true;
+    else if (x === "-L" || x === "--location") r.follow = true;
+    else if (x === "--compressed") r.compressed = true;
+    else if (x === "-I" || x === "--head") r.head = true;
+    else if (x === "-G" || x === "--get") r.get = true;
+    else if (x === "-s" || x === "--silent" || x === "-v" || x === "--verbose" || x === "-i" || x === "--include" || x === "-#" || x === "--progress-bar") { /* 忽略 */ }
+    else if (x[0] === "-") { /* 未知选项，忽略其可能的取值 */ }
+    else if (!r.url) r.url = x;
+  }
+  if (r.head) r.method = "HEAD";
+  if (!r.method) r.method = (r.data.length || r.form.length) ? "POST" : "GET";
+  return r;
+}
+
+function __xfJsonHeader(r) {
+  return r.headers.some(h => /^content-type$/i.test(h[0]) && /json/i.test(h[1]));
+}
+
+/* 生成 Python requests 代码 */
+function __xfPy(r) {
+  const L = [];
+  const m = (r.method || "GET").toUpperCase();
+  if (r.compressed) L.push("# 说明：requests 默认发送 Accept-Encoding 并自动解压，无需额外处理");
+  if (r.insecure) L.push("# 说明：verify=False 会关闭证书校验，仅建议在测试环境使用");
+  L.push("import requests");
+  L.push("");
+  L.push('url = "' + r.url + '"');
+  if (r.headers.length) {
+    L.push("");
+    L.push("headers = {");
+    r.headers.forEach(h => L.push('    "' + h[0] + '": "' + String(h[1]).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '",'));
+    L.push("}");
+  }
+  if (r.cookies.length) {
+    const ck = r.cookies.join("; ");
+    L.push("");
+    L.push('cookies = {"' + ck.split("=")[0].trim() + '": "' + ck.split("=").slice(1).join("=").trim() + '"}');
+  }
+  if (r.user) {
+    const p = r.user.split(":");
+    L.push("");
+    L.push('auth = ("' + (p[0] || "") + '", "' + (p.slice(1).join(":") || "") + '")');
+  }
+  const isJson = __xfJsonHeader(r);
+  if (r.data.length) {
+    const body = r.data.join("&");
+    L.push("");
+    if (isJson) {
+      L.push("# 请求体为 JSON，也可改用 json= 参数让 requests 自动加 Content-Type");
+      L.push('payload = """' + body + '"""');
+    } else {
+      L.push('payload = """' + body + '"""');
+    }
+  }
+  if (r.form.length) {
+    L.push("");
+    L.push("files = {");
+    r.form.forEach(f => {
+      const p = f.indexOf("=");
+      const k = p > 0 ? f.slice(0, p) : f;
+      const v = p > 0 ? f.slice(p + 1) : "";
+      L.push('    "' + k + '": (None, "' + v.replace(/"/g, '\\"') + '"),');
+    });
+    L.push("}");
+  }
+  const args = ["url"];
+  if (r.headers.length) args.push("headers=headers");
+  if (r.cookies.length) args.push("cookies=cookies");
+  if (r.user) args.push("auth=auth");
+  if (r.data.length) args.push("data=payload");
+  if (r.form.length) args.push("files=files");
+  if (r.insecure) args.push("verify=False");
+  const FN = ["GET", "POST", "PUT", "DELETE", "HEAD", "PATCH", "OPTIONS"];
+  L.push("");
+  if (FN.indexOf(m) >= 0) L.push("resp = requests." + m.toLowerCase() + "(" + args.join(", ") + ")");
+  else L.push('resp = requests.request("' + m + '", ' + args.join(", ") + ")");
+  L.push("");
+  L.push("print(resp.status_code)");
+  L.push("print(resp.text)");
+  return L.join("\n");
+}
+
+window.__xfCurl = __xfCurl;
+window.__xfPy = __xfPy;
+window.__xfTokenize = __xfTokenize;
+
+function render() {
+  const cmd = $("src").value;
+  if (!cmd.trim()) { $("out").textContent = ""; $("meta").innerHTML = ""; return; }
+  const r = __xfCurl(cmd);
+  if (!r.url) { $("out").textContent = "未能识别出 URL，请检查 cURL 命令格式"; $("meta").innerHTML = ""; return; }
+  $("out").textContent = __xfPy(r);
+  const tags = ["方法 " + r.method, (r.url.length > 46 ? r.url.slice(0, 46) + "…" : r.url)];
+  if (r.headers.length) tags.push(r.headers.length + " 个请求头");
+  if (r.data.length) tags.push("请求体 " + r.data.join("&").length + " 字节");
+  if (r.form.length) tags.push(r.form.length + " 个表单字段");
+  if (r.user) tags.push("Basic 认证");
+  if (r.insecure) tags.push("忽略证书");
+  if (r.follow) tags.push("跟随跳转");
+  $("meta").innerHTML = tags.map(t => "<span>" + t + "</span>").join("");
+}
+
+$("run").addEventListener("click", render);
+$("src").addEventListener("input", render);
+$("copyBtn").addEventListener("click", () => {
+  const txt = $("out").textContent;
+  if (!txt) return;
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { $("copyBtn").textContent = "已复制"; setTimeout(() => $("copyBtn").textContent = "复制代码", 1200); });
+});
+render();
+</script>
+</body>
+</html>

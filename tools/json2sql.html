@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON转SQL建表语句在线工具 - 词海工具箱</title>
+<meta name="description" content="在线 JSON 转 SQL 工具：粘贴 JSON 数据自动生成 CREATE TABLE 建表语句与 INSERT 语句，智能推断字段类型（INT/VARCHAR/DECIMAL/DATETIME/TEXT），支持表名与方言选择。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.9"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; line-height: 1.7; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.cp-opt { display: flex; gap: 14px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+.cp-opt label { font-size: 12px; color: #666; display: flex; align-items: center; gap: 5px; }
+.cp-opt input[type=text] { width: 130px; border: 1px solid #e5e5e5; border-radius: 4px; padding: 4px 8px; font-size: 12px; font-family: Consolas, monospace; outline: none; color: #34495e; }
+.cp-opt select { border: 1px solid #e5e5e5; border-radius: 4px; padding: 4px 8px; font-size: 12px; color: #555; outline: none; background: #fff; }
+.cp-err { margin-top: 10px; font-size: 12px; color: #e5533d; }
+.cp-out { width: 100%; box-sizing: border-box; margin-top: 12px; background: #f8f9fb; border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.75; color: #2c3e50; white-space: pre; overflow: auto; max-height: 460px; min-height: 140px; }
+html.dark .cp-out { background: #1e2126; border-color: #333; color: #cfd6e4; }
+html.dark .cp-opt select, html.dark .cp-opt input[type=text] { background: #23262d; border-color: #333; color: #b9c3d4; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/json2sql.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="json2sql" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">粘贴 JSON 数组（或单个对象），生成建表 + 插入语句</p>
+        <textarea class="io-input" id="src" rows="8" spellcheck="false">[
+  { "id": 1, "userName": "贺小富", "email": "hexiaofu@example.com", "age": 30, "balance": 1280.55, "isVip": true, "createdAt": "2026-09-28 16:04:16", "remark": null },
+  { "id": 2, "userName": "小富子", "email": "fuzi@example.com", "age": 25, "balance": 88.00, "isVip": false, "createdAt": "2026-09-27 10:20:00", "remark": "老用户" }
+]</textarea>
+        <div class="cp-opt">
+          <label>表名 <input type="text" id="table" value="t_user"></label>
+          <label>方言
+            <select id="dialect">
+              <option value="mysql">MySQL</option>
+              <option value="pg">PostgreSQL</option>
+              <option value="sqlite">SQLite</option>
+            </select>
+          </label>
+          <label>主键
+            <select id="pkMode">
+              <option value="auto">自动加自增 id</option>
+              <option value="none">不加</option>
+            </select>
+          </label>
+          <label>插入语句
+            <select id="insMode">
+              <option value="yes">生成 INSERT</option>
+              <option value="no">仅建表</option>
+            </select>
+          </label>
+        </div>
+        <div class="cp-err" id="err"></div>
+        <pre class="cp-out" id="out"></pre>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">生成</button>
+        <button class="fbtn plain" id="copyBtn">复制SQL</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JSON转SQL介绍：</h4>
+    <ol>
+      <li>把 JSON 数据快速转成数据库脚本，适合做数据迁移、接口数据入库、测试数据构造。</li>
+      <li>字段名自动从驼峰转蛇形（<code>userName → user_name</code>），字段顺序按首次出现的顺序排列。</li>
+      <li>类型推断规则：整数 → <code>INT/BIGINT</code>，小数 → <code>DECIMAL(12,2)</code>，布尔 → <code>TINYINT(1)</code>（MySQL），日期时间字符串 → <code>DATETIME</code>，短字符串 → <code>VARCHAR(n)</code>，长文本或含换行 → <code>TEXT</code>，对象/数组 → <code>JSON</code>（MySQL）。</li>
+      <li>字符串中的单引号会自动转义，<code>null</code> 值写入 <code>NULL</code>，避免 SQL 报错。</li>
+      <li>生成结果仅供参考，请根据实际业务补充索引、字符集与约束。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.9"></script>
+<script src="../assets/chrome.js?v=1.5.9"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function __xfSnake(s) {
+  return String(s).replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_+|_+$/g, "").toLowerCase() || "col";
+}
+function __xfIdent(s) { return "`" + String(s).replace(/`/g, "") + "`"; }
+function __xfIsObj(v) { return v !== null && typeof v === "object" && !Array.isArray(v); }
+
+/* 生成 SQL：返回 { create, inserts: [...] } */
+function __xfSql(data, opt) {
+  opt = opt || {};
+  const dialect = opt.dialect || "mysql";
+  const table = opt.table || "t_data";
+  let rows = Array.isArray(data) ? data.filter(__xfIsObj) : (__xfIsObj(data) ? [data] : []);
+  if (!rows.length) return { error: "输入需要是 JSON 对象或对象数组" };
+
+  const keys = [];
+  rows.forEach(r => Object.keys(r).forEach(k => { if (keys.indexOf(k) < 0) keys.push(k); }));
+  const cols = keys.map(k => {
+    const vals = rows.filter(r => k in r).map(r => r[k]);
+    return { key: k, col: __xfSnake(k), type: __xfSqlType(vals, dialect) };
+  });
+
+  const q = dialect === "mysql" ? s => "`" + s + "`" : s => '"' + s + '"';
+  const lines = ["CREATE TABLE " + q(table) + " ("];
+  const defs = [];
+  const hasId = cols.some(c => c.col === "id");
+  if (opt.pkMode !== "none" && !hasId) {
+    if (dialect === "pg") defs.push("  id SERIAL PRIMARY KEY");
+    else if (dialect === "sqlite") defs.push("  id INTEGER PRIMARY KEY AUTOINCREMENT");
+    else defs.push("  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY");
+  }
+  cols.forEach(c => defs.push("  " + q(c.col) + " " + c.type));
+  lines.push(defs.join(",\n"));
+  lines.push(dialect === "mysql" ? ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;" : ");");
+  const create = lines.join("\n");
+
+  const inserts = [];
+  if (opt.insMode !== "no") {
+    const colNames = cols.map(c => q(c.col)).join(", ");
+    rows.forEach(r => {
+      const vals = cols.map(c => __xfSqlVal(c.key in r ? r[c.key] : null, dialect));
+      inserts.push("INSERT INTO " + q(table) + " (" + colNames + ") VALUES (" + vals.join(", ") + ");");
+    });
+  }
+  return { create: create, inserts: inserts };
+}
+
+function __xfSqlType(vals, dialect) {
+  const nn = vals.filter(v => v !== null && v !== undefined && v !== "");
+  if (!nn.length) return dialect === "pg" ? "TEXT" : "VARCHAR(255)";
+  if (nn.every(v => typeof v === "boolean")) return dialect === "pg" ? "BOOLEAN" : (dialect === "sqlite" ? "INTEGER" : "TINYINT(1)");
+  if (nn.every(v => typeof v === "number")) {
+    if (nn.every(v => Number.isInteger(v))) {
+      const mx = Math.max.apply(null, nn.map(v => Math.abs(v)));
+      return mx > 2147483647 ? "BIGINT" : "INT";
+    }
+    return "DECIMAL(12,2)";
+  }
+  if (nn.some(v => __xfIsObj(v) || Array.isArray(v))) return dialect === "mysql" ? "JSON" : "TEXT";
+  if (nn.every(v => typeof v === "string")) {
+    const mx = Math.max.apply(null, nn.map(v => v.length));
+    const isDate = nn.every(v => /^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?)?$/.test(v));
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(nn[0]) || /^\d{4}-\d{2}-\d{2}T/.test(nn[0])) return "DATETIME";
+    if (isDate && mx <= 10) return "DATE";
+    if (nn.some(v => v.indexOf("\n") >= 0) || mx > 400) return "TEXT";
+    if (dialect === "pg") return mx > 255 ? "TEXT" : "VARCHAR(" + Math.max(32, Math.ceil((mx + 8) / 8) * 8) + ")";
+    if (dialect === "sqlite") return "TEXT";
+    return "VARCHAR(" + Math.min(1000, Math.max(32, Math.ceil((mx + 8) / 8) * 8)) + ")";
+  }
+  return dialect === "mysql" ? "VARCHAR(255)" : "TEXT";
+}
+
+function __xfSqlVal(v, dialect) {
+  if (v === null || v === undefined) return "NULL";
+  if (typeof v === "number") return isFinite(v) ? String(v) : "NULL";
+  if (typeof v === "boolean") return dialect === "pg" ? (v ? "TRUE" : "FALSE") : (v ? "1" : "0");
+  if (typeof v === "object") return "'" + JSON.stringify(v).replace(/'/g, "''") + "'";
+  return "'" + String(v).replace(/\\/g, "\\\\").replace(/'/g, "''") + "'";
+}
+
+window.__xfSql = __xfSql;
+
+function render() {
+  const src = $("src").value.trim();
+  $("err").textContent = "";
+  if (!src) { $("out").textContent = ""; return; }
+  try {
+    const data = JSON.parse(src);
+    const r = __xfSql(data, { table: $("table").value.trim() || "t_data", dialect: $("dialect").value, pkMode: $("pkMode").value, insMode: $("insMode").value });
+    if (r.error) { $("err").textContent = r.error; $("out").textContent = ""; return; }
+    $("out").textContent = r.create + (r.inserts.length ? "\n\n" + r.inserts.join("\n") : "");
+  } catch (e) {
+    $("out").textContent = "";
+    $("err").textContent = "JSON 解析失败：" + e.message;
+  }
+}
+
+$("run").addEventListener("click", render);
+$("src").addEventListener("input", render);
+["table", "dialect", "pkMode", "insMode"].forEach(id => $(id).addEventListener("change", render));
+$("copyBtn").addEventListener("click", () => {
+  const txt = $("out").textContent;
+  if (!txt) return;
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { $("copyBtn").textContent = "已复制"; setTimeout(() => $("copyBtn").textContent = "复制SQL", 1200); });
+});
+render();
+</script>
+</body>
+</html>

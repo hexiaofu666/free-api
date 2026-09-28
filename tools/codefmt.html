@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML CSS JS代码格式化压缩 - 词海工具箱</title>
+<meta name="description" content="在线 HTML、CSS、JavaScript 代码格式化与压缩工具：一键美化缩进或压缩体积，去除注释与多余空白，附字符数统计与体积对比。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.9"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; line-height: 1.7; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.cf-tabs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+.cf-tabs button { border: 1px solid #e5e5e5; background: #fff; border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #666; cursor: pointer; }
+.cf-tabs button.on, .cf-tabs button:hover { border-color: #ff6500; color: #ff6500; }
+.cf-tabs .sep { width: 1px; height: 18px; background: #eee; margin: 0 4px; }
+.cf-stat { margin-top: 10px; font-size: 12px; color: #3f7ad6; }
+.cp-out { width: 100%; box-sizing: border-box; margin-top: 8px; background: #f8f9fb; border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; font-family: Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.75; color: #2c3e50; white-space: pre-wrap; word-break: break-all; overflow: auto; max-height: 400px; min-height: 140px; }
+html.dark .cp-out { background: #1e2126; border-color: #333; color: #cfd6e4; }
+html.dark .cf-tabs button { background: #23262d; border-color: #333; }
+html.dark .cf-tabs .sep { background: #333; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/codefmt.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="codefmt" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">粘贴代码，选择语言与操作</p>
+        <textarea class="io-input" id="src" rows="8" spellcheck="false"><!-- 商品卡片 -->
+<div class="card">
+    <h3>词海工具箱</h3>
+    <p>免费在线工具大全，已收录 155 款工具</p>
+    <ul>
+        <li>生活工具</li>
+        <li>编程开发</li>
+    </ul>
+</div></textarea>
+        <div class="cf-tabs" id="tabs">
+          <button data-lang="html" class="on">HTML</button>
+          <button data-lang="css">CSS</button>
+          <button data-lang="js">JavaScript</button>
+          <span class="sep"></span>
+          <button data-act="beautify" class="on">格式化（美化）</button>
+          <button data-act="minify">压缩</button>
+          <button data-act="escape">转义为字符串</button>
+        </div>
+        <div class="cf-stat" id="stat"></div>
+        <pre class="cp-out" id="out"></pre>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">执行</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于代码格式化压缩介绍：</h4>
+    <ol>
+      <li>支持 HTML、CSS、JavaScript 三种语言的格式化（美化缩进）与压缩（去注释、去多余空白）。</li>
+      <li>HTML 格式化：按标签层级缩进，脚本、样式、文本域等内容保持不变；压缩会删除注释并合并标签间空白。</li>
+      <li>CSS 格式化：选择器与声明分行显示；压缩会移除全部注释与多余空格、末尾分号。</li>
+      <li>JavaScript 压缩采用保守策略：仅删除注释与行首尾空白、跳过空行，不做变量混淆与跨行合并，避免破坏自动分号插入（ASI）语义。</li>
+      <li>「转义为字符串」可把代码转成可嵌入 JS/JSON 的字符串字面量，方便动态注入。</li>
+      <li>所有处理都在浏览器本地完成，代码不会上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.9"></script>
+<script src="../assets/chrome.js?v=1.5.9"></script>
+<script>
+const $ = id => document.getElementById(id);
+let LANG = "html", ACT = "beautify";
+const VOID_TAGS = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"];
+
+/* ---------- HTML ---------- */
+function __xfHtmlBeautify(src, indent) {
+  const unit = " ".repeat(indent || 2);
+  const tokens = String(src).replace(/\r/g, "").split(/(<[^>]*>)/g).filter(t => t !== "");
+  let lvl = 0, out = [];
+  for (let t of tokens) {
+    if (t[0] !== "<") {
+      const txt = t.replace(/\s+/g, " ").trim();
+      if (txt) out.push(unit.repeat(lvl) + txt);
+      continue;
+    }
+    const isClose = /^<\//.test(t);
+    const isComment = /^<!--/.test(t);
+    const isDoctype = /^<!/.test(t);
+    const name = (t.match(/^<\/?\s*([\w:-]+)/) || [, ""])[1].toLowerCase();
+    const selfClose = /\/>$/.test(t) || VOID_TAGS.indexOf(name) >= 0;
+    if (isComment || isDoctype) { out.push(unit.repeat(lvl) + t.trim()); continue; }
+    if (isClose) { lvl = Math.max(0, lvl - 1); out.push(unit.repeat(lvl) + t.trim()); continue; }
+    out.push(unit.repeat(lvl) + t.trim());
+    if (!selfClose) lvl++;
+  }
+  return out.join("\n");
+}
+
+function __xfHtmlMinify(src) {
+  return String(src)
+    .replace(/<!--(?!\[if)[\s\S]*?-->/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/>\s+</g, "><")
+    .trim();
+}
+
+/* ---------- CSS ---------- */
+function __xfCssBeautify(src, indent) {
+  const unit = " ".repeat(indent || 2);
+  let s = String(src).replace(/\s+/g, " ");
+  s = s.replace(/\s*\{\s*/g, " {\n").replace(/\s*;\s*/g, ";\n").replace(/\s*\}\s*/g, "\n}\n");
+  const lines = s.split("\n").map(x => x.trim()).filter(x => x);
+  let lvl = 0, out = [];
+  lines.forEach(l => {
+    if (l === "}") { lvl = Math.max(0, lvl - 1); out.push(unit.repeat(lvl) + l); }
+    else if (/\{$/.test(l)) { out.push(unit.repeat(lvl) + l); lvl++; }
+    else out.push(unit.repeat(lvl) + (/;$/.test(l) ? l : l + ";"));
+  });
+  return out.join("\n");
+}
+
+function __xfCssMinify(src) {
+  return String(src)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*([{}:;,>~+])\s*/g, "$1")
+    .replace(/;}/g, "}")
+    .replace(/\s*!\s*important/g, "!important")
+    .trim();
+}
+
+/* ---------- JavaScript ---------- */
+function __xfStripJsComments(src) {
+  let out = "", q = null, i = 0;
+  const s = String(src);
+  while (i < s.length) {
+    const c = s[i], n = s[i + 1];
+    if (q) {
+      out += c;
+      if (c === "\\") { out += (s[i + 1] || ""); i += 2; continue; }
+      if (c === q) q = null;
+      i++; continue;
+    }
+    if (c === "'" || c === '"' || c === "`") { q = c; out += c; i++; continue; }
+    if (c === "/" && n === "/") { while (i < s.length && s[i] !== "\n") i++; continue; }
+    if (c === "/" && n === "*") { i += 2; while (i < s.length && !(s[i] === "*" && s[i + 1] === "/")) i++; i += 2; continue; }
+    out += c; i++;
+  }
+  return out;
+}
+
+function __xfJsMinify(src) {
+  return __xfStripJsComments(src)
+    .split("\n")
+    .map(l => l.replace(/\s+$/, "").replace(/^\s+/, ""))
+    .filter(l => l !== "")
+    .join("\n");
+}
+
+/* 在字符串之外按 { } ; 断行（圆括号内不拆，避免破坏 for 循环） */
+function __xfJsLines(src) {
+  let out = "", q = null, i = 0, paren = 0;
+  const s = String(src);
+  while (i < s.length) {
+    const c = s[i];
+    if (q) {
+      out += c;
+      if (c === "\\") { out += (s[i + 1] || ""); i += 2; continue; }
+      if (c === q) q = null;
+      i++; continue;
+    }
+    if (c === "'" || c === '"' || c === "`") { q = c; out += c; i++; continue; }
+    if (c === "(") { paren++; out += c; i++; continue; }
+    if (c === ")") { paren = Math.max(0, paren - 1); out += c; i++; continue; }
+    if (c === "{") { out += "{\n"; i++; continue; }
+    if (c === "}") { out += "\n}\n"; i++; continue; }
+    if (c === ";" && paren === 0) { out += ";\n"; i++; continue; }
+    out += c; i++;
+  }
+  return out;
+}
+
+function __xfJsBeautify(src, indent) {
+  const unit = " ".repeat(indent || 2);
+  const lines = __xfJsLines(__xfStripJsComments(src)).split("\n").map(l => l.trim()).filter(l => l !== "");
+  let out = [], lvl = 0;
+  lines.forEach(l => {
+    const opens = (l.match(/[{([]/g) || []).length;
+    const closes = (l.match(/[})\]]/g) || []).length;
+    const leadClose = /^[})\]]/.test(l);
+    if (leadClose) lvl = Math.max(0, lvl - 1);
+    out.push(unit.repeat(Math.max(0, lvl)) + l);
+    let delta = opens - closes;
+    if (leadClose) delta += 1;
+    lvl = Math.max(0, lvl + delta);
+  });
+  return out.join("\n");
+}
+
+window.__xfHtmlBeautify = __xfHtmlBeautify;
+window.__xfHtmlMinify = __xfHtmlMinify;
+window.__xfCssBeautify = __xfCssBeautify;
+window.__xfCssMinify = __xfCssMinify;
+window.__xfJsBeautify = __xfJsBeautify;
+window.__xfJsLines = __xfJsLines;
+window.__xfJsMinify = __xfJsMinify;
+window.__xfStripJsComments = __xfStripJsComments;
+
+function run() {
+  const src = $("src").value;
+  let out = "";
+  if (ACT === "escape") {
+    out = JSON.stringify(src);
+  } else if (LANG === "html") {
+    out = ACT === "beautify" ? __xfHtmlBeautify(src) : __xfHtmlMinify(src);
+  } else if (LANG === "css") {
+    out = ACT === "beautify" ? __xfCssBeautify(src) : __xfCssMinify(src);
+  } else {
+    out = ACT === "beautify" ? __xfJsBeautify(src) : __xfJsMinify(src);
+  }
+  $("out").textContent = out;
+  if (src.length) {
+    const pct = src.length ? Math.round((1 - out.length / src.length) * 100) : 0;
+    $("stat").textContent = "原始 " + src.length + " 字符 → 处理后 " + out.length + " 字符" + (ACT === "escape" ? "" : (pct > 0 ? "（减少 " + pct + "%）" : (pct < 0 ? "（增加 " + (-pct) + "%）" : "")));
+  } else $("stat").textContent = "";
+}
+
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.lang) { LANG = b.dataset.lang; [...$("tabs").querySelectorAll("[data-lang]")].forEach(x => x.classList.toggle("on", x === b)); }
+  else if (b.dataset.act) { ACT = b.dataset.act; [...$("tabs").querySelectorAll("[data-act]")].forEach(x => x.classList.toggle("on", x === b)); }
+  run();
+});
+$("run").addEventListener("click", run);
+$("src").addEventListener("input", run);
+$("copyBtn").addEventListener("click", () => {
+  const txt = $("out").textContent;
+  if (!txt) return;
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { $("copyBtn").textContent = "已复制"; setTimeout(() => $("copyBtn").textContent = "复制结果", 1200); });
+});
+run();
+</script>
+</body>
+</html>

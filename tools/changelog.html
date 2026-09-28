@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.8"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<script src="../assets/theme.js?v=1.5.9"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -68,13 +68,20 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.5.8"></script>
-<script src="../assets/chrome.js?v=1.5.8"></script>
+<script src="../assets/tools-data.js?v=1.5.9"></script>
+<script src="../assets/chrome.js?v=1.5.9"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.5.9", date: "2026-09-28",
+    items: [
+      ["new", "新增 10 款编程开发工具（工具总数 145→155）：cURL转Python（requests代码）、cURL转PHP（原生cURL代码）、cURL转JS（fetch/axios/Node 三种形态）、XML与JSON互转、JSON与YAML互转、JSON转TypeScript、JSON转Go结构体、JSON转SQL建表、JSONPath查询、代码格式化压缩（HTML/CSS/JS）"],
+      ["opt", "编程开发分类扩充至 68 款；新增 cURL 命令解析引擎（支持续行、引号、认证、表单上传）与 JSON 类型推断引擎（数组元素字段合并、可选字段识别、多语言类型映射）"],
+    ]
+  },
   {
     ver: "v1.5.8", date: "2026-09-28",
     items: [

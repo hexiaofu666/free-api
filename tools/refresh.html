@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网页定时刷新在线 - 词海工具箱</title>
+<meta name="description" content="网页定时刷新工具：设置网址与刷新间隔，生成 meta refresh / JS 自动刷新代码，或在本页内循环刷新预览并记录刷新次数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.io-area { width: 100%; height: 100px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.log { max-height: 180px; overflow: auto; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 12px; color: #555; line-height: 1.9; background: #fafafa; font-family: Consolas, Monaco, monospace; }
+.log div { border-bottom: 1px dashed #eee; padding-bottom: 2px; }
+.log div:last-child { border-bottom: none; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/refresh.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="refresh" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">要刷新的网址</p>
+        <input class="io-input" id="url" placeholder="https://example.com/status">
+        <p class="io-label">刷新间隔（秒）</p>
+        <input class="io-input" id="sec" value="10">
+        <p class="io-label">生成的自动刷新代码（可放到自己网页的 head 中）</p>
+        <textarea class="io-area" id="code" readonly style="height:70px;"></textarea>
+        <p class="io-label" style="display:flex;align-items:center;gap:12px;">
+          <span>本页刷新计时（每 <span id="secShow">10</span> 秒重新加载目标页）</span>
+          <span id="state" style="font-size:12px;color:#999;">未开始</span>
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="fbtn blue" id="startBtn" style="width:auto;padding:0 16px;">开始计时</button>
+          <button class="fbtn plain" id="stopBtn" style="width:auto;padding:0 16px;">停止</button>
+        </div>
+        <div class="log" id="log"><div>等待开始…</div></div>
+      </div>
+      <div class="mlr">
+        <button class="fbtn plain" id="copyBtn">复制代码</button>
+        <button class="fbtn plain" id="openBtn">打开目标网址</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于网页定时刷新工具介绍：</h4>
+    <ol>
+      <li>本工具可生成让网页按固定间隔自动刷新的代码，常用于监控页面、数据大屏、在线状态页面。</li>
+      <li>生成的代码为 &lt;meta http-equiv="refresh" content="秒数"&gt;，粘贴到自己网页的 head 中即可生效。</li>
+      <li>页面内还提供刷新计时器，可记录每次刷新的时间点，方便测试刷新频率是否符合预期。</li>
+      <li>刷新时间不宜过短（建议 5 秒以上）：过高的刷新频率会加重服务器负担，也可能被搜索引擎视为异常。</li>
+      <li>出于浏览器安全限制（X-Frame-Options），本工具无法在页面内直接嵌入显示其他网站内容，请点击「打开目标网址」在新标签页查看。</li>
+      <li>本工具仅供测试与调试使用，请勿用于任何违规用途。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+let timer = null, count = 0;
+
+function buildRefreshCode(url, sec) {
+  sec = Math.max(1, parseInt(sec, 10) || 10);
+  const lines = [];
+  if (url) lines.push('<meta http-equiv="refresh" content="' + sec + (url ? ";url=" + url : "") + '">');
+  else lines.push('<meta http-equiv="refresh" content="' + sec + '">');
+  lines.push("");
+  lines.push("<!-- JavaScript 写法（可保留滚动位置等） -->");
+  lines.push("<script>");
+  lines.push("setTimeout(function(){ location.reload(); }, " + (sec * 1000) + ");");
+  lines.push("<\/script>");
+  return lines.join("\n");
+}
+
+window.__xfRefresh = buildRefreshCode;
+
+function nowStr() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+}
+
+function upd() {
+  const sec = Math.max(1, parseInt($("sec").value, 10) || 10);
+  $("secShow").textContent = sec;
+  $("code").value = buildRefreshCode($("url").value.trim(), sec);
+}
+
+$("url").addEventListener("input", upd);
+$("sec").addEventListener("input", upd);
+
+$("startBtn").addEventListener("click", () => {
+  stop();
+  const sec = Math.max(1, parseInt($("sec").value, 10) || 10);
+  count = 0;
+  $("state").textContent = "计时中（每 " + sec + " 秒）";
+  $("log").innerHTML = "";
+  timer = setInterval(() => {
+    count++;
+    const div = document.createElement("div");
+    div.textContent = "第 " + count + " 次触发刷新 · " + nowStr();
+    $("log").prepend(div);
+    if (count === 1 && $("url").value.trim()) {
+      // 首次触发时按需打开目标页（受弹窗拦截限制，仅本地记录）
+    }
+  }, sec * 1000);
+});
+
+function stop() {
+  if (timer) clearInterval(timer);
+  timer = null;
+  $("state").textContent = count ? "已停止（共 " + count + " 次）" : "未开始";
+}
+$("stopBtn").addEventListener("click", stop);
+
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("code").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制代码", 1200);
+});
+$("openBtn").addEventListener("click", () => {
+  const u = $("url").value.trim();
+  if (u) window.open(u, "_blank");
+});
+
+upd();
+</script>
+</body>
+</html>

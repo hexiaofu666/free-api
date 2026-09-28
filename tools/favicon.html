@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Favicon图标在线生成 - 词海工具箱</title>
+<meta name="description" content="网站 Favicon 图标在线生成：上传图片一键生成 16/32/48/64/128/256 多尺寸图标，打包为 favicon.ico 与 PNG 压缩包下载。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.drop { border: 2px dashed #ddd; border-radius: 8px; padding: 30px 16px; text-align: center; color: #888; font-size: 13px; cursor: pointer; transition: .2s; background: #fafafa; }
+.drop:hover, .drop.over { border-color: #ff6500; color: #ff6500; background: #fff8f3; }
+.drop i { font-size: 30px; display: block; margin-bottom: 8px; }
+.sizes { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; font-size: 13px; color: #555; }
+.sizes label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.prev { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin-top: 8px; }
+.prev .pitem { text-align: center; font-size: 12px; color: #888; }
+.prev img { border: 1px solid #eee; border-radius: 4px; display: block; background: #fff; image-rendering: pixelated; margin-bottom: 4px; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/favicon.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="favicon" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <div class="drop" id="drop">
+          <i class="layui-icon layui-icon-upload"></i>
+          点击选择图片，或把图片拖到这里（建议正方形 PNG/JPG）
+          <input type="file" id="file" accept="image/*" hidden>
+        </div>
+        <div class="sizes" id="sizeBox">
+          <span style="color:#888;">生成尺寸：</span>
+          <label><input type="checkbox" value="16" checked> 16×16</label>
+          <label><input type="checkbox" value="32" checked> 32×32</label>
+          <label><input type="checkbox" value="48" checked> 48×48</label>
+          <label><input type="checkbox" value="64"> 64×64</label>
+          <label><input type="checkbox" value="128"> 128×128</label>
+          <label><input type="checkbox" value="256"> 256×256</label>
+        </div>
+        <p class="io-label" style="font-size:13px;color:#555;margin:0 0 8px;">预览</p>
+        <div class="prev" id="prev"></div>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="icoBtn" disabled>下载 favicon.ico</button>
+        <button class="fbtn green" id="pngBtn" disabled>下载 PNG 压缩包</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 Favicon 图标生成介绍：</h4>
+    <ol>
+      <li>Favicon 是显示在浏览器标签页、收藏夹与搜索结果旁的小图标，是网站品牌识别的一部分。</li>
+      <li>本工具可把一张图片（建议正方形、512×512 以上）自动缩放为 16/32/48/64/128/256 多种尺寸。</li>
+      <li>favicon.ico 支持把多个尺寸打包进同一个文件（内部使用 PNG 压缩格式），浏览器会按场景自动选用合适尺寸。</li>
+      <li>使用方法：把生成的 favicon.ico 放到网站根目录，在 head 中加入 &lt;link rel="icon" href="/favicon.ico"&gt; 即可。</li>
+      <li>移动端与 PWA 场景还可使用 PNG 图标，配合 apple-touch-icon 使用效果更好。</li>
+      <li>全部处理在本地浏览器完成，图片不会上传到服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/lib/zip.js"></script>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+let img = null, outs = [];   // outs: [{size, dataUrl, bytes(Uint8Array)}]
+
+/* 构建 ICO 字节：PNG-in-ICO 格式（Vista+ 支持）
+   header 6字节 + 每图16字节目录 + 各 PNG 数据 */
+function buildIco(entries) {
+  // entries: [{ size, bytes: Uint8Array }]
+  const count = entries.length;
+  const header = [0, 0, 1, 0, count & 255, (count >> 8) & 255];
+  let offset = 6 + count * 16;
+  const dirs = [], datas = [];
+  entries.forEach(e => {
+    const s = e.size >= 256 ? 0 : e.size;   // 256 记作 0
+    const len = e.bytes.length;
+    dirs.push(s, s, 0, 0, 1, 0, 32, 0,
+      len & 255, (len >> 8) & 255, (len >> 16) & 255, (len >> 24) & 255,
+      offset & 255, (offset >> 8) & 255, (offset >> 16) & 255, (offset >> 24) & 255);
+    datas.push(e.bytes);
+    offset += len;
+  });
+  const total = offset;
+  const out = new Uint8Array(total);
+  out.set(header, 0);
+  out.set(dirs, 6);
+  let p = 6 + count * 16;
+  datas.forEach(d => { out.set(d, p); p += d.length; });
+  return out;
+}
+
+window.__xfIco = buildIco;
+
+function dataUrlToBytes(u8) { return u8; }
+function readBytes(dataUrl) {
+  return new Promise(res => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", dataUrl, true);
+    xhr.responseType = "arraybuffer";
+    xhr.onload = () => res(new Uint8Array(xhr.response));
+    xhr.send();
+  });
+}
+
+function render() {
+  const sizes = [...$("sizeBox").querySelectorAll("input:checked")].map(i => parseInt(i.value, 10));
+  $("prev").innerHTML = "";
+  outs = [];
+  if (!img) { $("icoBtn").disabled = $("pngBtn").disabled = true; return; }
+  let pending = sizes.length;
+  sizes.forEach(size => {
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const g = c.getContext("2d");
+    g.imageSmoothingQuality = "high";
+    g.drawImage(img, 0, 0, size, size);
+    const url = c.toDataURL("image/png");
+    const item = document.createElement("div");
+    item.className = "pitem";
+    item.innerHTML = '<img src="' + url + '" width="' + Math.min(size, 64) + '" height="' + Math.min(size, 64) + '">' + size + "×" + size;
+    $("prev").appendChild(item);
+    readBytes(url).then(bytes => {
+      outs.push({ size, dataUrl: url, bytes });
+      if (--pending === 0) {
+        outs.sort((a, b) => a.size - b.size);
+        $("icoBtn").disabled = outs.length === 0;
+        $("pngBtn").disabled = outs.length === 0;
+      }
+    });
+  });
+}
+
+function loadFile(f) {
+  if (!f || !/^image\//.test(f.type)) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const i = new Image();
+    i.onload = () => { img = i; render(); };
+    i.src = e.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+$("drop").addEventListener("click", () => $("file").click());
+$("file").addEventListener("change", e => loadFile(e.target.files[0]));
+$("drop").addEventListener("dragover", e => { e.preventDefault(); $("drop").classList.add("over"); });
+$("drop").addEventListener("dragleave", () => $("drop").classList.remove("over"));
+$("drop").addEventListener("drop", e => { e.preventDefault(); $("drop").classList.remove("over"); loadFile(e.dataTransfer.files[0]); });
+$("sizeBox").addEventListener("change", render);
+
+$("icoBtn").addEventListener("click", () => {
+  if (!outs.length) return;
+  const ico = buildIco(outs.map(o => ({ size: o.size, bytes: o.bytes })));
+  const a = document.createElement("a");
+  a.download = "favicon.ico";
+  a.href = URL.createObjectURL(new Blob([ico], { type: "image/x-icon" }));
+  a.click();
+});
+
+$("pngBtn").addEventListener("click", () => {
+  if (!outs.length) return;
+  const files = outs.map(o => ({ name: "favicon-" + o.size + "x" + o.size + ".png", data: o.bytes }));
+  const a = document.createElement("a");
+  a.download = "favicon-png.zip";
+  a.href = URL.createObjectURL(zipMake(files));
+  a.click();
+});
+
+$("clearBtn").addEventListener("click", () => {
+  img = null; outs = []; $("file").value = "";
+  $("prev").innerHTML = ""; $("icoBtn").disabled = $("pngBtn").disabled = true;
+});
+</script>
+</body>
+</html>

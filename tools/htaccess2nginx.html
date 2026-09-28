@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>htaccess转nginx在线 - 词海工具箱</title>
+<meta name="description" content=".htaccess 转 Nginx 配置在线工具：把 Apache 的 RewriteRule、RewriteCond、Redirect、ErrorDocument 等规则一键转换为 Nginx rewrite 与 if 写法。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.io-area { width: 100%; height: 230px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; background: #fff; }
+.io-area:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 0 0 8px; }
+.warn { font-size: 12px; color: #c98a00; margin-top: 8px; line-height: 1.7; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/htaccess2nginx.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="htaccess2nginx" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">粘贴 .htaccess 内容</p>
+        <textarea class="io-area" id="src" placeholder="RewriteEngine On&#10;RewriteRule ^old-page$ /new-page [R=301,L]">RewriteEngine On
+RewriteRule ^old-page$ /new-page [R=301,L]
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+ErrorDocument 404 /404.html</textarea>
+        <p class="io-label" style="margin-top:14px;">转换后的 Nginx 配置</p>
+        <textarea class="io-area" id="res" readonly></textarea>
+        <p class="warn" id="warn"></p>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">开始转换</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 htaccess 转 Nginx 工具介绍：</h4>
+    <ol>
+      <li>Apache 使用 .htaccess 文件配置重写规则，Nginx 需在 server 块中写 rewrite / if 指令，本工具帮您自动转换。</li>
+      <li>支持转换：RewriteRule（含 R=301/302 永久/临时跳转、L 标记）、RewriteCond（HTTP_HOST 等条件）、Redirect、ErrorDocument、Options -Indexes、DirectoryIndex、Deny from all。</li>
+      <li>转换结果需放在 server 块中，若原文要求放在 location / 内，请按注释提示调整位置。</li>
+      <li>Nginx 的 if 指令有「if is evil」的说法，涉及复杂逻辑时建议改写为 map 或 location 匹配。</li>
+      <li>无法识别的行会以注释形式保留（带「未转换」标记），便于人工补写。</li>
+      <li>所有转换在本地浏览器完成，配置内容不会上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* 转换主函数：返回 { lines: [], warn: [] } */
+function convert(src) {
+  const out = [], warn = [];
+  const lines = (src || "").split("\n");
+  let pendingCond = [];
+  const flushCond = () => {
+    // 把 RewriteCond 合并成 if 块开头（多条件用 &&）
+    if (!pendingCond.length) return "";
+    return pendingCond.map(c => c).join("\n");
+  };
+  lines.forEach(raw => {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) { if (line) out.push(line); return; }
+    let m;
+    // RewriteEngine
+    if ((m = line.match(/^RewriteEngine\s+(On|Off)/i))) {
+      out.push("# RewriteEngine " + m[1] + " （Nginx 无需该指令，rewrite 默认可用）");
+      return;
+    }
+    // RewriteCond
+    if ((m = line.match(/^RewriteCond\s+%\{HTTP_HOST\}\s+(\S+)(?:\s+\[(.*?)\])?/i))) {
+      const pat = m[1], flags = (m[2] || "");
+      const nc = /NC/i.test(flags) ? "*" : "";
+      pendingCond.push("if ($host ~" + nc + ' "' + pat.replace(/\\\./g, "\\.") + '") {');
+      return;
+    }
+    if (/^RewriteCond\s+%\{HTTPS\}/i.test(line)) {
+      pendingCond.push("if ($https != \"on\") {");
+      return;
+    }
+    if (/^RewriteCond\s+%\{REQUEST_FILENAME\}\s+!-f/i.test(line)) {
+      pendingCond.push("if (!-f $request_filename) {");
+      return;
+    }
+    if (/^RewriteCond\s+%\{REQUEST_FILENAME\}\s+!-d/i.test(line)) {
+      pendingCond.push("if (!-d $request_filename) {");
+      return;
+    }
+    if (/^RewriteCond\s+%\{QUERY_STRING\}/i.test(line)) {
+      pendingCond.push('if ($args) {');
+      return;
+    }
+    if (/^RewriteCond/i.test(line)) {
+      pendingCond.push("# 未转换（条件）: " + line);
+      warn.push(line);
+      return;
+    }
+    // RewriteRule
+    if ((m = line.match(/^RewriteRule\s+(\S+)\s+(\S+)(?:\s+\[(.*?)\])?/i))) {
+      const pat = m[1], target = m[2], flags = (m[3] || "");
+      const indent = pendingCond.length ? "  " : "";
+      const head = flushCond();
+      if (head) out.push(head);
+      let target2 = target
+        .replace(/^\/?index\.php\?/, "/index.php?")   // 常见 WP 伪静态
+        .replace(/\$1/g, "$1").replace(/\$2/g, "$2");
+      if (target.includes("%1") && pendingCond.length) target2 = target2.replace(/%1/g, "$1");
+      let suffix = "";
+      if (/R\s*=\s*301/i.test(flags)) suffix = " permanent";
+      else if (/R\s*=\s*302/i.test(flags) || /(^|,)\s*R\s*(,|$)/i.test(flags)) suffix = " redirect";
+      if (!/R\s*=/i.test(flags) && !/(^|,)\s*R\s*(,|$)/i.test(flags)) suffix = " last";
+      out.push(indent + "rewrite " + pat + " " + target2 + suffix + ";");
+      if (head) out.push("}");
+      pendingCond = [];
+      return;
+    }
+    // Redirect 301 /old /new
+    if ((m = line.match(/^Redirect\s+(?:permanent|temp|301|302)?\s*(\S+)\s+(\S+)/i))) {
+      const perm = /301|permanent/i.test(line) ? " permanent" : " redirect";
+      out.push("rewrite ^" + m[1] + "$ " + m[2] + perm + ";");
+      return;
+    }
+    // RedirectMatch
+    if ((m = line.match(/^RedirectMatch\s+(?:permanent|temp|301|302)?\s*(\S+)\s+(\S+)/i))) {
+      const perm = /301|permanent/i.test(line) ? " permanent" : " redirect";
+      out.push("rewrite " + m[1] + " " + m[2] + perm + ";");
+      return;
+    }
+    // ErrorDocument
+    if ((m = line.match(/^ErrorDocument\s+(\d{3})\s+(\S+)/i))) {
+      out.push("error_page " + m[1] + " " + m[2] + ";");
+      return;
+    }
+    // Options -Indexes
+    if (/^Options\s+-Indexes/i.test(line)) { out.push("autoindex off;"); return; }
+    if (/^Options\s+Indexes/i.test(line)) { out.push("autoindex on;"); return; }
+    // DirectoryIndex
+    if ((m = line.match(/^DirectoryIndex\s+(.+)/i))) { out.push("index " + m[1].trim() + ";"); return; }
+    // Deny from all
+    if (/^Deny\s+from\s+all/i.test(line)) { out.push("# deny all;（需放在 location 块中）"); return; }
+    if (/^<Files|<\/Files|^<IfModule|<\/IfModule|^Order\s|^Allow\s|^Require\s/i.test(line)) {
+      out.push("# 未转换: " + line); warn.push(line); return;
+    }
+    out.push("# 未转换: " + line);
+    warn.push(line);
+  });
+  if (pendingCond.length) { out.push(flushCond()); out.push("}"); }
+  return { lines: out, warn: warn };
+}
+
+window.__xfH2N = convert;
+
+function run() {
+  const r = convert($("src").value);
+  const head = "# 由 词海工具箱 .htaccess 转 Nginx 工具生成\n# 请放入 server { } 块中使用\n";
+  $("res").value = head + r.lines.join("\n");
+  $("warn").textContent = r.warn.length ? ("有 " + r.warn.length + " 行无法自动转换，已用 # 未转换 标记：" + r.warn.slice(0, 3).join("；")) : "";
+}
+$("run").addEventListener("click", run);
+$("src").addEventListener("input", run);
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("res").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制结果", 1200);
+});
+$("clearBtn").addEventListener("click", () => { $("src").value = ""; run(); });
+run();
+</script>
+</body>
+</html>

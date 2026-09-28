@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIME类型对照表查询 - 词海工具箱</title>
+<meta name="description" content="常用 MIME 类型对照表：查询扩展名对应的 Content-Type（如 html、jpg、json、woff2、mp4），支持关键词与扩展名实时搜索。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.mm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mm-table th, .mm-table td { border: 1px solid #eee; padding: 8px 10px; text-align: left; line-height: 1.7; }
+.mm-table th { background: #f7f8fa; color: #555; white-space: nowrap; position: sticky; top: 0; }
+.mm-table td code { font-family: Consolas, Monaco, monospace; color: #3f7ad6; }
+.mm-filter { margin-bottom: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.mm-filter input { border: 1px solid #e0e0e0; border-radius: 4px; padding: 7px 10px; font-size: 13px; outline: none; width: 260px; max-width: 60vw; color: #34495e; }
+.mm-ctx { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.mm-ctx button { border: 1px solid #e5e5e5; background: #fff; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #666; cursor: pointer; }
+.mm-ctx button.on, .mm-ctx button:hover { border-color: #ff6500; color: #ff6500; }
+html.dark .mm-table th { background: #2a2d35; }
+html.dark .mm-ctx button { background: #23262d; border-color: #333; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/mime.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="mime" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <div class="mm-filter">
+          <input id="q" placeholder="搜索扩展名或 MIME，如 jpg / json / 视频">
+          <span style="font-size:12px;color:#999;" id="cnt"></span>
+        </div>
+        <div class="mm-ctx" id="ctx"></div>
+        <div id="list"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于MIME类型介绍：</h4>
+    <ol>
+      <li>MIME 类型（又称媒体类型 / Content-Type）用于告诉浏览器和服务器数据的格式，格式为「主类型/子类型」，如 text/html。</li>
+      <li>在 Nginx 中通过 mime.types 文件配置；服务器返回错误的 MIME 类型会导致 CSS 不生效、图片无法显示、字体被拒绝加载等问题。</li>
+      <li>常见坑：woff2 字体需返回 font/woff2；JSON 应为 application/json；SVG 建议 image/svg+xml。</li>
+      <li>本表按「文本 / 图片 / 音视频 / 字体 / 应用」分类整理，支持按扩展名或类型关键词实时搜索。</li>
+      <li>点击上方分类按钮可快速筛选，输入关键词则在同一列表中模糊匹配。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* [分类, 扩展名, MIME, 说明] */
+const MIME = [
+  ["text", "html / htm", "text/html", "网页文档，charset=utf-8 建议一起声明"],
+  ["text", "css", "text/css", "样式表，错误类型会导致样式失效"],
+  ["text", "js / mjs", "text/javascript", "JavaScript 脚本（现代标准写法）"],
+  ["text", "txt", "text/plain", "纯文本"],
+  ["text", "csv", "text/csv", "逗号分隔表格数据"],
+  ["text", "xml", "text/xml", "XML 文档（也可用 application/xml）"],
+  ["text", "md", "text/markdown", "Markdown 源文档"],
+  ["text", "vtt", "text/vtt", "视频字幕"],
+  ["text", "ics", "text/calendar", "日历文件（iCalendar）"],
+  ["text", "rtf", "application/rtf", "富文本格式"],
+  ["image", "jpg / jpeg", "image/jpeg", "JPEG 有损压缩图片"],
+  ["image", "png", "image/png", "PNG 无损透明图片"],
+  ["image", "gif", "image/gif", "GIF 动图"],
+  ["image", "webp", "image/webp", "Google 推出的高效图片格式"],
+  ["image", "avif", "image/avif", "新一代高压缩比图片格式"],
+  ["image", "svg", "image/svg+xml", "矢量图，建议使用该类型"],
+  ["image", "ico", "image/x-icon", "网站图标 favicon"],
+  ["image", "bmp", "image/bmp", "位图"],
+  ["image", "tiff", "image/tiff", "TIFF 图片"],
+  ["image", "heic", "image/heic", "苹果设备照片格式"],
+  ["audio", "mp3", "audio/mpeg", "MP3 音频"],
+  ["audio", "wav", "audio/wav", "WAV 无损音频"],
+  ["audio", "ogg", "audio/ogg", "Ogg 音频"],
+  ["audio", "aac", "audio/aac", "AAC 音频"],
+  ["audio", "flac", "audio/flac", "FLAC 无损音频"],
+  ["audio", "m4a", "audio/mp4", "MP4 容器音频（AAC）"],
+  ["audio", "mid / midi", "audio/midi", "MIDI 音乐"],
+  ["video", "mp4", "video/mp4", "H.264/H.265 视频"],
+  ["video", "webm", "video/webm", "WebM 视频"],
+  ["video", "ogv", "video/ogg", "Ogg 视频"],
+  ["video", "avi", "video/x-msvideo", "AVI 视频"],
+  ["video", "mov", "video/quicktime", "QuickTime 视频"],
+  ["video", "mkv", "video/x-matroska", "Matroska 视频"],
+  ["video", "flv", "video/x-flv", "Flash 视频"],
+  ["video", "ts", "video/mp2t", "MPEG-TS 流媒体切片（HLS）"],
+  ["video", "m3u8", "application/vnd.apple.mpegurl", "HLS 播放列表"],
+  ["font", "woff", "font/woff", "Web 字体（旧版）"],
+  ["font", "woff2", "font/woff2", "Web 字体（推荐，压缩率高）"],
+  ["font", "ttf", "font/ttf", "TrueType 字体"],
+  ["font", "otf", "font/otf", "OpenType 字体"],
+  ["font", "eot", "application/vnd.ms-fontobject", "IE 专用字体格式"],
+  ["app", "json", "application/json", "JSON 数据，API 标准类型"],
+  ["app", "jsonld", "application/ld+json", "结构化数据（Schema.org）"],
+  ["app", "pdf", "application/pdf", "PDF 文档"],
+  ["app", "zip", "application/zip", "ZIP 压缩包"],
+  ["app", "gz / gzip", "application/gzip", "Gzip 压缩文件"],
+  ["app", "7z", "application/x-7z-compressed", "7-Zip 压缩包"],
+  ["app", "rar", "application/vnd.rar", "RAR 压缩包"],
+  ["app", "tar", "application/x-tar", "TAR 归档"],
+  ["app", "doc", "application/msword", "Word 文档（旧版）"],
+  ["app", "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "Word 文档"],
+  ["app", "xls", "application/vnd.ms-excel", "Excel 表格（旧版）"],
+  ["app", "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Excel 表格"],
+  ["app", "ppt", "application/vnd.ms-powerpoint", "PowerPoint（旧版）"],
+  ["app", "pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "PowerPoint 演示文稿"],
+  ["app", "apk", "application/vnd.android.package-archive", "安卓安装包"],
+  ["app", "exe", "application/x-msdownload", "Windows 可执行文件"],
+  ["app", "dmg", "application/x-apple-diskimage", "macOS 磁盘映像"],
+  ["app", "iso", "application/x-iso9660-image", "光盘映像"],
+  ["app", "wasm", "application/wasm", "WebAssembly 模块"],
+  ["app", "epub", "application/epub+zip", "电子书"],
+  ["app", "rss", "application/rss+xml", "RSS 订阅源"],
+  ["app", "atom", "application/atom+xml", "Atom 订阅源"],
+  ["app", "xhtml", "application/xhtml+xml", "XHTML 文档"],
+  ["app", "form", "application/x-www-form-urlencoded", "表单默认提交编码"],
+  ["app", "multipart", "multipart/form-data", "文件上传表单编码"],
+  ["app", "bin", "application/octet-stream", "二进制流（下载默认类型）"]
+];
+
+const CATS = [["all", "全部"], ["text", "文本"], ["image", "图片"], ["audio", "音频"], ["video", "视频"], ["font", "字体"], ["app", "应用/文档"]];
+let curCat = "all";
+
+window.__xfMime = MIME;
+
+function render() {
+  const q = $("q").value.trim().toLowerCase();
+  const rows = MIME.filter(m => (curCat === "all" || m[0] === curCat) &&
+    (!q || m[1].toLowerCase().includes(q) || m[2].toLowerCase().includes(q) || m[3].toLowerCase().includes(q)));
+  $("cnt").textContent = "共 " + rows.length + " 条";
+  $("list").innerHTML = rows.length
+    ? '<table class="mm-table"><tr><th>扩展名</th><th>MIME 类型</th><th>说明</th></tr>' + rows.map(m =>
+        "<tr><td>." + m[1].split(" / ").join(" / .") + "</td><td><code>" + m[2] + "</code></td><td>" + m[3] + "</td></tr>").join("") + "</table>"
+    : '<p style="color:#999;font-size:13px;">没有匹配的类型。</p>';
+}
+
+$("ctx").innerHTML = CATS.map(c => '<button data-k="' + c[0] + '"' + (c[0] === "all" ? ' class="on"' : "") + ">" + c[1] + "</button>").join("");
+$("ctx").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  curCat = b.dataset.k;
+  [...$("ctx").children].forEach(x => x.classList.toggle("on", x === b));
+  render();
+});
+$("q").addEventListener("input", render);
+render();
+</script>
+</body>
+</html>

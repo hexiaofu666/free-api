@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP子网掩码计算器 - 词海工具箱</title>
+<meta name="description" content="IP 子网计算器：输入 IP/CIDR 或子网掩码，一键计算网络地址、广播地址、可用地址范围、主机数量与 IP 类型，附二进制展示。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 14px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.ip-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.ip-item { flex: 1 1 240px; border: 1px solid #eee; border-radius: 6px; padding: 10px 12px; background: #fafafa; }
+.ip-item dt { font-size: 12px; color: #888; margin-bottom: 4px; }
+.ip-item dd { font-size: 13px; color: #34495e; word-break: break-all; font-family: Consolas, Monaco, monospace; }
+.ip-mono { font-family: Consolas, Monaco, monospace; font-size: 12px; color: #666; margin-top: 10px; word-break: break-all; line-height: 1.8; }
+.ip-tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: #eef4ff; color: #3f7ad6; margin-left: 6px; }
+html.dark .ip-item { background: #23262d; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ipcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ipcalc" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">输入 IP 地址（支持 CIDR 如 192.168.1.10/24，或直接填掩码如 192.168.1.10/255.255.255.0）</p>
+        <input class="io-input" id="src" value="192.168.1.10/24">
+        <div id="out"></div>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">计算</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于IP子网计算器介绍：</h4>
+    <ol>
+      <li>子网划分是网络运维的基础操作，本工具可快速算出网段信息，免去手工二进制换算。</li>
+      <li>输入格式支持：<code>192.168.1.10/24</code>（CIDR 前缀）、<code>192.168.1.10/255.255.255.0</code>（点分掩码）、或仅输入 <code>192.168.1.10</code>（默认 /24）。</li>
+      <li>计算结果包括：网络地址、广播地址、可用地址范围与数量、子网掩码、通配符掩码（反掩码）。</li>
+      <li>会同时给出 IP 类别（A/B/C/D/E）、私有/公网判断以及二进制形式，便于理解按位运算过程。</li>
+      <li>特殊网段：/31 用于点对点链路（2 个地址均可用），/32 表示单个主机地址。</li>
+      <li>所有计算在本地浏览器完成，输入的 IP 不会上传服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function ip2int(ip) {
+  const p = ip.split(".");
+  if (p.length !== 4) return null;
+  let n = 0;
+  for (const s of p) {
+    if (!/^\d{1,3}$/.test(s)) return null;
+    const v = parseInt(s, 10);
+    if (v > 255) return null;
+    n = (n << 8) | v;
+  }
+  return n >>> 0;
+}
+function int2ip(n) {
+  n = n >>> 0;
+  return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join(".");
+}
+function int2bin(n) {
+  return int2ip(n).split(".").map(x => parseInt(x, 10).toString(2).padStart(8, "0")).join(".");
+}
+function maskFromCidr(c) { return c === 0 ? 0 : (0xFFFFFFFF << (32 - c)) >>> 0; }
+
+/* 主计算：input 形如 "192.168.1.10/24" */
+function ipcalc(input) {
+  const s = (input || "").trim();
+  if (!s) return { error: "请输入 IP 地址" };
+  let [ipPart, maskPart] = s.split("/");
+  const ip = ip2int(ipPart);
+  if (ip === null) return { error: "IP 地址格式不正确（应为 x.x.x.x）" };
+  let cidr;
+  if (maskPart === undefined || maskPart === "") cidr = 24;
+  else if (/^\d{1,2}$/.test(maskPart)) {
+    cidr = parseInt(maskPart, 10);
+    if (cidr > 32) return { error: "CIDR 前缀应在 0-32 之间" };
+  } else {
+    const m = ip2int(maskPart);
+    if (m === null) return { error: "掩码格式不正确" };
+    // 校验掩码连续性
+    const bin = int2bin(m).replace(/\./g, "");
+    if (!/^1*0*$/.test(bin)) return { error: "子网掩码必须是连续的 1 后跟连续的 0" };
+    cidr = (bin.match(/1/g) || []).length;
+  }
+  const mask = maskFromCidr(cidr);
+  const network = (ip & mask) >>> 0;
+  const wildcard = (~mask) >>> 0;
+  const broadcast = (network | wildcard) >>> 0;
+  let first, last, hosts;
+  if (cidr === 32) { first = last = network; hosts = 1; }
+  else if (cidr === 31) { first = network; last = broadcast; hosts = 2; }
+  else { first = (network + 1) >>> 0; last = (broadcast - 1) >>> 0; hosts = Math.pow(2, 32 - cidr) - 2; }
+  // 类型与私网判断
+  const o1 = (ip >>> 24) & 255;
+  let cls = o1 < 128 ? "A 类" : o1 < 192 ? "B 类" : o1 < 224 ? "C 类" : o1 < 240 ? "D 类（组播）" : "E 类（保留）";
+  let scope = "公网地址";
+  if (o1 === 10) scope = "私有地址（10.0.0.0/8）";
+  else if (o1 === 172 && ((ip >>> 16) & 255) >= 16 && ((ip >>> 16) & 255) <= 31) scope = "私有地址（172.16.0.0/12）";
+  else if (o1 === 192 && ((ip >>> 16) & 255) === 168) scope = "私有地址（192.168.0.0/16）";
+  else if (o1 === 127) scope = "回环地址（127.0.0.0/8）";
+  else if (o1 === 169 && ((ip >>> 16) & 255) === 254) scope = "链路本地地址（169.254.0.0/16）";
+  else if (o1 >= 224) scope = "组播/保留地址";
+  return {
+    ip: int2ip(ip), cidr, mask: int2ip(mask), wildcard: int2ip(wildcard),
+    network: int2ip(network), broadcast: int2ip(broadcast),
+    first: int2ip(first), last: int2ip(last), hosts, cls, scope,
+    binIp: int2bin(ip), binMask: int2bin(mask), binNet: int2bin(network)
+  };
+}
+
+window.__xfIP = ipcalc;
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+function run() {
+  const r = ipcalc($("src").value);
+  if (r.error) { $("out").innerHTML = '<p style="color:#e05a4e;font-size:13px;margin-top:14px;">' + r.error + "</p>"; return; }
+  const items = [
+    ["网络地址", r.network], ["广播地址", r.broadcast],
+    ["可用地址范围", r.first + " ~ " + r.last], ["可用主机数", String(r.hosts)],
+    ["子网掩码", r.mask], ["通配符掩码", r.wildcard],
+    ["CIDR 前缀", "/" + r.cidr], ["IP 类型", r.cls + '<span class="ip-tag">' + r.scope + "</span>"]
+  ];
+  $("out").innerHTML = '<div class="ip-row">' + items.map(it =>
+    '<dl class="ip-item"><dt>' + it[0] + "</dt><dd>" + esc(it[1]) + "</dd></dl>").join("") + "</div>" +
+    '<div class="ip-mono">IP：' + r.binIp + "<br>掩码：" + r.binMask + "<br>网络：" + r.binNet + "</div>";
+}
+
+$("src").addEventListener("input", run);
+$("run").addEventListener("click", run);
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("out").innerText).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制结果", 1200);
+});
+run();
+</script>
+</body>
+</html>

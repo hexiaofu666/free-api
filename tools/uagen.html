@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UserAgent生成器在线 - 词海工具箱</title>
+<meta name="description" content="UserAgent 在线生成器：按操作系统与浏览器组合批量生成高仿真 UA 字符串，覆盖 Windows/macOS/Linux/移动端与主流浏览器，支持复制导出。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.io-area { width: 100%; height: 260px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 12.5px; line-height: 1.9; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.row2 select, .row2 input { padding: 8px 10px; }
+select.io-input { background: #fff; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/uagen.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="uagen" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <div class="row2">
+          <div>
+            <p class="io-label">操作系统</p>
+            <select class="io-input" id="os">
+              <option value="all">全部（随机）</option>
+              <option value="win11">Windows 11</option>
+              <option value="win10">Windows 10</option>
+              <option value="win7">Windows 7</option>
+              <option value="mac">macOS (Sonoma/Sequoia)</option>
+              <option value="ubuntu">Linux Ubuntu</option>
+              <option value="ios">iOS (iPhone)</option>
+              <option value="android">Android</option>
+            </select>
+          </div>
+          <div>
+            <p class="io-label">浏览器</p>
+            <select class="io-input" id="br">
+              <option value="all">全部（随机）</option>
+              <option value="chrome">Chrome</option>
+              <option value="edge">Edge</option>
+              <option value="firefox">Firefox</option>
+              <option value="safari">Safari</option>
+              <option value="opera">Opera</option>
+              <option value="qq">QQ浏览器</option>
+              <option value="wechat">微信内置浏览器</option>
+              <option value="alipay">支付宝内置浏览器</option>
+            </select>
+          </div>
+          <div>
+            <p class="io-label">生成条数</p>
+            <input class="io-input" id="num" value="10">
+          </div>
+        </div>
+        <p class="io-label" style="margin-top:14px;">生成的 UserAgent <span id="cnt" style="color:#999;font-weight:normal;font-size:12px;"></span></p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">点击生成</button>
+        <button class="fbtn green" id="oneBtn">换一批</button>
+        <button class="fbtn plain" id="copyBtn">复制全部</button>
+        <button class="fbtn plain" id="downBtn">导出 TXT</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线 UserAgent 生成器介绍：</h4>
+    <ol>
+      <li>本工具按「操作系统 + 浏览器」组合生成高仿真 UserAgent 字符串，可用于爬虫、自动化测试与请求头测试。</li>
+      <li>覆盖 Windows 7/10/11、macOS（Sonoma/Sequoia）、Linux（Ubuntu）、iOS、Android 等系统。</li>
+      <li>支持 Chrome、Edge、Firefox、Safari、Opera 及 QQ浏览器、微信内置浏览器、支付宝内置浏览器等国内常见环境。</li>
+      <li>系统信息会根据所选系统自动匹配（如 Intel Mac 与 Apple Silicon、Windows NT 版本号），并区分 Chromium / Gecko / WebKit 三种内核的 UA 写法。</li>
+      <li>选择「全部」时会随机组合，便于一次性获得多样化的 UA 样本；结果可一键复制或导出为 TXT 文件。</li>
+      <li>UA 仅为客户端声明的标识，可以随意伪造，请勿用于规避网站合法风控或任何违规用途。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+const OS_MAP = {
+  win11:  { plat: "Windows NT 10.0; Win64; x64", uaPlat: "Windows NT 10.0; Win64; x64", brand: "windows" },
+  win10:  { plat: "Windows NT 10.0; Win64; x64", uaPlat: "Windows NT 10.0; Win64; x64", brand: "windows" },
+  win7:   { plat: "Windows NT 6.1; Win64; x64", uaPlat: "Windows NT 6.1; Win64; x64", brand: "windows" },
+  mac:    { plat: "Macintosh; Intel Mac OS X 10_15_7", uaPlat: "Macintosh; Intel Mac OS X 10_15_7", brand: "mac" },
+  ubuntu: { plat: "X11; Linux x86_64", uaPlat: "X11; Linux x86_64", brand: "linux" },
+  ios:    { plat: "iPhone; CPU iPhone OS 17_5 like Mac OS X", uaPlat: "iPhone; CPU iPhone OS 17_5 like Mac OS X", brand: "ios" },
+  android: { plat: "Linux; Android 14; Pixel 8", uaPlat: "Linux; Android 14; Pixel 8", brand: "android" }
+};
+const OS_KEYS = ["win11", "win10", "win7", "mac", "ubuntu", "ios", "android"];
+const BR_KEYS = ["chrome", "edge", "firefox", "safari", "opera", "qq", "wechat", "alipay"];
+const VER = { chrome: [126, 127, 128, 129, 130], firefox: [128, 129, 130, 131], safari: [17, 18], opera: [112, 113, 114], qq: [14, 15, 16], wx: [8] };
+
+function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+/* UA 模板库：按 系统 + 浏览器 组合生成（补丁位随机以扩大组合空间） */
+const UA_BUILDERS = {
+  chrome:  (os, v) => `Mozilla/5.0 (${os.uaPlat}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${v}.0.${pick([4103,4430,4547,4664,4896,5155,5298,5735,6099,6478,6668,7103])}.${pick([50,60,80,100,120,140,160,180,200])} Safari/537.36`,
+  edge:    (os, v) => `Mozilla/5.0 (${os.uaPlat}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${v}.0.0.0 Safari/537.36 Edg/${v}.0.${pick([1200,1800,2400,2600,2800,3000,3100])}.${pick([40,50,60,70,80])}`,
+  firefox: (os, v) => `Mozilla/5.0 (${os.uaPlat}; rv:${v}.0) Gecko/20100101 Firefox/${v}.0.${pick([1,2,3,4,5])}`,
+  safari:  (os, v) => `Mozilla/5.0 (${os.uaPlat}) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/${v}.${pick([0,1,2,3,4,5,6])}.${pick([1,2,3,4,5])} Safari/605.1.15`,
+  opera:   (os, v) => `Mozilla/5.0 (${os.uaPlat}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${v}.0.0.0 Safari/537.36 OPR/${v}.0.${pick([4500,5100,5600,5800])}.${pick([20,30,40,50])}`,
+  qq:      (os, v) => `Mozilla/5.0 (${os.uaPlat}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${v}.0.0.0 Safari/537.36 QQBrowser/${v}.${pick([1,2,3,4,5,6,7,8,9])}`,
+  wechat:  (os, v) => `Mozilla/5.0 (${os.uaPlat}) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/${v}.0.${pick([40,42,44,46,48,50])}(0x${pick(["17000d34","18002d2f","19003435","1a003d36"])}) NetType/WIFI Language/zh_CN`,
+  alipay:  (os, v) => `Mozilla/5.0 (${os.uaPlat}) AppleWebKit/605.1.15 (KHTML, like Gecko) AlipayDefined(nt:WIFI,ws:390|844|3.0) AliApp(AP/${v}.0.${pick([1,2,3])}.0) Mobile/15E148 AlipayClient/${v}.0.${pick([1,2,3])}.0 Language/zh-Hans`
+};
+
+/* 系统与浏览器兼容性过滤（Safari 只在 mac/iOS，微信/支付宝多为移动端或 mac） */
+function compatible(osKey, brKey) {
+  if (brKey === "safari") return ["mac", "ios"].includes(osKey);
+  if (brKey === "firefox") return osKey !== "ios";
+  if (brKey === "wechat" || brKey === "alipay") return ["ios", "android", "mac"].includes(osKey);
+  if (brKey === "qq") return osKey.startsWith("win") || osKey === "mac";
+  return true;
+}
+
+function genUA(opts) {
+  opts = opts || {};
+  const n = Math.max(1, Math.min(200, parseInt(opts.count, 10) || 10));
+  const out = [], used = new Set();
+  let guard = 0;
+  while (out.length < n && guard++ < n * 40) {
+    const osKey = opts.os && opts.os !== "all" ? opts.os : pick(OS_KEYS);
+    let brKey = opts.br && opts.br !== "all" ? opts.br : pick(BR_KEYS);
+    if (!compatible(osKey, brKey)) continue;
+    const os = OS_MAP[osKey];
+    const verPool = VER[brKey === "wechat" || brKey === "alipay" ? "wx" : brKey] || VER.chrome;
+    const ua = UA_BUILDERS[brKey](os, pick(verPool));
+    if (used.has(ua)) continue;
+    used.add(ua);
+    out.push(ua);
+  }
+  return out;
+}
+
+window.__xfUAGen = genUA;
+
+function run() {
+  const list = genUA({ os: $("os").value, br: $("br").value, count: $("num").value });
+  $("res").value = list.join("\n");
+  $("cnt").textContent = "共 " + list.length + " 条";
+}
+$("run").addEventListener("click", run);
+$("oneBtn").addEventListener("click", run);
+["os", "br", "num"].forEach(id => $(id).addEventListener("change", run));
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("res").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制全部", 1200);
+});
+$("downBtn").addEventListener("click", () => {
+  const b = new Blob([$("res").value], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.download = "useragents.txt"; a.href = URL.createObjectURL(b); a.click();
+});
+$("clearBtn").addEventListener("click", () => { $("res").value = ""; $("cnt").textContent = ""; });
+run();
+</script>
+</body>
+</html>

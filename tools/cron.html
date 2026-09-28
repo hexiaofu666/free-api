@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cron表达式在线解析 - 词海工具箱</title>
+<meta name="description" content="Cron 表达式在线解析工具：解析 5/6 段 Linux crontab 表达式含义，计算未来 N 次执行时间，附常用定时任务表达式速查表。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 14px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; letter-spacing: 1px; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.cr-parts { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.cr-part { flex: 1 1 130px; border: 1px solid #eee; border-radius: 6px; padding: 10px; background: #fafafa; }
+.cr-part dt { font-size: 12px; color: #888; margin-bottom: 4px; }
+.cr-part dd { font-size: 13px; color: #34495e; word-break: break-all; line-height: 1.6; }
+.cr-list { border: 1px solid #eee; border-radius: 4px; max-height: 260px; overflow: auto; }
+.cr-list div { padding: 7px 12px; font-size: 13px; color: #34495e; border-bottom: 1px solid #f2f2f2; font-family: Consolas, Monaco, monospace; }
+.cr-list div:last-child { border-bottom: none; }
+.cr-list div span { color: #999; margin-left: 10px; font-size: 12px; }
+.cr-quick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.cr-quick button { border: 1px solid #e5e5e5; background: #fff; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #666; cursor: pointer; }
+.cr-quick button:hover { border-color: #ff6500; color: #ff6500; }
+html.dark .cr-part, html.dark .cr-list div { background: #23262d; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cron.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cron" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">Cron 表达式（5 段：分 时 日 月 周；也支持 6 段含秒）</p>
+        <input class="io-input" id="expr" value="0 10 * * *">
+        <div class="cr-quick" id="quick">
+          <button data-v="* * * * *">每分钟</button>
+          <button data-v="*/5 * * * *">每5分钟</button>
+          <button data-v="0 * * * *">每小时</button>
+          <button data-v="0 10 * * *">每天10点</button>
+          <button data-v="0 0 1 * *">每月1号</button>
+          <button data-v="0 9 * * 1">每周一9点</button>
+          <button data-v="0 2 * * 0">每周日2点</button>
+        </div>
+        <div id="parts"></div>
+        <p class="io-label">接下来 10 次执行时间</p>
+        <div class="cr-list" id="next"></div>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">解析</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Cron表达式介绍：</h4>
+    <ol>
+      <li>Cron 是 Linux/Unix 系统的定时任务表达式，由空格分隔的 5 个字段组成：分钟 小时 日 月 星期。</li>
+      <li>取值范围：分钟 0-59，小时 0-23，日 1-31，月 1-12，星期 0-7（0 和 7 都表示周日）。</li>
+      <li>特殊符号：<b>*</b> 表示任意值；<b>,</b> 表示列举（如 1,3,5）；<b>-</b> 表示范围（如 9-18）；<b>/</b> 表示间隔（如 */5 表示每 5 个单位）。</li>
+      <li>常用示例：<code>0 10 * * *</code> 每天 10:00；<code>*/5 * * * *</code> 每 5 分钟；<code>0 0 1 * *</code> 每月 1 号 0 点。</li>
+      <li>部分系统（如 Quartz）支持 6 段写法，第一位为秒，本工具同样支持解析。</li>
+      <li>日与星期两个字段同时被限定（都不是 *）时，实际含义是「或」关系，多数实现只满足其一即触发。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function parseField(str, min, max) {
+  const set = new Set();
+  (str || "*").split(",").forEach(part => {
+    let step = 1, range = part;
+    if (part.includes("/")) { const p = part.split("/"); range = p[0]; step = parseInt(p[1], 10) || 1; }
+    let lo = min, hi = max;
+    if (range !== "*") {
+      if (range.includes("-")) { const r = range.split("-"); lo = parseInt(r[0], 10); hi = parseInt(r[1], 10); }
+      else { lo = hi = parseInt(range, 10); }
+    }
+    if (isNaN(lo) || isNaN(hi)) return;
+    for (let v = lo; v <= hi; v += step) set.add(v);
+  });
+  return set;
+}
+
+/* 解析表达式 → 字段结构，出错返回 {error} */
+function parseCron(expr) {
+  const f = (expr || "").trim().split(/\s+/);
+  if (f.length !== 5 && f.length !== 6) return { error: "表达式应为 5 段（分 时 日 月 周）或 6 段（秒 分 时 日 月 周）" };
+  let sec = null, min, hour, day, mon, week;
+  if (f.length === 6) { [sec, min, hour, day, mon, week] = f; } else { [min, hour, day, mon, week] = f; }
+  const wRaw = parseField(week, 0, 7);
+  const wSet = new Set();
+  wRaw.forEach(v => wSet.add(v === 7 ? 0 : v));
+  const r = {
+    sec: sec === null ? null : parseField(sec, 0, 59),
+    min: parseField(min, 0, 59),
+    hour: parseField(hour, 0, 23),
+    day: parseField(day, 1, 31),
+    mon: parseField(mon, 1, 12),
+    week: wSet,
+    raw: { sec, min, hour, day, mon, week },
+    dayAll: day === "*", weekAll: week === "*"
+  };
+  if ([r.min, r.hour, r.day, r.mon, r.week].some(s => !s || s.size === 0)) return { error: "存在无效的字段取值，请检查" };
+  return r;
+}
+
+/* 计算接下来 count 次执行时间（5段按分钟步进，6段按秒步进） */
+function nextRuns(expr, from, count) {
+  const r = parseCron(expr);
+  if (r.error) return { error: r.error };
+  const out = [];
+  const hasSec = !!r.sec;
+  const d = new Date(from.getTime());
+  d.setMilliseconds(0);
+  if (hasSec) d.setSeconds(d.getSeconds() + 1);
+  else { d.setSeconds(0); d.setMinutes(d.getMinutes() + 1); }
+  const stepMs = hasSec ? 1000 : 60000;
+  let guard = 0;
+  const limit = hasSec ? 60 * 60 * 24 * 30 : 60 * 24 * 366 * 5;   // 5年（按分钟）/ 30天（按秒）
+  while (out.length < count && guard++ < limit) {
+    if (guard > 1) d.setTime(d.getTime() + stepMs);
+    const mon = d.getMonth() + 1, day = d.getDate(), week = d.getDay(), hour = d.getHours(), min = d.getMinutes();
+    if (!r.mon.has(mon)) continue;
+    const dayOk = r.day.has(day), weekOk = r.week.has(week);
+    const dateOk = (r.dayAll && r.weekAll) ? true : (r.dayAll ? weekOk : (r.weekAll ? dayOk : (dayOk || weekOk)));
+    if (!dateOk) continue;
+    if (!r.hour.has(hour)) continue;
+    if (!r.min.has(min)) continue;
+    if (hasSec && !r.sec.has(d.getSeconds())) continue;
+    out.push(d.getTime());
+  }
+  return { runs: out };
+}
+
+window.__xfCron = { parse: parseCron, next: nextRuns };
+
+const WK = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+function fmt(ts) {
+  const d = new Date(ts), p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+}
+
+function run() {
+  const expr = $("expr").value;
+  const r = parseCron(expr);
+  if (r.error) {
+    $("parts").innerHTML = '<div class="cr-part"><dt>解析错误</dt><dd style="color:#e05a4e;">' + r.error + "</dd></div>";
+    $("next").innerHTML = '<div style="color:#e05a4e;">' + r.error + "</div>";
+    return;
+  }
+  const raw = r.raw;
+  const items = [];
+  if (raw.sec !== null) items.push(["秒", raw.sec]);
+  items.push(["分钟", raw.min], ["小时", raw.hour], ["日", raw.day], ["月", raw.mon], ["星期", raw.week]);
+  $("parts").innerHTML = '<div class="cr-parts">' + items.map(it =>
+    '<dl class="cr-part"><dt>' + it[0] + "</dt><dd>" + it[1] + "</dd></dl>").join("") + "</div>";
+
+  const res = nextRuns(expr, new Date(), 10);
+  if (res.error) { $("next").innerHTML = '<div style="color:#e05a4e;">' + res.error + "</div>"; return; }
+  $("next").innerHTML = res.runs.map((ts, idx) =>
+    "<div>" + (idx + 1) + ". " + fmt(ts) + "<span>" + WK[new Date(ts).getDay()] + "</span></div>").join("")
+    || '<div style="color:#999;">未来 5 年内没有匹配的执行时间</div>';
+}
+
+$("expr").addEventListener("input", run);
+$("run").addEventListener("click", run);
+$("quick").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  $("expr").value = b.dataset.v;
+  run();
+});
+$("copyBtn").addEventListener("click", () => {
+  const txt = $("next").innerText;
+  navigator.clipboard.writeText(txt).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制结果", 1200);
+});
+run();
+</script>
+</body>
+</html>

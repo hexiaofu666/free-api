@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网址批量生成在线 - 词海工具箱</title>
+<meta name="description" content="网址批量生成工具：用 {*} 变量配合数字或字母规则，批量生成大量有序 URL，支持补零、间隔设置与一键复制导出。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.io-input { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 10px 12px; font-size: 13px; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.io-input:focus { border-color: #d0d0d0; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 6px; }
+.io-label:first-child { margin-top: 0; }
+.io-area { width: 100%; height: 220px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.row3 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.row3 .io-input { padding: 8px 10px; }
+.mode { display: flex; gap: 16px; font-size: 13px; color: #555; margin: 10px 0 4px; }
+.mode label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+@media (max-width: 640px) { .row3 { grid-template-columns: repeat(2, 1fr); } }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/batchurl.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="batchurl" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <p class="io-label">网址规则（必须包含变量 <b style="color:#ff6500;">{*}</b>，将被替换为序号）</p>
+        <input class="io-input" id="tpl" value="https://example.com/page/{*}.html">
+        <p class="io-label">生成类型</p>
+        <div class="mode">
+          <label><input type="radio" name="mode" value="num" checked> 数字模式</label>
+          <label><input type="radio" name="mode" value="alpha"> 字母模式</label>
+        </div>
+        <div id="numBox">
+          <div class="row3">
+            <div><p class="io-label">最小数字</p><input class="io-input" id="min" value="1"></div>
+            <div><p class="io-label">最大数字</p><input class="io-input" id="max" value="20"></div>
+            <div><p class="io-label">数字间隔</p><input class="io-input" id="step" value="1"></div>
+            <div><p class="io-label">补零位数</p><input class="io-input" id="pad" value="0" placeholder="0=不补零"></div>
+          </div>
+        </div>
+        <div id="alphaBox" style="display:none;">
+          <div class="row3">
+            <div><p class="io-label">开始字母</p><input class="io-input" id="aStart" value="a"></div>
+            <div><p class="io-label">结束字母</p><input class="io-input" id="aEnd" value="z"></div>
+            <div><p class="io-label">生成上限</p><input class="io-input" id="aMax" value="100"></div>
+            <div><p class="io-label">是否大写</p><input class="io-input" id="aUpper" value="0" placeholder="1=大写"></div>
+          </div>
+        </div>
+        <p class="io-label" style="margin-top:14px;">生成结果 <span id="cnt" style="color:#999;font-weight:normal;font-size:12px;"></span></p>
+        <textarea class="io-area" id="res" readonly></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="run">批量生成</button>
+        <button class="fbtn plain" id="copyBtn">复制结果</button>
+        <button class="fbtn plain" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于网址批量生成工具介绍：</h4>
+    <ol>
+      <li>在网址规则中使用变量 <b>{*}</b> 代替需要变化的部分，工具会按规则把它替换为序号；规则中必须包含该变量。</li>
+      <li>数字模式：设置最小数字、最大数字、数字间隔（留空默认 1）与补零位数（如设置 3，则 1 变成 001）。</li>
+      <li>字母模式：按字母表顺序循环生成（a→z、aa→az…），开始字母位数不得大于结束字母位数。</li>
+      <li>生成上限用于防止误操作产生过多条目（字母模式默认最多 100 条，可按需调大）。</li>
+      <li>结果可直接复制粘贴到 Excel、下载工具或爬虫脚本中使用。</li>
+      <li>所有生成在本地浏览器完成，不会请求任何网址。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* 数字模式生成 */
+function genNumber(tpl, min, max, step, pad) {
+  const out = [];
+  step = Math.max(1, step || 1);
+  if (max < min) return out;
+  for (let i = min; i <= max; i += step) {
+    let s = String(i);
+    if (pad > 0) s = s.padStart(pad, "0");
+    out.push(tpl.replace(/\{\*\}/g, s));
+  }
+  return out;
+}
+
+/* 字母模式生成：a→z→aa→az→ba… 按字面顺序 */
+function alphaSeq(str) {
+  // 把字母串视为 26 进制（a=0）。返回下一个
+  const s = str.toLowerCase().split("");
+  let i = s.length - 1;
+  while (i >= 0) {
+    if (s[i] === "z") { s[i] = "a"; i--; }
+    else { s[i] = String.fromCharCode(s[i].charCodeAt(0) + 1); break; }
+  }
+  if (i < 0) s.unshift("a");
+  return s.join("");
+}
+
+function genAlpha(tpl, start, end, limit, upper) {
+  const out = [];
+  if (!start || !end) return out;
+  start = start.toLowerCase(); end = end.toLowerCase();
+  if (start.length > end.length) return out;
+  let cur = start, guard = 0;
+  limit = Math.max(1, limit || 100);
+  while (guard++ < 5000) {
+    out.push(tpl.replace(/\{\*\}/g, upper ? cur.toUpperCase() : cur));
+    if (cur === end) break;
+    cur = alphaSeq(cur);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+window.__xfBatch = { num: genNumber, alpha: genAlpha, next: alphaSeq };
+
+function run() {
+  const tpl = $("tpl").value;
+  const cnt = $("cnt");
+  if (!/\{\*\}/.test(tpl)) {
+    $("res").value = "";
+    cnt.textContent = "规则中缺少 {*} 变量";
+    return;
+  }
+  const mode = document.querySelector("input[name=mode]:checked").value;
+  let list;
+  if (mode === "num") {
+    const min = parseInt($("min").value, 10) || 0;
+    const max = parseInt($("max").value, 10) || 0;
+    const step = parseInt($("step").value, 10) || 1;
+    const pad = parseInt($("pad").value, 10) || 0;
+    if (max - min > 5000) { cnt.textContent = "范围过大（最多 5000 条）"; $("res").value = ""; return; }
+    list = genNumber(tpl, min, max, step, pad);
+  } else {
+    list = genAlpha(tpl, $("aStart").value.trim(), $("aEnd").value.trim(),
+      parseInt($("aMax").value, 10) || 100, $("aUpper").value.trim() === "1");
+  }
+  $("res").value = list.join("\n");
+  cnt.textContent = list.length ? "共 " + list.length + " 条" : "没有生成任何结果，请检查参数";
+}
+
+document.querySelectorAll("input[name=mode]").forEach(r => r.addEventListener("change", () => {
+  const num = document.querySelector("input[name=mode]:checked").value === "num";
+  $("numBox").style.display = num ? "" : "none";
+  $("alphaBox").style.display = num ? "none" : "";
+  run();
+}));
+["tpl", "min", "max", "step", "pad", "aStart", "aEnd", "aMax", "aUpper"].forEach(id => $(id).addEventListener("input", run));
+$("run").addEventListener("click", run);
+$("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText($("res").value).then(() => $("copyBtn").textContent = "已复制");
+  setTimeout(() => $("copyBtn").textContent = "复制结果", 1200);
+});
+$("clearBtn").addEventListener("click", () => { $("res").value = ""; $("cnt").textContent = ""; });
+run();
+</script>
+</body>
+</html>

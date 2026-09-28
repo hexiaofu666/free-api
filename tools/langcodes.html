@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>语言国家代码对照表 - 词海工具箱</title>
+<meta name="description" content="语言代码与国家地区代码对照表：查询 ISO 639-1 语言代码、ISO 3166-1 国家地区代码（含 hreflang 常用写法），支持实时搜索。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.lg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.lg-table th, .lg-table td { border: 1px solid #eee; padding: 8px 10px; text-align: left; line-height: 1.7; }
+.lg-table th { background: #f7f8fa; color: #555; white-space: nowrap; }
+.lg-table td code { font-family: Consolas, Monaco, monospace; color: #3f7ad6; }
+.lg-filter { margin-bottom: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.lg-filter input { border: 1px solid #e0e0e0; border-radius: 4px; padding: 7px 10px; font-size: 13px; outline: none; width: 260px; max-width: 60vw; color: #34495e; }
+.lg-tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.lg-tabs button { border: 1px solid #e5e5e5; background: #fff; border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #666; cursor: pointer; }
+.lg-tabs button.on, .lg-tabs button:hover { border-color: #ff6500; color: #ff6500; }
+html.dark .lg-table th { background: #2a2d35; }
+html.dark .lg-tabs button { background: #23262d; border-color: #333; }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/langcodes.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="langcodes" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <div class="lg-filter">
+          <input id="q" placeholder="搜索代码或名称，如 zh / 中文 / 日语 / Germany">
+          <span style="font-size:12px;color:#999;" id="cnt"></span>
+        </div>
+        <div class="lg-tabs" id="tabs">
+          <button data-k="lang" class="on">语言代码（ISO 639-1）</button>
+          <button data-k="country">国家/地区代码（ISO 3166-1）</button>
+          <button data-k="hreflang">hreflang 常用组合</button>
+        </div>
+        <div id="list"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于语言与国家代码介绍：</h4>
+    <ol>
+      <li>语言代码遵循 ISO 639-1（两位字母，如 zh 中文、en 英语），部分语言有 ISO 639-2 三位代码（如 zho）。</li>
+      <li>国家/地区代码遵循 ISO 3166-1 alpha-2（两位大写字母，如 CN 中国、US 美国）。</li>
+      <li>两者组合即「语言-地区」标记，如 zh-CN（简体中文-中国大陆）、zh-TW（中文-中国台湾）、en-US（英语-美国）。</li>
+      <li>网页中最常见的用途是 hreflang 多语言标注：&lt;link rel="alternate" hreflang="zh-CN" href="…"&gt;，用于告诉搜索引擎页面面向的语言与地区。</li>
+      <li>hreflang 还可使用 x-default 表示默认页面（语言选择页或全球通用页），也是本工具提供的常用组合之一。</li>
+      <li>本表数据在页面本地渲染，支持按代码或名称模糊搜索。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+const LANGS = [
+  ["zh", "中文（汉语）", "zho"], ["en", "英语", "eng"], ["ja", "日语", "jpn"], ["ko", "韩语", "kor"],
+  ["fr", "法语", "fra"], ["de", "德语", "deu"], ["es", "西班牙语", "spa"], ["pt", "葡萄牙语", "por"],
+  ["ru", "俄语", "rus"], ["ar", "阿拉伯语", "ara"], ["it", "意大利语", "ita"], ["nl", "荷兰语", "nld"],
+  ["pl", "波兰语", "pol"], ["tr", "土耳其语", "tur"], ["vi", "越南语", "vie"], ["th", "泰语", "tha"],
+  ["id", "印尼语", "ind"], ["ms", "马来语", "msa"], ["hi", "印地语", "hin"], ["bn", "孟加拉语", "ben"],
+  ["ur", "乌尔都语", "urd"], ["fa", "波斯语", "fas"], ["he", "希伯来语", "heb"], ["el", "希腊语", "ell"],
+  ["sv", "瑞典语", "swe"], ["da", "丹麦语", "dan"], ["no", "挪威语", "nor"], ["fi", "芬兰语", "fin"],
+  ["cs", "捷克语", "ces"], ["sk", "斯洛伐克语", "slk"], ["hu", "匈牙利语", "hun"], ["ro", "罗马尼亚语", "ron"],
+  ["uk", "乌克兰语", "ukr"], ["bg", "保加利亚语", "bul"], ["hr", "克罗地亚语", "hrv"], ["sr", "塞尔维亚语", "srp"],
+  ["sl", "斯洛文尼亚语", "slv"], ["lt", "立陶宛语", "lit"], ["lv", "拉脱维亚语", "lav"], ["et", "爱沙尼亚语", "est"],
+  ["ca", "加泰罗尼亚语", "cat"], ["gl", "加利西亚语", "glg"], ["eu", "巴斯克语", "eus"], ["is", "冰岛语", "isl"],
+  ["ga", "爱尔兰语", "gle"], ["cy", "威尔士语", "cym"], ["sq", "阿尔巴尼亚语", "sqi"], ["mk", "马其顿语", "mkd"],
+  ["ka", "格鲁吉亚语", "kat"], ["hy", "亚美尼亚语", "hye"], ["az", "阿塞拜疆语", "aze"], ["kk", "哈萨克语", "kaz"],
+  ["uz", "乌兹别克语", "uzb"], ["mn", "蒙古语", "mon"], ["ne", "尼泊尔语", "nep"], ["si", "僧伽罗语", "sin"],
+  ["ta", "泰米尔语", "tam"], ["te", "泰卢固语", "tel"], ["ml", "马拉雅拉姆语", "mal"], ["km", "高棉语", "khm"],
+  ["lo", "老挝语", "lao"], ["my", "缅甸语", "mya"], ["sw", "斯瓦希里语", "swa"], ["af", "南非荷兰语", "afr"]
+];
+
+const COUNTRIES = [
+  ["CN", "中国", "China"], ["HK", "中国香港", "Hong Kong, China"], ["MO", "中国澳门", "Macao, China"],
+  ["TW", "中国台湾", "Taiwan, China"], ["US", "美国", "United States"], ["GB", "英国", "United Kingdom"],
+  ["JP", "日本", "Japan"], ["KR", "韩国", "South Korea"], ["SG", "新加坡", "Singapore"], ["MY", "马来西亚", "Malaysia"],
+  ["TH", "泰国", "Thailand"], ["VN", "越南", "Vietnam"], ["ID", "印度尼西亚", "Indonesia"], ["PH", "菲律宾", "Philippines"],
+  ["IN", "印度", "India"], ["PK", "巴基斯坦", "Pakistan"], ["AE", "阿联酋", "United Arab Emirates"], ["SA", "沙特阿拉伯", "Saudi Arabia"],
+  ["IL", "以色列", "Israel"], ["TR", "土耳其", "Türkiye"], ["RU", "俄罗斯", "Russia"], ["UA", "乌克兰", "Ukraine"],
+  ["DE", "德国", "Germany"], ["FR", "法国", "France"], ["IT", "意大利", "Italy"], ["ES", "西班牙", "Spain"],
+  ["PT", "葡萄牙", "Portugal"], ["NL", "荷兰", "Netherlands"], ["BE", "比利时", "Belgium"], ["CH", "瑞士", "Switzerland"],
+  ["AT", "奥地利", "Austria"], ["SE", "瑞典", "Sweden"], ["NO", "挪威", "Norway"], ["DK", "丹麦", "Denmark"],
+  ["FI", "芬兰", "Finland"], ["IS", "冰岛", "Iceland"], ["IE", "爱尔兰", "Ireland"], ["PL", "波兰", "Poland"],
+  ["CZ", "捷克", "Czechia"], ["HU", "匈牙利", "Hungary"], ["RO", "罗马尼亚", "Romania"], ["GR", "希腊", "Greece"],
+  ["BR", "巴西", "Brazil"], ["MX", "墨西哥", "Mexico"], ["AR", "阿根廷", "Argentina"], ["CL", "智利", "Chile"],
+  ["CO", "哥伦比亚", "Colombia"], ["PE", "秘鲁", "Peru"], ["ZA", "南非", "South Africa"], ["EG", "埃及", "Egypt"],
+  ["NG", "尼日利亚", "Nigeria"], ["KE", "肯尼亚", "Kenya"], ["AU", "澳大利亚", "Australia"], ["NZ", "新西兰", "New Zealand"],
+  ["CA", "加拿大", "Canada"]
+];
+
+const HREFLANG = [
+  ["zh-CN", "简体中文（中国大陆）"], ["zh-TW", "中文（中国台湾）"], ["zh-HK", "中文（中国香港）"],
+  ["en", "英语（不区分地区）"], ["en-US", "英语（美国）"], ["en-GB", "英语（英国）"],
+  ["ja-JP", "日语（日本）"], ["ko-KR", "韩语（韩国）"], ["de-DE", "德语（德国）"], ["fr-FR", "法语（法国）"],
+  ["es-ES", "西班牙语（西班牙）"], ["pt-BR", "葡萄牙语（巴西）"], ["ru-RU", "俄语（俄罗斯）"],
+  ["ar-SA", "阿拉伯语（沙特）"], ["it-IT", "意大利语（意大利）"], ["nl-NL", "荷兰语（荷兰）"],
+  ["pl-PL", "波兰语（波兰）"], ["tr-TR", "土耳其语（土耳其）"], ["vi-VN", "越南语（越南）"], ["th-TH", "泰语（泰国）"],
+  ["x-default", "默认页（语言选择页 / 全球通用页）"]
+];
+
+let tab = "lang";
+window.__xfLang = { LANGS, COUNTRIES, HREFLANG };
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+function render() {
+  const q = $("q").value.trim().toLowerCase();
+  let head, rows;
+  if (tab === "lang") {
+    head = "<tr><th>代码</th><th>语言名称</th><th>ISO 639-2</th></tr>";
+    rows = LANGS.filter(l => !q || l[0].includes(q) || l[1].toLowerCase().includes(q) || l[2].includes(q))
+      .map(l => "<tr><td><code>" + l[0] + "</code></td><td>" + l[1] + "</td><td>" + l[2] + "</td></tr>");
+  } else if (tab === "country") {
+    head = "<tr><th>代码</th><th>国家 / 地区</th><th>英文名</th></tr>";
+    rows = COUNTRIES.filter(c => !q || c[0].toLowerCase().includes(q) || c[1].toLowerCase().includes(q) || c[2].toLowerCase().includes(q))
+      .map(c => "<tr><td><code>" + c[0] + "</code></td><td>" + c[1] + "</td><td>" + c[2] + "</td></tr>");
+  } else {
+    head = "<tr><th>hreflang 值</th><th>含义</th></tr>";
+    rows = HREFLANG.filter(h => !q || h[0].toLowerCase().includes(q) || h[1].toLowerCase().includes(q))
+      .map(h => "<tr><td><code>" + h[0] + "</code></td><td>" + h[1] + "</td></tr>");
+  }
+  $("cnt").textContent = "共 " + rows.length + " 条";
+  $("list").innerHTML = rows.length
+    ? '<table class="lg-table">' + head + rows.join("") + "</table>"
+    : '<p style="color:#999;font-size:13px;">没有匹配的记录。</p>';
+}
+
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  tab = b.dataset.k;
+  [...$("tabs").children].forEach(x => x.classList.toggle("on", x === b));
+  render();
+});
+$("q").addEventListener("input", render);
+render();
+</script>
+</body>
+</html>

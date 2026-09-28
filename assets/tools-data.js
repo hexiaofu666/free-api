@@ -143,6 +143,17 @@ const TOOLS = [
   { id: "robots",      name: "robots.txt生成器", desc: "可视化配置蜘蛛规则生成文件",                 ico: "layui-icon-engine",       cat: "seo",    color: "#3d7eff" },
   { id: "htmlcode",    name: "HTTP状态码",       desc: "HTTP状态码大全与含义速查",                   ico: "layui-icon-survey",       cat: "seo",    color: "#e6a23c" },
   { id: "useragent",   name: "UserAgent解析",    desc: "解析UA识别浏览器系统与蜘蛛",                 ico: "layui-icon-username",     cat: "seo",    color: "#656599" },
+  { id: "htaccess2nginx", name: "htaccess转nginx", desc: "Apache重写规则转Nginx配置",                 ico: "layui-icon-transfer",     cat: "seo",    color: "#5b9df9" },
+  { id: "shieldbadge", name: "Shield徽章生成",   desc: "可视化生成README盾牌徽章",                   ico: "layui-icon-vercode",      cat: "seo",    color: "#2f9e8f" },
+  { id: "favicon",     name: "Favicon图标生成",  desc: "图片转多尺寸ICO与PNG图标",                   ico: "layui-icon-star",         cat: "seo",    color: "#e6a23c" },
+  { id: "refresh",     name: "网页定时刷新",     desc: "生成自动刷新代码与刷新计时",                 ico: "layui-icon-refresh",      cat: "seo",    color: "#7cb342" },
+  { id: "batchurl",    name: "网址批量生成",     desc: "按数字或字母规则批量生成网址",               ico: "layui-icon-template",     cat: "seo",    color: "#d66853" },
+  { id: "uagen",       name: "UserAgent生成器",  desc: "按系统浏览器批量生成UA字符串",               ico: "layui-icon-user",         cat: "seo",    color: "#656599" },
+  { id: "langcodes",   name: "语言国家代码表",   desc: "ISO语言/国家代码与hreflang查询",             ico: "layui-icon-location",     cat: "seo",    color: "#3f7ad6" },
+  /* 编程开发（补充） */
+  { id: "cron",        name: "Cron表达式解析",   desc: "解析crontab并计算下次执行时间",              ico: "layui-icon-time",         cat: "dev",    color: "#7a5cf0" },
+  { id: "ipcalc",      name: "IP子网计算器",     desc: "CIDR网段掩码与可用地址范围计算",             ico: "layui-icon-engine",       cat: "dev",    color: "#16a7aa" },
+  { id: "mime",        name: "MIME类型对照表",   desc: "扩展名对应Content-Type速查",                 ico: "layui-icon-file",         cat: "dev",    color: "#4791f5" },
 ];
 
 const CATS = [

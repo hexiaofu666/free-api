@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shield徽章在线生成 - 词海工具箱</title>
+<meta name="description" content="Shield Badge 徽章在线生成器：可视化设置左右两块文字、背景色与文字颜色，实时预览 SVG 盾牌徽章，输出 Markdown / HTML / 图片链接代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.5.8"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.5.8">
+<style>
+.sb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.sb-box { border: 1px solid #eee; border-radius: 6px; padding: 12px; background: #fafafa; }
+.sb-box h5 { margin: 0 0 10px; font-size: 13px; color: #555; }
+.sb-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; color: #555; }
+.sb-row input[type=text] { flex: 1; border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px 8px; font-size: 13px; outline: none; color: #34495e; }
+.sb-row input[type=color] { width: 40px; height: 28px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 0; background: #fff; cursor: pointer; }
+.sb-preview { text-align: center; padding: 22px; border: 1px dashed #ddd; border-radius: 6px; margin: 14px 0; background: #fff; }
+.sb-preview svg { max-width: 100%; height: auto; }
+.io-area { width: 100%; height: 110px; resize: vertical; border: 1px solid #eee; border-radius: 4px; padding: 12px; font-size: 13px; line-height: 1.8; outline: none; font-family: Consolas, Monaco, monospace; color: #34495e; box-sizing: border-box; }
+.io-label { font-size: 13px; color: #555; margin: 14px 0 8px; }
+.sb-sel { border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px 8px; font-size: 13px; color: #34495e; background: #fff; outline: none; }
+@media (max-width: 640px) { .sb-grid { grid-template-columns: 1fr; } }
+</style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/shieldbadge.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="shieldbadge" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="mdiv">
+      <div class="mlf" style="flex:1;">
+        <div class="sb-grid">
+          <div class="sb-box">
+            <h5>左侧设置</h5>
+            <div class="sb-row"><span style="width:56px;">文本</span><input type="text" id="label" value="build"></div>
+            <div class="sb-row"><span style="width:56px;">背景色</span><input type="color" id="labelBg" value="#555555"></div>
+            <div class="sb-row"><span style="width:56px;">文字色</span><input type="color" id="labelColor" value="#ffffff"></div>
+          </div>
+          <div class="sb-box">
+            <h5>右侧设置</h5>
+            <div class="sb-row"><span style="width:56px;">文本</span><input type="text" id="message" value="passing"></div>
+            <div class="sb-row"><span style="width:56px;">背景色</span><input type="color" id="msgBg" value="#4c1"></div>
+            <div class="sb-row"><span style="width:56px;">文字色</span><input type="color" id="msgColor" value="#ffffff"></div>
+          </div>
+        </div>
+        <div class="sb-row" style="margin-top:12px;flex-wrap:wrap;">
+          <span style="width:56px;">样式</span>
+          <select class="sb-sel" id="style">
+            <option value="flat" selected>flat 扁平</option>
+            <option value="flat-square">flat-square 方角</option>
+            <option value="plastic">plastic 立体</option>
+            <option value="for-the-badge">for-the-badge 大字</option>
+          </select>
+          <select class="sb-sel" id="logo">
+            <option value="">无图标</option>
+            <option value="github">GitHub</option>
+            <option value="vue">Vue</option>
+            <option value="react">React</option>
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="wordpress">WordPress</option>
+            <option value="nginx">Nginx</option>
+            <option value="mysql">MySQL</option>
+            <option value="baidu">百度</option>
+            <option value="google">Google</option>
+          </select>
+        </div>
+        <p class="io-label">实时预览</p>
+        <div class="sb-preview" id="preview"></div>
+        <p class="io-label">图片链接（可直接用于 img 标签）</p>
+        <textarea class="io-area" id="outUrl" readonly style="height:56px;"></textarea>
+        <p class="io-label">Markdown</p>
+        <textarea class="io-area" id="outMd" readonly style="height:56px;"></textarea>
+        <p class="io-label">HTML</p>
+        <textarea class="io-area" id="outHtml" readonly style="height:56px;"></textarea>
+      </div>
+      <div class="mlr">
+        <button class="fbtn blue" id="copySvg">复制 SVG</button>
+        <button class="fbtn plain" id="copyMd">复制 Markdown</button>
+        <button class="fbtn plain" id="copyHtml">复制 HTML</button>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 Shield Badge 介绍：</h4>
+    <ol>
+      <li>Shield Badge 是盾牌形状的小徽章，广泛用于 GitHub 仓库、技术文档，直观展示版本号、构建状态、许可证等信息。</li>
+      <li>本工具可视化设置左右两块的文字、背景色与文字颜色，并实时渲染 SVG 预览，无需联网即可查看效果。</li>
+      <li>支持 flat（扁平）、flat-square（方角）、plastic（立体）、for-the-badge（大字）四种主流样式。</li>
+      <li>可选择 GitHub、Vue、React、Nginx 等常见品牌图标（基于 Simple Icons）。</li>
+      <li>生成结果同时给出图片链接、Markdown 与 HTML 三种代码，可直接粘贴到 README 或网页中。</li>
+      <li>提示：图片链接指向 shields.io 公共渲染服务，国内访问可能较慢，可改用本地 SVG。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.5.8"></script>
+<script src="../assets/chrome.js?v=1.5.8"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+const PRESET = {
+  "#4c1": "#4c1", "#555555": "#555555"
+};
+
+/* 生成 shields.io 风格的完整 SVG 字符串（本地渲染，不依赖网络） */
+function buildSvg(o) {
+  const style = o.style || "flat";
+  const big = style === "for-the-badge";
+  const h = big ? 28 : 20;
+  const pad = big ? 12 : 6;
+  const fs = big ? 11 : 11;
+  const labelBg = o.labelBg, msgBg = o.msgBg;
+  const labelColor = o.labelColor, msgColor = o.msgColor;
+  const label = o.label || "", message = o.message || "";
+  // 粗略宽度估算：按字符数 * 6.4 + 2*pad
+  const wLabel = Math.max(Math.round(label.length * 6.4) + pad * 2, label ? 34 : 15);
+  const wMsg = Math.max(Math.round(message.length * 6.4) + pad * 2, message ? 34 : 15);
+  const w = wLabel + wMsg;
+  const fontFam = "Verdana,Geneva,DejaVu Sans,sans-serif";
+  const italic = style === "plastic" ? "" : "";
+  const grad = style === "plastic"
+    ? `<linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>`
+    : "";
+  const rx = style === "flat" || style === "plastic" ? 3 : 0;
+  const gradRect = style === "plastic" ? `<rect width="${w}" height="${h}" rx="${rx}" fill="url(#s)"/>` : "";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" role="img" aria-label="${escAttr(label)}: ${escAttr(message)}">
+${grad ? "<defs>" + grad + "</defs>" : ""}
+<g shape-rendering="crispEdges">
+<rect width="${wLabel}" height="${h}" fill="${labelBg}"/>
+<rect x="${wLabel}" width="${wMsg}" height="${h}" fill="${msgBg}"/>
+${gradRect}
+</g>
+<g fill="${labelColor}" text-anchor="middle" font-family="${fontFam}" font-size="${fs}">
+<text x="${wLabel / 2}" y="${big ? 19 : 14}" fill="#010101" fill-opacity=".3" transform="translate(0,1)">${escHtml(label)}</text>
+<text x="${wLabel / 2}" y="${big ? 18 : 13}">${escHtml(label)}</text>
+<text x="${wLabel + wMsg / 2}" y="${big ? 19 : 14}" fill="#010101" fill-opacity=".3" transform="translate(0,1)">${escHtml(message)}</text>
+<text x="${wLabel + wMsg / 2}" y="${big ? 18 : 13}" fill="${msgColor}">${escHtml(message)}</text>
+</g>
+</svg>`;
+}
+
+function escHtml(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function escAttr(s) { return escHtml(s).replace(/"/g, "&quot;"); }
+function hex(c) { return c.replace("#", ""); }
+
+function buildUrl(o) {
+  const label = encodeURIComponent(o.label || "").replace(/-/g, "--").replace(/%20/g, "_");
+  const message = encodeURIComponent(o.message || "").replace(/-/g, "--").replace(/%20/g, "_");
+  const q = [];
+  q.push("style=" + o.style);
+  if (o.labelBg) q.push("labelColor=" + hex(o.labelBg));
+  if (o.labelColor && o.labelColor.toLowerCase() !== "#ffffff") q.push("labelTextColor=" + hex(o.labelColor));
+  if (o.logo) q.push("logo=" + o.logo);
+  return "https://img.shields.io/badge/" + label + "-" + message + "-" + hex(o.msgBg) + "?" + q.join("&");
+}
+
+window.__xfBadge = { svg: buildSvg, url: buildUrl };
+
+function readOpts() {
+  return {
+    label: $("label").value, labelBg: $("labelBg").value, labelColor: $("labelColor").value,
+    message: $("message").value, msgBg: $("msgBg").value, msgColor: $("msgColor").value,
+    style: $("style").value, logo: $("logo").value
+  };
+}
+
+function run() {
+  const o = readOpts();
+  const svg = buildSvg(o);
+  $("preview").innerHTML = svg;
+  const url = buildUrl(o);
+  $("outUrl").value = url;
+  $("outMd").value = "![badge](" + url + ")";
+  $("outHtml").value = '<img src="' + url + '" alt="' + escAttr(o.label + ": " + o.message) + '">';
+}
+
+["label", "message"].forEach(id => $(id).addEventListener("input", run));
+["labelBg", "labelColor", "msgBg", "msgColor"].forEach(id => $(id).addEventListener("input", run));
+["style", "logo"].forEach(id => $(id).addEventListener("change", run));
+$("copySvg").addEventListener("click", () => {
+  navigator.clipboard.writeText(buildSvg(readOpts())).then(() => $("copySvg").textContent = "已复制");
+  setTimeout(() => $("copySvg").textContent = "复制 SVG", 1200);
+});
+$("copyMd").addEventListener("click", () => {
+  navigator.clipboard.writeText($("outMd").value).then(() => $("copyMd").textContent = "已复制");
+  setTimeout(() => $("copyMd").textContent = "复制 Markdown", 1200);
+});
+$("copyHtml").addEventListener("click", () => {
+  navigator.clipboard.writeText($("outHtml").value).then(() => $("copyHtml").textContent = "已复制");
+  setTimeout(() => $("copyHtml").textContent = "复制 HTML", 1200);
+});
+run();
+</script>
+</body>
+</html>

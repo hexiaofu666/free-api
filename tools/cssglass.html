@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS毛玻璃效果在线生成器 - 词海工具箱</title>
+<meta name="description" content="CSS 毛玻璃（Glassmorphism）效果生成器：调节模糊度、透明度、边框与圆角，实时预览半透明磨砂质感并复制 CSS 代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssglass.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssglass" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>模糊程度 <b id="bv">12</b>px</label><input type="range" id="blur" min="0" max="40" value="12"></div>
+      <div class="fitem"><label>背景色</label><input type="color" id="bg" value="#ffffff"></div>
+      <div class="fitem"><label>背景不透明度 <b id="av">0.20</b></label><input type="range" id="alpha" min="0" max="100" value="20"></div>
+      <div class="fitem"><label>边框不透明度 <b id="bav">0.30</b></label><input type="range" id="balpha" min="0" max="100" value="30"></div>
+      <div class="fitem"><label>圆角 <b id="rv">16</b>px</label><input type="range" id="radius" min="0" max="60" value="16"></div>
+      <div class="fitem"><label>阴影强度 <b id="sv">0.18</b></label><input type="range" id="shadow" min="0" max="60" value="18"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览（背景已放彩色图）</strong></div>
+      <div class="cgl-prev"><div id="prev" class="cgl-box">毛玻璃效果</div></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:180px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CSS 毛玻璃效果生成器介绍：</h4>
+    <ol>
+      <li>毛玻璃（Glassmorphism）通过半透明背景加高斯模糊，营造出磨砂玻璃悬浮在内容上的质感。</li>
+      <li>核心是 backdrop-filter: blur()，它能模糊元素背后的内容，配合低不透明度背景效果最佳。</li>
+      <li>工具会同时输出 -webkit-backdrop-filter 前缀，兼容 Safari 等浏览器。</li>
+      <li>调节模糊度、透明度、边框与阴影强度，找到最适合你页面的观感后复制代码即可。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+function __xfHexRgb(hex) {
+  const h = String(hex).replace("#", "");
+  const f = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  return [parseInt(f.slice(0, 2), 16), parseInt(f.slice(2, 4), 16), parseInt(f.slice(4, 6), 16)];
+}
+/* 生成 CSS */
+function __xfGlassCss(o) {
+  const rgb = __xfHexRgb(o.bg).join(", ");
+  return [
+    ".glass {",
+    "  background: rgba(" + rgb + ", " + o.alpha + ");",
+    "  backdrop-filter: blur(" + o.blur + "px);",
+    "  -webkit-backdrop-filter: blur(" + o.blur + "px);",
+    "  border: 1px solid rgba(255, 255, 255, " + o.borderAlpha + ");",
+    "  border-radius: " + o.radius + "px;",
+    "  box-shadow: 0 8px 32px rgba(31, 38, 135, " + o.shadow + ");",
+    "}"
+  ].join("\n");
+}
+window.__xfGlassCss = __xfGlassCss;
+window.__xfHexRgb = __xfHexRgb;
+
+const $ = id => document.getElementById(id);
+function collect() {
+  return { blur: +$("blur").value, bg: $("bg").value, alpha: (+$("alpha").value / 100).toFixed(2), borderAlpha: (+$("balpha").value / 100).toFixed(2), radius: +$("radius").value, shadow: (+$("shadow").value / 100).toFixed(2) };
+}
+function run() {
+  const o = collect();
+  $("bv").textContent = o.blur; $("av").textContent = o.alpha; $("bav").textContent = o.borderAlpha; $("rv").textContent = o.radius; $("sv").textContent = o.shadow;
+  const p = $("prev");
+  p.style.background = "rgba(" + __xfHexRgb(o.bg).join(", ") + ", " + o.alpha + ")";
+  p.style.backdropFilter = "blur(" + o.blur + "px)";
+  p.style.webkitBackdropFilter = "blur(" + o.blur + "px)";
+  p.style.border = "1px solid rgba(255,255,255," + o.borderAlpha + ")";
+  p.style.borderRadius = o.radius + "px";
+  p.style.boxShadow = "0 8px 32px rgba(31,38,135," + o.shadow + ")";
+  $("res").value = __xfGlassCss(o);
+}
+["blur", "bg", "alpha", "balpha", "radius", "shadow"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("blur").value = 12; $("bg").value = "#ffffff"; $("alpha").value = 20; $("balpha").value = 30; $("radius").value = 16; $("shadow").value = 18; run(); };
+run();
+</script>
+<style>
+.cgl-prev{display:flex;justify-content:center;align-items:center;border-radius:10px;padding:40px 20px;background:linear-gradient(135deg,#ff6500 0%,#ff9a44 35%,#7b5cff 100%);}
+.cgl-box{color:#fff;font-size:16px;font-weight:600;padding:22px 34px;text-shadow:0 1px 3px rgba(0,0,0,.25);}
+</style>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>北京标准时间在线 - 词海工具箱</title>
+<meta name="description" content="北京时间在线校准：实时显示北京时间（UTC+8）精确到秒，附世界主要城市时区对照与时间戳，方便对时。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/bjtime.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="bjtime" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="tools-cent"><div class="bt-clock">
+      <div class="bt-time" id="time">--:--:--</div>
+      <div class="bt-date" id="date">---------</div>
+      <div class="bt-week" id="week"></div>
+      <div class="bt-tip">北京时间（UTC+8）</div>
+    </div></div>
+    <div class="vout on">
+      <div class="vhead"><strong>世界主要城市时间</strong></div>
+      <div id="world" class="bt-world"></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>时间戳</strong></div>
+      <div id="ts" class="bt-ts"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于北京标准时间介绍：</h4>
+    <ol>
+      <li>北京时间采用东八区（UTC+8）区时，是全国统一使用的标准时间。</li>
+      <li>本工具时间取自你设备系统时钟，显示为北京时间；若需高精度对时，请以国家授时中心为准。</li>
+      <li>下方同时展示世界主要城市当前时间与 Unix 时间戳，便于跨时区协作。</li>
+      <li>页面每秒自动刷新，无需手动操作。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+const WEEK = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+const CITIES = [
+  ["北京", 8], ["东京", 9], ["首尔", 9], ["新加坡", 8], ["曼谷", 7], ["迪拜", 4],
+  ["莫斯科", 3], ["伦敦", 0], ["巴黎", 1], ["柏林", 1], ["纽约", -5], ["洛杉矶", -8],
+  ["悉尼", 11], ["圣保罗", -3]
+];
+
+/* 计算某时区当前时间 */
+function __xfZoneTime(nowMs, offsetHours) {
+  const t = new Date(nowMs + offsetHours * 3600000);
+  return {
+    time: String(t.getUTCHours()).padStart(2, "0") + ":" + String(t.getUTCMinutes()).padStart(2, "0") + ":" + String(t.getUTCSeconds()).padStart(2, "0"),
+    date: t.getUTCFullYear() + "-" + String(t.getUTCMonth() + 1).padStart(2, "0") + "-" + String(t.getUTCDate()).padStart(2, "0"),
+    hour: t.getUTCHours()
+  };
+}
+window.__xfZoneTime = __xfZoneTime;
+
+const $ = id => document.getElementById(id);
+function tick() {
+  const now = Date.now();
+  const bj = __xfZoneTime(now, 8);
+  $("time").textContent = bj.time;
+  $("date").textContent = bj.date;
+  const d = new Date(now + 8 * 3600000);
+  $("week").textContent = WEEK[d.getUTCDay()];
+  $("world").innerHTML = CITIES.map(([name, off]) => {
+    const z = __xfZoneTime(now, off);
+    const night = z.hour < 6 || z.hour >= 20;
+    return '<div class="bt-city' + (night ? " bt-night" : "") + '"><div class="bt-cn">' + name + (off === 8 && name === "北京" ? "" : " UTC" + (off >= 0 ? "+" : "") + off) + '</div><div class="bt-ct">' + z.time + "</div><div class=\"bt-cd\">" + z.date + "</div></div>";
+  }).join("");
+  $("ts").innerHTML = '<div class="bt-tsrow"><b>Unix 时间戳（秒）</b><span>' + Math.floor(now / 1000) + "</span></div>" +
+    '<div class="bt-tsrow"><b>时间戳（毫秒）</b><span>' + now + "</span></div>" +
+    '<div class="bt-tsrow"><b>ISO 8601</b><span>' + new Date(now).toISOString() + "</span></div>";
+}
+tick();
+setInterval(tick, 1000);
+</script>
+<style>
+.bt-clock{text-align:center;padding:30px 16px;background:linear-gradient(135deg,#ff6500,#ff9a44);border-radius:12px;color:#fff;}
+.bt-time{font-size:52px;font-weight:700;font-family:Consolas,Monaco,monospace;letter-spacing:2px;line-height:1.1;}
+.bt-date{font-size:17px;margin-top:8px;opacity:.95;}
+.bt-week{font-size:14px;margin-top:2px;opacity:.9;}
+.bt-tip{font-size:12px;margin-top:12px;opacity:.85;}
+.bt-world{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.bt-city{border:1px solid #eee;border-radius:8px;padding:10px 12px;background:#fafafa;}
+.bt-city.bt-night{background:#eef1f6;}
+.bt-cn{font-size:12px;color:#888;}
+.bt-ct{font-size:17px;font-weight:600;color:#333;font-family:Consolas,Monaco,monospace;margin:4px 0;}
+.bt-cd{font-size:11px;color:#aaa;}
+.bt-ts{border:1px solid #eee;border-radius:8px;overflow:hidden;}
+.bt-tsrow{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;}
+.bt-tsrow:last-child{border-bottom:none;}
+.bt-tsrow b{color:#888;font-weight:400;flex:0 0 auto;}
+.bt-tsrow span{color:#1f6feb;font-family:Consolas,Monaco,monospace;word-break:break-all;text-align:right;}
+html.dark .bt-city{background:#22262b;border-color:#333a42;}
+html.dark .bt-city.bt-night{background:#1c2026;}
+html.dark .bt-ct{color:#e6e6e6;}
+html.dark .bt-ts{border-color:#333a42;}
+html.dark .bt-tsrow{border-color:#2c3239;color:#ddd;}
+html.dark .bt-tsrow b{color:#999;}
+html.dark .bt-tsrow span{color:#6cb6ff;}
+</style>
+</body>
+</html>

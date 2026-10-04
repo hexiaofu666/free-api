@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS背景渐变色生成器 - 词海工具箱</title>
+<meta name="description" content="CSS 渐变背景生成器：可视化配置线性/径向渐变、角度与多个色标位置，实时预览渐变效果并复制 background 代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssgradient.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssgradient" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>渐变类型</label>
+        <select id="type"><option value="linear" selected>线性渐变 linear-gradient</option><option value="radial">径向渐变 radial-gradient</option></select>
+      </div>
+      <div class="fitem"><label>角度 <b id="av">135</b>°（线性时有效）</label><input type="range" id="angle" min="0" max="360" value="135"></div>
+      <div class="fitem"><label>色标 1</label><input type="color" id="c1" value="#ff6500"> <input type="number" id="p1" value="0" min="0" max="100" style="width:70px;">%</div>
+      <div class="fitem"><label>色标 2</label><input type="color" id="c2" value="#ff9a44"> <input type="number" id="p2" value="50" min="0" max="100" style="width:70px;">%</div>
+      <div class="fitem"><label>启用色标 3</label>
+        <select id="on3"><option value="0" selected>否</option><option value="1">是</option></select>
+      </div>
+      <div class="fitem"><label>色标 3</label><input type="color" id="c3" value="#7b5cff"> <input type="number" id="p3" value="100" min="0" max="100" style="width:70px;">%</div>
+      <div class="fitem"><label>常用预设</label>
+        <select id="preset">
+          <option value="">自定义</option>
+          <option value="sunset">日落橙</option>
+          <option value="ocean">海洋蓝</option>
+          <option value="purple">梦幻紫</option>
+          <option value="forest">森林绿</option>
+          <option value="fire">烈焰红</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div id="prev" class="cgd-prev">渐变预览</div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:110px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CSS 渐变背景生成器介绍：</h4>
+    <ol>
+      <li>CSS 渐变无需图片即可实现平滑的色彩过渡，是背景、按钮、标题的高频用法。</li>
+      <li>线性渐变用角度控制方向：0deg 向上、90deg 向右、135deg 右下。</li>
+      <li>每个色标由颜色和位置（百分比）组成，位置决定该颜色出现在哪个进度点。</li>
+      <li>可开启第三个色标做三段渐变，也能选用内置预设配色快速开始。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 生成 background 值 */
+function __xfGradientValue(o) {
+  const stops = (o.stops || []).filter(s => s.on !== false).map(s => s.color + " " + s.pos + "%");
+  if (o.type === "radial") return "radial-gradient(circle, " + stops.join(", ") + ")";
+  return "linear-gradient(" + o.angle + "deg, " + stops.join(", ") + ")";
+}
+function __xfGradientCss(o) {
+  return ".gradient {\n  background: " + __xfGradientValue(o) + ";\n}";
+}
+window.__xfGradientCss = __xfGradientCss;
+window.__xfGradientValue = __xfGradientValue;
+
+const $ = id => document.getElementById(id);
+const PRESETS = {
+  sunset: [{ c: "#ff6500", p: 0 }, { c: "#ff9a44", p: 50 }, { c: "#ffd200", p: 100 }],
+  ocean: [{ c: "#2193b0", p: 0 }, { c: "#6dd5ed", p: 100 }],
+  purple: [{ c: "#7b5cff", p: 0 }, { c: "#c471ed", p: 50 }, { c: "#f64f59", p: 100 }],
+  forest: [{ c: "#11998e", p: 0 }, { c: "#38ef7d", p: 100 }],
+  fire: [{ c: "#f12711", p: 0 }, { c: "#f5af19", p: 100 }]
+};
+function collect() {
+  const on3 = $("on3").value === "1";
+  return {
+    type: $("type").value, angle: +$("angle").value,
+    stops: [
+      { color: $("c1").value, pos: +$("p1").value, on: true },
+      { color: $("c2").value, pos: +$("p2").value, on: true },
+      { color: $("c3").value, pos: +$("p3").value, on: on3 }
+    ]
+  };
+}
+function run() {
+  const o = collect();
+  $("av").textContent = o.angle;
+  const val = __xfGradientValue(o);
+  $("prev").style.background = val;
+  $("res").value = __xfGradientCss(o);
+}
+["type", "angle", "c1", "p1", "c2", "p2", "on3", "c3", "p3"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("preset").addEventListener("change", () => {
+  const p = PRESETS[$("preset").value];
+  if (p) {
+    $("c1").value = p[0].c; $("p1").value = p[0].p;
+    $("c2").value = p[1].c; $("p2").value = p[1].p;
+    if (p[2]) { $("on3").value = "1"; $("c3").value = p[2].c; $("p3").value = p[2].p; }
+    else { $("on3").value = "0"; }
+  }
+  run();
+});
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("type").value = "linear"; $("angle").value = 135; $("c1").value = "#ff6500"; $("p1").value = 0; $("c2").value = "#ff9a44"; $("p2").value = 50; $("on3").value = "0"; $("preset").value = ""; run(); };
+run();
+</script>
+<style>
+.cgd-prev{height:180px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.3);}
+</style>
+</body>
+</html>

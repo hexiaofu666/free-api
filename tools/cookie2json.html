@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cookie转JSON在线工具 - 词海工具箱</title>
+<meta name="description" content="Cookie 转 JSON 工具：把浏览器 Cookie 字符串解析为 JSON 对象，支持 URL 解码、值类型自动推断与排序输出，方便调试接口。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cookie2json.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cookie2json" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>Cookie 字符串（分号分隔）</label>
+        <textarea id="src" style="height:120px;" placeholder="sessionid=abc123; lang=zh-CN; uid=10086"></textarea>
+      </div>
+      <div class="fitem"><label>URL 解码</label>
+        <select id="dec"><option value="1" selected>自动解码（decodeURIComponent）</option><option value="0">保持原样</option></select>
+      </div>
+      <div class="fitem"><label>值类型</label>
+        <select id="typo"><option value="1" selected>自动推断数字/布尔</option><option value="0">全部按字符串</option></select>
+      </div>
+      <div class="fitem"><label>输出排序</label>
+        <select id="sort"><option value="0" selected>保持原顺序</option><option value="1">按键名排序</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">解析为 JSON</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">JSON 结果</strong></div>
+      <textarea id="res" readonly style="height:170px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 Cookie 转 JSON 工具介绍：</h4>
+    <ol>
+      <li>浏览器开发者工具里的 Cookie 是一串 <code>k=v; k2=v2</code> 形式的文本，本工具把它解析成 JSON 对象。</li>
+      <li>可自动对值做 URL 解码（处理 %E4%B8%AD 这类编码）与类型推断（1 → 数字、true → 布尔）。</li>
+      <li>解析结果可按键名排序，便于对比两次请求的 Cookie 差异。</li>
+      <li>如需反向转换，可使用「JSON 转 Cookie」工具。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 值得推断的类型 */
+function __xfInferType(v) {
+  if (v === "true") return true;
+  if (v === "false") return false;
+  if (v === "null") return null;
+  if (/^-?\d+$/.test(v) && v.length < 16) return parseInt(v, 10);
+  if (/^-?\d+\.\d+$/.test(v)) return parseFloat(v);
+  return v;
+}
+
+/* Cookie -> 对象 */
+function __xfCookie2Obj(str, opts) {
+  opts = opts || {};
+  const s = String(str == null ? "" : str).trim();
+  const out = {};
+  if (!s) return out;
+  s.split(";").forEach(pair => {
+    const p = pair.trim();
+    if (p === "") return;
+    const i = p.indexOf("=");
+    let k, v;
+    if (i < 0) { k = p; v = ""; } else { k = p.slice(0, i).trim(); v = p.slice(i + 1).trim(); }
+    if (opts.decode !== false) { try { k = decodeURIComponent(k); } catch (e) {} try { v = decodeURIComponent(v); } catch (e) {} }
+    if (opts.infer !== false) v = __xfInferType(v);
+    out[k] = v;
+  });
+  if (opts.sort) {
+    const sorted = {};
+    Object.keys(out).sort().forEach(k => { sorted[k] = out[k]; });
+    return sorted;
+  }
+  return out;
+}
+
+function __xfCookie2Json(str, opts) {
+  return JSON.stringify(__xfCookie2Obj(str, opts), null, 2);
+}
+
+window.__xfCookie2Obj = __xfCookie2Obj;
+window.__xfCookie2Json = __xfCookie2Json;
+window.__xfInferType = __xfInferType;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const obj = __xfCookie2Obj($("src").value, { decode: $("dec").value === "1", infer: $("typo").value === "1", sort: $("sort").value === "1" });
+  $("res").value = JSON.stringify(obj, null, 2);
+  $("tip").textContent = "共 " + Object.keys(obj).length + " 个 Cookie 项";
+}
+$("runBtn").onclick = run;
+$("src").addEventListener("input", run);
+$("dec").onchange = run; $("typo").onchange = run; $("sort").onchange = run;
+$("copyBtn").onclick = () => { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制")); };
+$("src").value = "sessionid=abc123; lang=zh-CN; uid=10086; isVip=true; nick=%E5%B0%8F%E5%AF%8C%E5%AD%90";
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>键盘按键在线测试工具 - 词海工具箱</title>
+<meta name="description" content="键盘按键测试工具：按下任意按键即可检测是否正常响应，显示键名、keyCode 与 code，并记录历史按键，排查键盘失灵问题。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/keyboardtest.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="keyboardtest" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vout on">
+      <div class="vhead"><strong>当前按键</strong></div>
+      <div class="kb-now">
+        <div class="kb-big" id="big">请按下任意键</div>
+        <div class="kb-meta">
+          <div><b>key</b><span id="kKey">-</span></div>
+          <div><b>code</b><span id="kCode">-</span></div>
+          <div><b>keyCode</b><span id="kNum">-</span></div>
+          <div><b>按住状态</b><span id="kState">-</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn gray" id="clrBtn">清空记录</button>
+      <button class="fbtn brown" id="testBtn">键盘自检（高亮全部）</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>已按下的按键（<span id="cnt">0</span> 个不重复）</strong></div>
+      <div id="list" class="kb-list"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于键盘按键测试工具介绍：</h4>
+    <ol>
+      <li>用来排查键盘按键失灵、连击、无响应等问题，按一下看是否有反应即可判断。</li>
+      <li>同时显示 key（字符）、code（物理键位编码）、keyCode（旧版数字编码），方便开发调试。</li>
+      <li>「按住状态」可看出按键是否为长按重复触发（自动重复会显示「重复」）。</li>
+      <li>下方会记录你已经按过的所有不同按键，便于逐个检查键盘完整性。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 提取按键信息 */
+function __xfKeyInfo(e) {
+  return {
+    key: e.key,
+    code: e.code || "",
+    keyCode: e.keyCode !== undefined ? e.keyCode : 0,
+    repeat: !!e.repeat
+  };
+}
+window.__xfKeyInfo = __xfKeyInfo;
+
+const $ = id => document.getElementById(id);
+const pressed = {};
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+function onDown(e) {
+  const info = __xfKeyInfo(e);
+  const label = info.key === " " ? "Space" : (info.key.length === 1 ? info.key.toUpperCase() : info.key);
+  $("big").textContent = label;
+  $("big").classList.add("kb-active");
+  $("kKey").textContent = info.key === " " ? "(空格)" : info.key;
+  $("kCode").textContent = info.code || "-";
+  $("kNum").textContent = info.keyCode;
+  $("kState").textContent = info.repeat ? "重复（长按触发）" : "已按下";
+  const id = info.code || String(info.keyCode);
+  if (!pressed[id]) {
+    pressed[id] = true;
+    renderList();
+  }
+  // 阻止空格滚动页面
+  if (info.key === " " || info.key === "Tab") e.preventDefault();
+}
+function onUp(e) {
+  $("big").classList.remove("kb-active");
+  $("kState").textContent = "已释放";
+}
+function renderList() {
+  const keys = Object.keys(pressed);
+  $("cnt").textContent = keys.length;
+  $("list").innerHTML = keys.map(k => '<span class="kb-chip">' + esc(k) + "</span>").join("") || '<span class="kb-empty">还没有按下任何按键</span>';
+}
+window.addEventListener("keydown", onDown);
+window.addEventListener("keyup", onUp);
+$("clrBtn").onclick = () => { Object.keys(pressed).forEach(k => delete pressed[k]); renderList(); $("kKey").textContent = $("kCode").textContent = $("kNum").textContent = "-"; $("kState").textContent = "-"; $("big").textContent = "请按下任意键"; };
+$("testBtn").onclick = () => {
+  $("big").textContent = "自检";
+  $("big").classList.add("kb-active");
+  setTimeout(() => { $("big").classList.remove("kb-active"); $("big").textContent = "请按下任意键"; }, 600);
+};
+renderList();
+</script>
+<style>
+.kb-now{border:1px solid #eee;border-radius:10px;padding:20px;background:#fafafa;}
+.kb-big{font-size:34px;font-weight:700;color:#333;text-align:center;min-height:48px;line-height:48px;font-family:Consolas,Monaco,monospace;transition:color .15s;}
+.kb-big.kb-active{color:#ff6500;}
+.kb-meta{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:16px;}
+.kb-meta div{background:#fff;border:1px solid #eee;border-radius:6px;padding:8px 10px;font-size:12px;}
+.kb-meta b{display:block;color:#999;font-weight:400;margin-bottom:3px;}
+.kb-meta span{color:#1f6feb;font-family:Consolas,Monaco,monospace;font-size:13px;word-break:break-all;}
+.kb-list{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;}
+.kb-chip{background:#eef1f6;border:1px solid #dfe4ec;border-radius:5px;padding:4px 9px;font-size:12px;color:#444;font-family:Consolas,Monaco,monospace;}
+.kb-empty{color:#aaa;font-size:13px;}
+html.dark .kb-now{background:#22262b;border-color:#333a42;}
+html.dark .kb-big{color:#e6e6e6;}
+html.dark .kb-meta div{background:#1e2227;border-color:#333a42;}
+html.dark .kb-meta span{color:#6cb6ff;}
+html.dark .kb-chip{background:#2a2f36;border-color:#3a424b;color:#ddd;}
+</style>
+</body>
+</html>

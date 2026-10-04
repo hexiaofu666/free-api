@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线手持弹幕工具 - 词海工具箱</title>
+<meta name="description" content="在线手持弹幕工具：输入文字即可全屏滚动显示大字弹幕，支持调节速度、颜色、字号与背景，手机横屏即可当应援牌使用。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/danmu.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="danmu" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>弹幕文字</label><input type="text" id="text" value="词海工具箱 加油！"></div>
+      <div class="fitem"><label>文字颜色</label><input type="color" id="color" value="#ffffff"></div>
+      <div class="fitem"><label>背景颜色</label><input type="color" id="bg" value="#000000"></div>
+      <div class="fitem"><label>字号 <b id="fv">64</b>px</label><input type="range" id="fs" min="24" max="160" value="64"></div>
+      <div class="fitem"><label>滚动速度 <b id="sv">6</b></label><input type="range" id="speed" min="1" max="20" value="6"></div>
+      <div class="fitem"><label>显示方式</label>
+        <select id="mode">
+          <option value="scroll" selected>横向滚动</option>
+          <option value="static" >静止居中</option>
+          <option value="blink">闪烁</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="startBtn">开始播放（全屏）</button>
+      <button class="fbtn gray" id="rotateBtn">旋转 90°</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>预览（点击开始可全屏）</strong></div>
+      <div id="stage" class="dm-stage"><div id="dmText" class="dm-text">词海工具箱 加油！</div></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线手持弹幕工具介绍：</h4>
+    <ol>
+      <li>手持弹幕是演唱会、赛场、接机应援的实用工具，把手机屏幕变成滚动的大字牌。</li>
+      <li>支持横向滚动、静止居中、闪烁三种显示方式，颜色、字号与速度都可自由调节。</li>
+      <li>点击「开始播放」进入全屏模式，手机横屏观看效果最佳；也可点「旋转 90°」适配横屏手持。</li>
+      <li>全屏后点击屏幕任意位置即可退出。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 依据速度值换算动画时长（秒）；0 视为最慢，非法值用默认 6 */
+function __xfDanmuDuration(speed) {
+  const n = Number(speed);
+  const s = Math.max(1, Math.min(20, isFinite(n) ? n : 6));
+  // 速度越大越快 => 时长越短
+  return Number((22 - s).toFixed(1));
+}
+window.__xfDanmuDuration = __xfDanmuDuration;
+
+const $ = id => document.getElementById(id);
+let rotated = false;
+
+function apply() {
+  const t = $("dmText"), stage = $("stage");
+  t.textContent = $("text").value || "弹幕";
+  t.style.color = $("color").value;
+  stage.style.background = $("bg").value;
+  t.style.fontSize = $("fs").value + "px";
+  $("fv").textContent = $("fs").value; $("sv").textContent = $("speed").value;
+  const mode = $("mode").value;
+  t.style.animation = "";
+  t.style.transform = "";
+  if (mode === "scroll") {
+    const dur = __xfDanmuDuration($("speed").value);
+    t.style.animation = "dm-scroll " + dur + "s linear infinite";
+  } else if (mode === "blink") {
+    t.style.animation = "dm-blink 0.6s steps(1,end) infinite";
+  }
+  t.style.whiteSpace = mode === "scroll" ? "nowrap" : "normal";
+}
+
+["text", "color", "bg", "fs", "speed", "mode"].forEach(id => { $(id).addEventListener("input", apply); $(id).addEventListener("change", apply); });
+
+$("startBtn").onclick = () => {
+  const el = $("stage");
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+};
+$("rotateBtn").onclick = () => {
+  rotated = !rotated;
+  $("stage").style.transform = rotated ? "rotate(90deg)" : "";
+  $("stage").style.transformOrigin = "center center";
+};
+$("stage").addEventListener("dblclick", () => { if (document.fullscreenElement) document.exitFullscreen(); });
+apply();
+</script>
+<style>
+.dm-stage{height:190px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:transform .4s ease;}
+.dm-text{font-weight:700;letter-spacing:2px;padding:0 20px;text-align:center;line-height:1.3;}
+@keyframes dm-scroll{from{transform:translateX(100%);}to{transform:translateX(-100%);}}
+@keyframes dm-blink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
+.dm-stage:fullscreen{height:100vh;border-radius:0;}
+.dm-stage:fullscreen .dm-text{font-size:12vh !important;}
+</style>
+</body>
+</html>

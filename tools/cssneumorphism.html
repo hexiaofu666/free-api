@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新拟态风格CSS代码生成器 - 词海工具箱</title>
+<meta name="description" content="新拟态（Neumorphism）CSS 生成器：调节背景色、凸起/凹陷、距离与模糊，一键生成柔和双阴影代码，实时预览立体质感。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssneumorphism.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssneumorphism" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>背景色</label><input type="color" id="bg" value="#e8eaef"></div>
+      <div class="fitem"><label>风格</label>
+        <select id="shape"><option value="raised" selected>凸起（Raised）</option><option value="pressed">凹陷（Pressed）</option><option value="flat">扁平（Flat）</option></select>
+      </div>
+      <div class="fitem"><label>阴影距离 <b id="dv">12</b>px</label><input type="range" id="dist" min="2" max="40" value="12"></div>
+      <div class="fitem"><label>模糊半径 <b id="bv">24</b>px</label><input type="range" id="blur" min="4" max="80" value="24"></div>
+      <div class="fitem"><label>圆角 <b id="rv">20</b>px</label><input type="range" id="radius" min="0" max="70" value="20"></div>
+      <div class="fitem"><label>元素宽 <b id="wv">160</b>px</label><input type="range" id="w" min="60" max="280" value="160"></div>
+      <div class="fitem"><label>元素高 <b id="hv">110</b>px</label><input type="range" id="h" min="40" max="220" value="110"></div>
+      <div class="fitem"><label>亮/暗对比 <b id="cv">0.16</b></label><input type="range" id="contrast" min="4" max="40" value="16"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div id="prev" class="neu-prev"><div id="prevBox" class="neu-box">Neumorphism</div></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:150px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于新拟态风格 CSS 生成器介绍：</h4>
+    <ol>
+      <li>新拟态（Neumorphism / Soft UI）是近年流行的拟物化风格：元素与背景同色，靠一明一暗两道阴影塑造立体感。</li>
+      <li>关键在于「左上受光、右下投影」——左上用浅色阴影、右下用深色阴影，视觉上就立体了。</li>
+      <li>凸起效果用外阴影，凹陷效果用 inset 内阴影。</li>
+      <li>注意：新拟态在浅色背景下对比度较低，做按钮时建议搭配合适的文字颜色以保证可读性。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+function __xfHexRgb(hex) {
+  const h = String(hex).replace("#", "");
+  const f = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  return [parseInt(f.slice(0, 2), 16), parseInt(f.slice(2, 4), 16), parseInt(f.slice(4, 6), 16)];
+}
+/* 按比例调亮/调暗 */
+function __xfShade(hex, amt) {
+  const rgb = __xfHexRgb(hex).map(v => {
+    let n = Math.round(v + 255 * amt);
+    return Math.max(0, Math.min(255, n));
+  });
+  return "#" + rgb.map(v => v.toString(16).padStart(2, "0")).join("");
+}
+/* 生成 box-shadow */
+function __xfNeumorphShadow(o) {
+  const light = __xfShade(o.bg, o.contrast);
+  const dark = __xfShade(o.bg, -o.contrast);
+  const d = o.dist, b = o.blur;
+  if (o.shape === "pressed") {
+    return "inset " + d + "px " + d + "px " + b + "px " + dark + ", inset -" + d + "px -" + d + "px " + b + "px " + light;
+  }
+  if (o.shape === "flat") {
+    return d + "px " + d + "px " + b + "px " + dark + ", -" + d + "px -" + d + "px " + b + "px " + light;
+  }
+  return d + "px " + d + "px " + b + "px " + dark + ", -" + d + "px -" + d + "px " + b + "px " + light;
+}
+function __xfNeumorphCss(o) {
+  return [
+    ".neu {",
+    "  width: " + o.w + "px;",
+    "  height: " + o.h + "px;",
+    "  background: " + o.bg + ";",
+    "  border-radius: " + o.radius + "px;",
+    "  box-shadow: " + __xfNeumorphShadow(o) + ";",
+    "}"
+  ].join("\n");
+}
+window.__xfNeumorphCss = __xfNeumorphCss;
+window.__xfNeumorphShadow = __xfNeumorphShadow;
+window.__xfShade = __xfShade;
+
+const $ = id => document.getElementById(id);
+function collect() {
+  return { bg: $("bg").value, shape: $("shape").value, dist: +$("dist").value, blur: +$("blur").value, radius: +$("radius").value, w: +$("w").value, h: +$("h").value, contrast: +$("contrast").value / 100 };
+}
+function run() {
+  const o = collect();
+  $("dv").textContent = o.dist; $("bv").textContent = o.blur; $("rv").textContent = o.radius; $("wv").textContent = o.w; $("hv").textContent = o.h; $("cv").textContent = o.contrast.toFixed(2);
+  const p = $("prev"), box = $("prevBox");
+  p.style.background = o.bg;
+  box.style.width = o.w + "px";
+  box.style.height = o.h + "px";
+  box.style.background = o.bg;
+  box.style.borderRadius = o.radius + "px";
+  box.style.boxShadow = __xfNeumorphShadow(o);
+  box.style.color = __xfShade(o.bg, -0.55);
+  $("res").value = __xfNeumorphCss(o);
+}
+["bg", "shape", "dist", "blur", "radius", "w", "h", "contrast"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("bg").value = "#e8eaef"; $("shape").value = "raised"; $("dist").value = 12; $("blur").value = 24; $("radius").value = 20; $("w").value = 160; $("h").value = 110; $("contrast").value = 16; run(); };
+run();
+</script>
+<style>
+.neu-prev{display:flex;align-items:center;justify-content:center;padding:50px 30px;border-radius:10px;transition:background .2s;}
+.neu-box{display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;transition:all .2s;}
+</style>
+</body>
+</html>

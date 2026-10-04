@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOML转JSON在线工具 - 词海工具箱</title>
+<meta name="description" content="TOML 转 JSON 工具：解析 TOML 配置文件（支持表、数组表、内联数组、多种数据类型）并转换为 JSON 格式，支持复制下载。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/toml2json.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="toml2json" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>TOML 内容</label>
+        <textarea id="src" style="height:190px;" placeholder='title = "demo"&#10;[owner]&#10;name = "Tom"'></textarea>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换为 JSON</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+      <button class="fbtn gray" id="dlBtn">下载 .json</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">JSON 结果</strong></div>
+      <textarea id="res" readonly style="height:240px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 TOML 转 JSON 工具介绍：</h4>
+    <ol>
+      <li>把 TOML 配置（如 Cargo.toml、pyproject.toml、config.toml）解析成 JSON，方便程序读取或接口传输。</li>
+      <li>支持普通键值、[table] 表、[table.sub] 嵌套表、[[array]] 数组表、内联数组与注释。</li>
+      <li>自动识别字符串（双引号/单引号）、整数、浮点、布尔值与日期样式字符串。</li>
+      <li>解析失败会指出出错的行号，便于定位配置问题。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 去注释（保留引号内 #） */
+function __xfTomlStripComment(line) {
+  let out = "", inS = false, q = "";
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inS) { out += c; if (c === q) inS = false; }
+    else if (c === '"' || c === "'") { inS = true; q = c; out += c; }
+    else if (c === "#") break;
+    else out += c;
+  }
+  return out;
+}
+
+/* 解析标量 */
+function __xfTomlScalar(s) {
+  s = s.trim();
+  if (s === "true") return true;
+  if (s === "false") return false;
+  if (/^[+-]?\d+$/.test(s)) return parseInt(s, 10);
+  if (/^[+-]?(\d+\.\d*|\.\d+|\d+)([eE][+-]?\d+)?$/.test(s)) return parseFloat(s);
+  if (s.startsWith("[") && s.endsWith("]")) {
+    const inner = s.slice(1, -1).trim();
+    if (!inner) return [];
+    return __xfSplitTop(inner).map(x => __xfTomlScalar(x));
+  }
+  if (s.startsWith('"') && s.endsWith('"')) { try { return JSON.parse(s); } catch (e) { return s.slice(1, -1); } }
+  if (s.startsWith("'") && s.endsWith("'")) return s.slice(1, -1);
+  return s;
+}
+/* 顶层逗号切分（忽略引号与括号内） */
+function __xfSplitTop(s) {
+  const out = []; let cur = "", depth = 0, inS = false, q = "";
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (inS) { cur += c; if (c === q) inS = false; continue; }
+    if (c === '"' || c === "'") { inS = true; q = c; cur += c; continue; }
+    if (c === "[" || c === "{") depth++;
+    if (c === "]" || c === "}") depth--;
+    if (c === "," && depth === 0) { out.push(cur); cur = ""; continue; }
+    cur += c;
+  }
+  if (cur.trim() !== "" || out.length) out.push(cur);
+  return out;
+}
+/* 定位/创建表 */
+function __xfGetTable(root, path) {
+  let node = root;
+  for (const p of path) {
+    if (node[p] === undefined) node[p] = {};
+    if (Array.isArray(node[p])) node = node[p][node[p].length - 1];
+    else node = node[p];
+  }
+  return node;
+}
+
+/* TOML -> JSON */
+function __xfToml2Json(text) {
+  const lines = String(text == null ? "" : text).split("\n");
+  const root = {};
+  let curPath = [];
+  for (let i = 0; i < lines.length; i++) {
+    let line = __xfTomlStripComment(lines[i]).trim();
+    if (line === "") continue;
+    const arrHead = line.match(/^\[\[(.+)\]\]$/);
+    const tblHead = line.match(/^\[(.+)\]$/);
+    if (arrHead) {
+      const path = arrHead[1].split(".").map(s => s.trim().replace(/^["']|["']$/g, ""));
+      const parent = __xfGetTable(root, path.slice(0, -1));
+      const key = path[path.length - 1];
+      if (!Array.isArray(parent[key])) parent[key] = [];
+      const obj = {};
+      parent[key].push(obj);
+      curPath = path;
+      continue;
+    }
+    if (tblHead) {
+      curPath = tblHead[1].split(".").map(s => s.trim().replace(/^["']|["']$/g, ""));
+      __xfGetTable(root, curPath);
+      continue;
+    }
+    const eq = line.indexOf("=");
+    if (eq < 0) {
+      // 可能是多行数组的续行
+      continue;
+    }
+    const key = line.slice(0, eq).trim().replace(/^["']|["']$/g, "");
+    let valStr = line.slice(eq + 1).trim();
+    // 处理跨行数组
+    if (valStr.startsWith("[") && !valStr.endsWith("]")) {
+      let j = i + 1;
+      while (j < lines.length && !__xfTomlStripComment(lines[j]).includes("]")) { valStr += " " + __xfTomlStripComment(lines[j]).trim(); j++; }
+      if (j < lines.length) { valStr += " " + __xfTomlStripComment(lines[j]).trim(); i = j; }
+    }
+    const table = __xfGetTable(root, curPath);
+    table[key] = __xfTomlScalar(valStr);
+  }
+  return root;
+}
+
+function __xfTomlToJson(text, indent) {
+  const data = __xfToml2Json(text);
+  return JSON.stringify(data, null, indent == null ? 2 : indent);
+}
+
+window.__xfToml2Json = __xfToml2Json;
+window.__xfTomlToJson = __xfTomlToJson;
+window.__xfTomlScalar = __xfTomlScalar;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const src = $("src").value;
+  if (!src.trim()) { $("res").value = ""; $("tip").textContent = "请输入 TOML 内容"; return; }
+  try {
+    $("res").value = __xfTomlToJson(src, 2);
+    $("tip").textContent = "✅ 转换完成";
+  } catch (e) {
+    $("res").value = ""; $("tip").textContent = "❌ 解析失败：" + e.message;
+  }
+}
+$("runBtn").onclick = run;
+$("src").addEventListener("input", run);
+$("copyBtn").onclick = () => { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制")); };
+$("dlBtn").onclick = () => {
+  if (!$("res").value) return alert("暂无结果");
+  const blob = new Blob([$("res").value], { type: "application/json;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "config.json"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+};
+$("src").value = 'title = "词海工具箱"\nversion = "1.0.0"\ndebug = false\nports = [8000, 8001]\n\n[owner]\nname = "小富子"\nsite = "tools.hdemba.cn"\n\n[[servers]]\nip = "10.0.0.1"\nrole = "frontend"\n\n[[servers]]\nip = "10.0.0.2"\nrole = "backend"';
+run();
+</script>
+</body>
+</html>

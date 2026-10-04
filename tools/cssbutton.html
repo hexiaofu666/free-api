@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS按钮在线生成工具 - 词海工具箱</title>
+<meta name="description" content="CSS 按钮生成器：可视化设置背景渐变、文字颜色、圆角、内边距、字号与阴影，实时预览并复制完整按钮 CSS（含 hover 效果）。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssbutton.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssbutton" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>按钮文字</label><input type="text" id="text" value="立即使用"></div>
+      <div class="fitem"><label>填充方式</label>
+        <select id="fill"><option value="solid" selected>纯色</option><option value="gradient">渐变</option></select>
+      </div>
+      <div class="fitem"><label>主色</label><input type="color" id="c1" value="#ff6500"></div>
+      <div class="fitem"><label>渐变副色</label><input type="color" id="c2" value="#ff9a44"></div>
+      <div class="fitem"><label>渐变角度 <b id="gv">90</b>°</label><input type="range" id="angle" min="0" max="360" value="90"></div>
+      <div class="fitem"><label>文字颜色</label><input type="color" id="tc" value="#ffffff"></div>
+      <div class="fitem"><label>圆角 <b id="rv">8</b>px</label><input type="range" id="radius" min="0" max="40" value="8"></div>
+      <div class="fitem"><label>水平内边距 <b id="pv">26</b>px</label><input type="range" id="px" min="6" max="60" value="26"></div>
+      <div class="fitem"><label>垂直内边距 <b id="pyv">12</b>px</label><input type="range" id="py" min="4" max="30" value="12"></div>
+      <div class="fitem"><label>字号 <b id="fv">15</b>px</label><input type="range" id="fs" min="12" max="30" value="15"></div>
+      <div class="fitem"><label>字重</label>
+        <select id="fw"><option value="400">常规</option><option value="600" selected>半粗</option><option value="700">粗体</option></select>
+      </div>
+      <div class="fitem"><label>悬停变暗</label>
+        <select id="hover"><option value="1" selected>是（filter 变暗）</option><option value="0">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览（鼠标移上去看效果）</strong></div>
+      <div class="cbt-prev"><button id="prev" class="cbt-btn">立即使用</button></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CSS 按钮生成器介绍：</h4>
+    <ol>
+      <li>按钮是最常见的 UI 元素，本工具把常用的背景、圆角、内边距、字号、字重、阴影等参数可视化。</li>
+      <li>支持纯色与渐变两种填充方式，渐变比纯色更有质感，常用于主行动按钮。</li>
+      <li>可开启悬停变暗（filter: brightness）或自定义 hover 效果，增强交互反馈。</li>
+      <li>生成的代码包含默认态与 hover 态，粘贴到你的样式文件即可使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 生成按钮 CSS */
+function __xfButtonCss(o) {
+  const bg = o.fill === "gradient" ? "linear-gradient(" + o.angle + "deg, " + o.c1 + " 0%, " + o.c2 + " 100%)" : o.c1;
+  const lines = [
+    "display: inline-block;",
+    "padding: " + o.py + "px " + o.px + "px;",
+    "background: " + bg + ";",
+    "color: " + o.tc + ";",
+    "font-size: " + o.fs + "px;",
+    "font-weight: " + o.fw + ";",
+    "border: none;",
+    "border-radius: " + o.radius + "px;",
+    "cursor: pointer;",
+    "transition: all 0.25s ease;"
+  ];
+  let css = ".btn {\n  " + lines.join("\n  ") + "\n}";
+  if (o.hover) {
+    css += "\n\n.btn:hover {\n  filter: brightness(0.92);\n  transform: translateY(-1px);\n}";
+  }
+  return css;
+}
+window.__xfButtonCss = __xfButtonCss;
+
+const $ = id => document.getElementById(id);
+function collect() {
+  return { text: $("text").value, fill: $("fill").value, c1: $("c1").value, c2: $("c2").value, angle: +$("angle").value, tc: $("tc").value, radius: +$("radius").value, px: +$("px").value, py: +$("py").value, fs: +$("fs").value, fw: $("fw").value, hover: $("hover").value === "1" };
+}
+function run() {
+  const o = collect();
+  $("gv").textContent = o.angle; $("rv").textContent = o.radius; $("pv").textContent = o.px; $("pyv").textContent = o.py; $("fv").textContent = o.fs;
+  const p = $("prev");
+  p.textContent = o.text || "按钮";
+  p.style.background = o.fill === "gradient" ? "linear-gradient(" + o.angle + "deg, " + o.c1 + ", " + o.c2 + ")" : o.c1;
+  p.style.color = o.tc;
+  p.style.borderRadius = o.radius + "px";
+  p.style.padding = o.py + "px " + o.px + "px";
+  p.style.fontSize = o.fs + "px";
+  p.style.fontWeight = o.fw;
+  $("res").value = __xfButtonCss(o);
+}
+["text", "fill", "c1", "c2", "angle", "tc", "radius", "px", "py", "fs", "fw", "hover"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("text").value = "立即使用"; $("fill").value = "solid"; $("c1").value = "#ff6500"; $("c2").value = "#ff9a44"; $("angle").value = 90; $("tc").value = "#ffffff"; $("radius").value = 8; $("px").value = 26; $("py").value = 12; $("fs").value = 15; $("fw").value = "600"; $("hover").value = "1"; run(); };
+run();
+</script>
+<style>
+.cbt-prev{display:flex;justify-content:center;align-items:center;padding:40px;background:#f5f6f8;border-radius:8px;}
+.cbt-btn{border:none;cursor:pointer;transition:all .25s ease;}
+.cbt-btn:hover{filter:brightness(.92);transform:translateY(-1px);}
+html.dark .cbt-prev{background:#1e2227;}
+</style>
+</body>
+</html>

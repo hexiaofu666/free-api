@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magic Bytes文件头字节参考 - 词海工具箱</title>
+<meta name="description" content="Magic Bytes 文件头速查表与识别工具：收录常见文件格式的十六进制魔数，支持粘贴文件头字节自动识别文件真实类型。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/magic.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="magic" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>粘贴文件头十六进制（前 16 字节即可，可含空格）</label>
+        <input type="text" id="hex" placeholder="例如 FF D8 FF E0 或 8950 4E47 0D0A 1A0A"></div>
+      <div class="fitem"><label>搜索格式</label><input type="text" id="kw" placeholder="输入扩展名或名称筛选，如 png / 压缩"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="idBtn">识别文件类型</button>
+      <button class="fbtn gray" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">识别结果</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
+    </div>
+    <div class="vout">
+      <div class="vhead"><strong>常见文件头速查表</strong></div>
+      <div id="table"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 Magic Bytes 文件头参考介绍：</h4>
+    <ol>
+      <li>每种文件格式开头都有固定的「魔数」（Magic Bytes），操作系统和程序靠它判断文件真实类型，而不只看扩展名。</li>
+      <li>把文件用十六进制编辑器打开，复制开头几字节粘贴到上方，即可识别它到底是什么文件。</li>
+      <li>这在排查「改扩展名伪装的文件」「下载文件损坏」「附件类型校验」时非常有用。</li>
+      <li>下方速查表支持关键词筛选，可快速定位某种格式的文件头特征。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 常见文件头魔数表：[hex前缀(不含空格), 扩展名, 说明] */
+const MAGIC_LIST = [
+  ["89504E470D0A1A0A", "png", "PNG 图片"],
+  ["FFD8FF", "jpg", "JPEG 图片"],
+  ["474946383761", "gif", "GIF 87a 图片"],
+  ["474946383961", "gif", "GIF 89a 图片"],
+  ["424D", "bmp", "BMP 位图"],
+  ["00000100", "ico", "Windows 图标"],
+  ["52494646", "webp/wav/avi", "RIFF 容器（WebP/WAV/AVI）"],
+  ["25504446", "pdf", "PDF 文档"],
+  ["504B0304", "zip/docx/xlsx/pptx/apk/jar", "ZIP 容器（Office/APK 等）"],
+  ["504B0506", "zip", "ZIP 空归档"],
+  ["526172211A07", "rar", "RAR 压缩包"],
+  ["377ABCAF271C", "7z", "7-Zip 压缩包"],
+  ["1F8B08", "gz", "GZIP 压缩"],
+  ["425A68", "bz2", "BZip2 压缩"],
+  ["FD377A585A00", "xz", "XZ 压缩"],
+  ["4D5A", "exe/dll", "Windows 可执行文件（PE）"],
+  ["7F454C46", "elf", "Linux 可执行文件（ELF）"],
+  ["CAFEBABE", "class", "Java Class 文件"],
+  ["CAFED00D", "pack200", "Java Pack200"],
+  ["FEEDFACE", "mach-o", "macOS Mach-O（32 位）"],
+  ["CFFAEDFE", "mach-o", "macOS Mach-O（64 位）"],
+  ["494433", "mp3", "MP3 音频（含 ID3 标签）"],
+  ["FFFB", "mp3", "MP3 音频（无标签）"],
+  ["664C6143", "flac", "FLAC 无损音频"],
+  ["4F676753", "ogg", "OGG 音频"],
+  ["0000001866747970", "mp4", "MP4 视频"],
+  ["1A45DFA3", "mkv/webm", "Matroska/WebM 视频"],
+  ["3026B2758E66CF11", "wmv/asf", "Windows Media"],
+  ["464C5601", "flv", "Flash Video"],
+  ["000001BA", "mpg", "MPEG 视频"],
+  ["49492A00", "tif", "TIFF 图片（小端）"],
+  ["4D4D002A", "tif", "TIFF 图片（大端）"],
+  ["0000000C6A502020", "jp2", "JPEG 2000"],
+  ["4D534346", "cab", "Windows CAB 压缩包"],
+  ["53514C69746520666F726D6174203300", "sqlite", "SQLite 数据库"],
+  ["EFBBBF", "txt", "UTF-8 BOM 文本"],
+  ["FEFF", "txt", "UTF-16 BE BOM 文本"],
+  ["FFFE", "txt", "UTF-16 LE BOM 文本"],
+  ["3C3F786D6C", "xml", "XML 文档"],
+  ["3C21444F4354595045", "html", "HTML 文档"],
+  ["7B", "json", "JSON（以 { 开头）"],
+  ["5B", "json", "JSON 数组（以 [ 开头）"],
+  ["757374617200", "tar", "TAR 归档（偏移 257）"],
+  ["4C00000001140200", "lnk", "Windows 快捷方式"],
+  ["25215053", "ps", "PostScript"],
+  ["D0CF11E0A1B11AE1", "doc/xls/ppt/msi", "OLE2 复合文档（旧版 Office）"],
+  ["38425053", "psd", "Photoshop 文档"],
+  ["676C5446", "glb", "glTF 二进制 3D 模型"],
+  ["435753", "swf", "Flash 动画（压缩）"],
+  ["465753", "swf", "Flash 动画"]
+];
+
+/* 规范化十六进制输入 */
+function __xfHexNorm(s) {
+  return String(s == null ? "" : s).replace(/[^0-9a-fA-F]/g, "").toUpperCase();
+}
+
+/* 识别：返回匹配列表（按前缀长度降序） */
+function __xfMagic(hex) {
+  const h = __xfHexNorm(hex);
+  if (!h) return { error: "请输入十六进制字节" };
+  const hits = MAGIC_LIST.filter(([sig]) => h.startsWith(sig));
+  hits.sort((a, b) => b[0].length - a[0].length);
+  return { input: h, matches: hits.map(([sig, ext, name]) => ({ sig: sig, ext: ext, name: name })) };
+}
+
+/* 搜索表 */
+function __xfMagicSearch(kw) {
+  const k = String(kw || "").trim().toLowerCase();
+  const all = MAGIC_LIST.map(([sig, ext, name]) => ({ sig: sig, ext: ext, name: name }));
+  if (!k) return all;
+  return all.filter(r => r.ext.toLowerCase().indexOf(k) >= 0 || r.name.toLowerCase().indexOf(k) >= 0);
+}
+
+window.__xfMagic = __xfMagic;
+window.__xfMagicSearch = __xfMagicSearch;
+window.__xfHexNorm = __xfHexNorm;
+
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function spaceHex(h) { return h.replace(/(..)/g, "$1 ").trim(); }
+
+function renderTable() {
+  const list = __xfMagicSearch($("kw").value);
+  $("table").innerHTML = '<table class="mg-table"><thead><tr><th>文件头（十六进制）</th><th>扩展名</th><th>格式说明</th></tr></thead><tbody>' +
+    list.map(r => '<tr><td><code>' + esc(spaceHex(r.sig)) + "</code></td><td>" + esc(r.ext) + "</td><td>" + esc(r.name) + "</td></tr>").join("") +
+    "</tbody></table>";
+}
+
+function run() {
+  const r = __xfMagic($("hex").value);
+  if (r.error) { $("res").innerHTML = '<p style="color:#999;font-size:13px;">' + esc(r.error) + "</p>"; $("tip").textContent = "识别结果"; return; }
+  if (!r.matches.length) {
+    $("res").innerHTML = '<div class="mg-none">未匹配到已知格式。<br><span>已解析字节：' + esc(spaceHex(r.input.slice(0, 32))) + "</span></div>";
+    $("tip").textContent = "未匹配";
+    return;
+  }
+  const top = r.matches[0];
+  $("res").innerHTML = '<div class="mg-hit"><div class="mg-ext">' + esc(top.ext) + '</div><div><div class="mg-name">' + esc(top.name) + '</div><div class="mg-sig">文件头 <code>' + esc(spaceHex(top.sig)) + "</code></div></div></div>" +
+    (r.matches.length > 1 ? '<div class="mg-more">其他可能：' + r.matches.slice(1).map(m => esc(m.ext) + "（" + esc(m.name) + "）").join("、") + "</div>" : "");
+  $("tip").textContent = "识别结果";
+}
+$("idBtn").onclick = run;
+$("clrBtn").onclick = () => { $("hex").value = ""; run(); };
+$("kw").addEventListener("input", renderTable);
+$("hex").addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+renderTable();
+run();
+</script>
+<style>
+#table{max-height:420px;overflow:auto;border:1px solid #eee;border-radius:8px;}
+.mg-table{width:100%;border-collapse:collapse;font-size:13px;}
+.mg-table th{position:sticky;top:0;background:#f5f6f8;text-align:left;padding:8px 10px;font-weight:600;color:#444;border-bottom:1px solid #eee;}
+.mg-table td{padding:7px 10px;border-bottom:1px solid #f0f0f0;color:#333;}
+.mg-table code{font-family:Consolas,Monaco,monospace;color:#1f6feb;font-size:12px;}
+.mg-hit{display:flex;align-items:center;gap:14px;border:1px solid #ffe0c7;background:#fff8f2;border-radius:8px;padding:12px 14px;max-width:640px;}
+.mg-ext{flex:0 0 auto;background:#ff6500;color:#fff;border-radius:6px;padding:6px 12px;font-size:14px;font-weight:600;}
+.mg-name{font-size:14px;color:#333;font-weight:600;}
+.mg-sig{font-size:12px;color:#888;margin-top:4px;}
+.mg-sig code{color:#1f6feb;font-family:Consolas,Monaco,monospace;}
+.mg-more{font-size:12px;color:#888;margin-top:8px;}
+.mg-none{font-size:13px;color:#666;line-height:1.8;}
+.mg-none span{color:#999;}
+html.dark .mg-table th{background:#2a2f36;color:#ddd;border-color:#333a42;}
+html.dark .mg-table td{color:#ddd;border-color:#2c3239;}
+html.dark #table{border-color:#333a42;}
+html.dark .mg-hit{background:#2c2620;border-color:#4a3a28;}
+html.dark .mg-name{color:#eee;}
+</style>
+</body>
+</html>

@@ -2,24 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IPv4转IPv6格式转换器 - 词海工具箱</title>
+<title>IPv4转IPv6在线转换 - 词海工具箱</title>
+<meta name="description" content="IPv4转IPv6格式转换器：一键把 IPv4 地址转换为 IPv4映射、IPv4兼容、6to4、NAT64 以及十六进制等多种 IPv6 表示形式。">
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.9"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
-<style>
-.batchbtns { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-.ipres { border: 1px solid #eee; border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
-.ipres .row { display: flex; border-bottom: 1px dashed #eee; font-size: 13px; }
-.ipres .row:last-child { border-bottom: 0; }
-.ipres .row span { flex: 0 0 150px; background: #fafafa; padding: 8px 12px; color: #666; border-right: 1px dashed #eee; }
-.ipres .row div { flex: 1; padding: 8px 12px; word-break: break-all; font-family: Consolas, monospace; color: #333; }
-.ipres .row.err div { color: #e74c3c; font-family: inherit; }
-.ipres .row.err span { color: #e74c3c; }
-html.dark .ipres { border-color: #2c2f33; }
-html.dark .ipres .row { border-color: #2c2f33; }
-html.dark .ipres .row span { background: #23262a; color: #aaa; border-color: #2c2f33; }
-html.dark .ipres .row div { color: #f0f2f5; }
-</style>
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
 <script>
 var _hmt = _hmt || [];
 (function() {
@@ -29,85 +16,126 @@ var s = document.getElementsByTagName("script")[0];
 s.parentNode.insertBefore(hm, s);
 })();
 </script>
-<meta name="description" content="免费在线 IPv4 转 IPv6 格式转换器，一键将 IPv4 地址批量转换为十进制整数、十六进制、完整 IPv6、压缩 IPv6（::）与仅省略前导零的 IPv6 多种格式，浏览器本地处理。">
 <link rel="canonical" href="https://tools.hdemba.cn/tools/ipv4to6.html">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body data-tool="ipv4to6" data-cat="dev">
 <div class="main"><div class="center"><div class="tools">
   <div class="tools-cent">
-    <div class="fitem" style="margin-bottom:12px;"><label>待处理的 IPv4 地址（每行一个，支持批量）</label><textarea id="input" rows="7" placeholder="192.168.1.1&#10;8.8.8.8&#10;255.255.255.255" spellcheck="false"></textarea></div>
-    <div class="batchbtns">
-      <button class="fbtn blue" id="convBtn">立即转换</button>
-      <button class="fbtn" id="demoBtn">填充示例</button>
-      <button class="fbtn" id="clearBtn">清空</button>
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>IPv4 地址</label><input type="text" id="ip" placeholder="例如 192.168.1.1 或 8.8.8.8"></div>
     </div>
-    <div id="res" style="display:none;"></div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转换结果</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
+    </div>
   </div>
   <div class="resttips">
-    <h4>关于IPv4转IPv6格式转换器介绍：</h4>
-    <p>1、IPv4 地址可映射为 IPv6 地址（IPv4-mapped IPv6 address，::ffff:0:0/96 段），这是 IPv4 向 IPv6 过渡的常用表示方式。</p>
-    <p>2、本工具支持批量转换（每行一个 IP），一次输出六种格式：IPv4 十进制整数、IPv4 十六进制（0xXXXXXXXX）、IPv6 完整 8 段格式、IPv6 压缩格式（:: 省略连续零）、仅省略前导零的 IPv6 格式。</p>
-    <p>3、转换完全在浏览器本地完成，不依赖服务器，不上传任何数据。</p>
+    <h4>关于 IPv4 转 IPv6 转换器介绍：</h4>
+    <ol>
+      <li>IPv4 只有 32 位，IPv6 有 128 位，两者并不能直接等价换算，本工具输出的是常见的「嵌入式」表达方式。</li>
+      <li>IPv4 映射地址（::ffff:x.x.x.x）用于在 IPv6 网络中表示纯 IPv4 节点，是最常用的形式。</li>
+      <li>6to4（2002::/16）把 IPv4 地址编码进 IPv6 前缀，NAT64 使用 64:ff9b::/96 知名前缀。</li>
+      <li>转换结果可直接点击复制，方便粘贴到配置文件或命令行。</li>
+    </ol>
   </div>
 </div></div></div>
-<script src="../assets/tools-data.js?v=1.5.9"></script>
-<script src="../assets/chrome.js?v=1.5.9"></script>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
 <script>
-const $ = id => document.getElementById(id);
-function convertIPv4ToMapped(raw) {
-  const s = raw.trim();
-  const segs = s.split(".").map(x => x.trim());
-  if (segs.length !== 4) throw new Error("IPv4地址格式错误");
-  const nums = segs.map((seg, i) => {
-    if (!/^\d{1,3}$/.test(seg)) throw new Error("第" + (i + 1) + "段 \"" + seg + "\" 不是有效的数字");
-    const n = parseInt(seg, 10);
-    if (isNaN(n) || n < 0 || n > 255) throw new Error("第" + (i + 1) + "段数值必须在0～255之间");
-    return n;
-  });
-  const dec = ((nums[0] << 24) >>> 0) + (nums[1] << 16) + (nums[2] << 8) + nums[3];
-  const hex8 = dec.toString(16).toLowerCase().padStart(8, "0");
-  const groups = [0, 0, 0, 0, 0, 0xffff, (dec >> 16) & 0xffff, dec & 0xffff];
-  const full = groups.map(g => g.toString(16).toLowerCase().padStart(4, "0")).join(":");
-  const noLead = groups.map(g => g.toString(16).toLowerCase()).join(":");
-  // RFC 5952：找最长连续零段（≥2）用 :: 替代
-  let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0;
-  for (let i = 0; i < groups.length; i++) {
-    if (groups[i] === 0) { if (curStart === -1) { curStart = i; curLen = 1; } else curLen++; }
-    else { if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; } curStart = -1; curLen = 0; }
+/* 解析 IPv4 为字节数组 */
+function __xfIpv4Bytes(ip) {
+  const s = String(ip == null ? "" : ip).trim().replace(/^\[|\]$/g, "");
+  const parts = s.split(".");
+  if (parts.length !== 4) return null;
+  const out = [];
+  for (let i = 0; i < 4; i++) {
+    if (!/^\d{1,3}$/.test(parts[i])) return null;
+    const n = parseInt(parts[i], 10);
+    if (n > 255) return null;
+    out.push(n);
   }
-  if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
-  let comp;
-  if (bestLen >= 2) {
-    const head = groups.slice(0, bestStart).map(g => g.toString(16).toLowerCase()).join(":");
-    const tail = groups.slice(bestStart + bestLen).map(g => g.toString(16).toLowerCase()).join(":");
-    comp = head === "" ? "::" + tail : (tail === "" ? head + "::" : head + "::" + tail);
-  } else comp = noLead;
-  return { original: s, ipv4Decimal: String(dec), ipv4Hex: "0x" + hex8.toUpperCase(), ipv6Full: full, ipv6Compressed: comp, ipv6NoLeadingZero: noLead };
+  return out;
 }
-const row = (label, val) => `<div class="row"><span>${label}</span><div>${val}</div></div>`;
-window.ipv4to6_run = function() {
-  const lines = $("input").value.split(/\r?\n/).map(x => x.trim()).filter(x => x !== "");
-  if (lines.length < 1) { alert("等处理的IPV4地址不能为空或错误"); return; }
-  let html = "";
-  lines.forEach(line => {
-    try {
-      const r = convertIPv4ToMapped(line);
-      html += `<div class="ipres">` + row("IPv4 地址", r.original) + row("IPv4 数字格式", r.ipv4Decimal) + row("IPv4 十六进制", r.ipv4Hex) + row("IPv6 完整格式", r.ipv6Full) + row("IPv6 压缩", r.ipv6Compressed) + row("IPv6 前导零压缩", r.ipv6NoLeadingZero) + `</div>`;
-    } catch (e) {
-      html += `<div class="ipres">` + row("IPv4 地址", line) + row("错误提示", e.message) + `</div>`;
-    }
+
+/* 核心：IPv4 -> 多种 IPv6 表示 */
+function __xfV4to6(ip) {
+  const b = __xfIpv4Bytes(ip);
+  if (!b) return null;
+  const [a, c, d, e] = b;
+  const hex2 = n => n.toString(16).padStart(2, "0");
+  const grp = n => n.toString(16).padStart(4, "0");
+  const dec = b.join(".");
+  const hc = b.map(hex2).join("");
+  return {
+    ipv4: dec,
+    dottedHex: "0x" + hc,
+    mapped: "::ffff:" + dec,
+    mappedHex: "::ffff:" + grp(a * 256 + c) + ":" + grp(d * 256 + e),
+    compatible: "::" + dec,
+    six2four: "2002:" + grp(a * 256 + c) + ":" + grp(d * 256 + e) + "::",
+    nat64: "64:ff9b::" + grp(a * 256 + c) + ":" + grp(d * 256 + e),
+    decimal: (a * 16777216 + c * 65536 + d * 256 + e) >>> 0
+  };
+}
+
+window.__xfIpv4Bytes = __xfIpv4Bytes;
+window.__xfV4to6 = __xfV4to6;
+
+const $ = id => document.getElementById(id);
+const LABELS = [
+  ["mapped", "IPv4 映射地址（最常用）", "::ffff:1.2.3.4"],
+  ["mappedHex", "IPv4 映射地址（十六进制）", "::ffff:0102:0304"],
+  ["six2four", "6to4 地址", "2002:0102:0304::"],
+  ["nat64", "NAT64 地址", "64:ff9b::1.2.3.4"],
+  ["compatible", "IPv4 兼容地址（已弃用）", "::1.2.3.4"],
+  ["dottedHex", "十六进制整数", "0x01020304"],
+  ["decimal", "十进制整数", "16909060"],
+  ["ipv4", "原始 IPv4", "1.2.3.4"]
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+function run() {
+  const v = $("ip").value.trim();
+  const r = __xfV4to6(v);
+  if (!r) {
+    $("res").innerHTML = '<p style="color:#e54d42;font-size:13px;padding:6px 0;">请输入合法的 IPv4 地址，例如 192.168.1.1</p>';
+    $("tip").textContent = "转换失败";
+    return;
+  }
+  $("tip").textContent = "IPv4 地址 " + r.ipv4 + " 的 IPv6 表示";
+  $("res").innerHTML = '<div class="v6rows">' + LABELS.map(([k, name, demo]) =>
+    '<div class="v6row"><div class="v6lab"><b>' + name + '</b><span>示例 ' + demo + '</span></div>' +
+    '<div class="v6val"><code>' + esc(r[k]) + '</code><button class="v6cp" data-v="' + esc(r[k]) + '">复制</button></div></div>'
+  ).join("") + "</div>";
+  Array.prototype.forEach.call($("res").querySelectorAll(".v6cp"), btn => {
+    btn.onclick = () => { navigator.clipboard.writeText(btn.getAttribute("data-v")).then(() => { btn.textContent = "已复制"; setTimeout(() => btn.textContent = "复制", 1200); }); };
   });
-  $("res").innerHTML = html;
-  $("res").style.display = "block";
-};
-window.ipv4to6_demo = function() {
-  $("input").value = ["192.168.1.1", "10.0.0.1", "127.0.0.1", "8.8.8.8", "0.0.0.0", "172.16.0.1", "255.255.255.255", "169.254.12.34"].join("\n");
-  $("res").style.display = "none";
-};
-$("convBtn").onclick = () => window.ipv4to6_run();
-$("demoBtn").onclick = () => window.ipv4to6_demo();
-$("clearBtn").onclick = () => { $("input").value = ""; $("res").style.display = "none"; };
+}
+
+$("runBtn").onclick = run;
+$("demoBtn").onclick = () => { $("ip").value = "192.168.1.1"; run(); };
+$("ip").addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+$("ip").value = "8.8.8.8";
+run();
 </script>
+<style>
+.v6rows{display:flex;flex-direction:column;gap:8px;max-width:720px;}
+.v6row{border:1px solid #e8e8e8;border-radius:8px;padding:8px 12px;background:#fafafa;}
+.v6lab{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;flex-wrap:wrap;gap:4px;}
+.v6lab b{color:#333;font-size:13px;font-weight:600;}
+.v6val{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.v6val code{font-family:Consolas,Monaco,monospace;font-size:14px;color:#1f6feb;word-break:break-all;}
+.v6cp{flex:0 0 auto;border:none;background:#ff6500;color:#fff;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;}
+.v6cp:hover{opacity:.85;}
+html.dark .v6row{background:#22262b;border-color:#333a42;}
+html.dark .v6lab b{color:#e6e6e6;}
+html.dark .v6val code{color:#6cb6ff;}
+</style>
 </body>
 </html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网页META检测在线工具 - 词海工具箱</title>
+<meta name="description" content="网页 META 标签检测工具：粘贴 HTML 源码，自动提取 title、description、keywords、canonical、viewport、og 等标签并检查 SEO 是否完善。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/htmlmetas.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="htmlmetas" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>粘贴网页 HTML 源码（含 &lt;head&gt; 部分即可）</label>
+        <textarea id="src" style="height:170px;" placeholder="&lt;title&gt;页面标题&lt;/title&gt;&#10;&lt;meta name=&quot;description&quot; content=&quot;...&quot;&gt;"></textarea>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始检测</button>
+      <button class="fbtn brown" id="copyBtn">复制检测报告</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">检测结果</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于网页 META 检测工具介绍：</h4>
+    <ol>
+      <li>把网页源码（右键「查看网页源代码」）粘贴进来，工具会提取所有元信息并检查 SEO 要点。</li>
+      <li>检查项包括：title 是否存在与长度、description 长度、keywords、viewport（移动端适配）、canonical（规范链接）、og 社交分享标签。</li>
+      <li>标题建议 30-60 字符以内，描述建议 70-160 字符，过长会被搜索引擎截断。</li>
+      <li>本工具在浏览器本地解析，不会上传你的源码。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 提取标签属性 */
+function __xfAttrs(tag) {
+  const attrs = {};
+  const re = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'>]+))/g;
+  let m;
+  while ((m = re.exec(tag)) !== null) attrs[m[1].toLowerCase()] = m[3] !== undefined ? m[3] : (m[4] !== undefined ? m[4] : m[5]);
+  return attrs;
+}
+
+/* 检测 HTML 元信息 */
+function __xfMetaCheck(html) {
+  const s = String(html == null ? "" : html);
+  const out = { title: "", metas: [], links: [], issues: [], ok: [] };
+
+  const titleM = s.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  if (titleM) out.title = titleM[1].trim().replace(/\s+/g, " ");
+
+  const metaRe = /<meta\b[^>]*>/gi;
+  let m;
+  while ((m = metaRe.exec(s)) !== null) {
+    const a = __xfAttrs(m[0]);
+    out.metas.push({ name: a.name || a.property || a["http-equiv"] || "", content: a.content || "", charset: a.charset || "" });
+  }
+  const linkRe = /<link\b[^>]*>/gi;
+  while ((m = linkRe.exec(s)) !== null) {
+    const a = __xfAttrs(m[0]);
+    out.links.push({ rel: (a.rel || "").toLowerCase(), href: a.href || "", hreflang: a.hreflang || "" });
+  }
+
+  const findMeta = (k) => out.metas.find(x => (x.name || "").toLowerCase() === k.toLowerCase());
+  const desc = findMeta("description");
+  const kw = findMeta("keywords");
+  const viewport = findMeta("viewport");
+  const robots = findMeta("robots");
+  const canonical = out.links.find(l => l.rel === "canonical");
+  const ogTitle = out.metas.find(x => (x.name || "").toLowerCase() === "og:title");
+
+  // 检查项
+  if (!out.title) out.issues.push(["error", "缺少 &lt;title&gt; 标题标签，这是最重要的 SEO 元素"]);
+  else if (out.title.length > 60) out.issues.push(["warn", "标题过长（" + out.title.length + " 字符），搜索引擎通常会截断到 60 字符左右"]);
+  else if (out.title.length < 6) out.issues.push(["warn", "标题过短（" + out.title.length + " 字符），建议写得更具体"]);
+  else out.ok.push("标题长度合适（" + out.title.length + " 字符）");
+
+  if (!desc) out.issues.push(["error", "缺少 meta description 描述标签"]);
+  else if (desc.content.length > 160) out.issues.push(["warn", "描述过长（" + desc.content.length + " 字符），建议控制在 160 字符内"]);
+  else if (desc.content.length < 40) out.issues.push(["warn", "描述偏短（" + desc.content.length + " 字符），建议 70-160 字符"]);
+  else out.ok.push("描述长度合适（" + desc.content.length + " 字符）");
+
+  if (!viewport) out.issues.push(["error", "缺少 viewport 视口标签，移动端会按桌面宽度渲染"]);
+  else out.ok.push("已设置 viewport（移动端适配）");
+
+  if (!canonical) out.issues.push(["warn", "缺少 canonical 规范链接，可能造成重复内容问题"]);
+  else out.ok.push("已设置 canonical 规范链接");
+
+  if (!kw) out.issues.push(["info", "未设置 keywords（主流搜索引擎已不再参考，可不加）"]);
+  if (!ogTitle) out.issues.push(["info", "未设置 og:title 等 Open Graph 标签，分享到社交平台时无卡片预览"]);
+  if (robots && /noindex/i.test(robots.content)) out.issues.push(["warn", "robots 含 noindex，页面不会被搜索引擎收录"]);
+
+  return out;
+}
+window.__xfMetaCheck = __xfMetaCheck;
+window.__xfAttrs = __xfAttrs;
+
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function run() {
+  const r = __xfMetaCheck($("src").value);
+  if (!r.title && !r.metas.length && !r.links.length) { $("res").innerHTML = '<p style="color:#999;font-size:13px;">请粘贴网页 HTML 源码</p>'; $("tip").textContent = "等待输入"; return; }
+  const find = (k) => r.metas.find(x => (x.name || "").toLowerCase() === k.toLowerCase());
+  const desc = find("description"), kw = find("keywords"), vp = find("viewport"), robots = find("robots");
+  const canonical = r.links.find(l => l.rel === "canonical");
+  const rows = [
+    ["标题 title", r.title ? r.title + "（" + r.title.length + " 字符）" : "（未设置）", !!r.title],
+    ["描述 description", desc ? desc.content + "（" + desc.content.length + " 字符）" : "（未设置）", !!desc],
+    ["关键词 keywords", kw ? kw.content : "（未设置）", !!kw],
+    ["视口 viewport", vp ? vp.content : "（未设置）", !!vp],
+    ["规范链接 canonical", canonical ? canonical.href : "（未设置）", !!canonical],
+    ["robots", robots ? robots.content : "（未设置）", true]
+  ];
+  const issues = r.issues.length ? r.issues.map(([lv, msg]) => {
+    const cls = lv === "error" ? "hm-err" : (lv === "warn" ? "hm-warn" : "hm-info");
+    const tag = lv === "error" ? "✘ 问题" : (lv === "warn" ? "⚠ 注意" : "ⓘ 提示");
+    return '<div class="hm-item ' + cls + '"><b>' + tag + "</b> " + esc(msg) + "</div>";
+  }).join("") : '<div class="hm-item hm-ok"><b>✔ 通过</b> 未发现明显问题</div>';
+  $("res").innerHTML =
+    '<div class="hm-sec">元信息概览</div><table class="hm-table"><tbody>' +
+    rows.map(([k, v, good]) => "<tr><td>" + k + '</td><td class="' + (good ? "hm-good" : "hm-bad") + '">' + esc(String(v)) + "</td></tr>").join("") +
+    "</tbody></table>" +
+    '<div class="hm-sec">SEO 检查（' + r.issues.length + " 项待改进 / " + r.ok.length + " 项通过）</div>" + issues +
+    '<div class="hm-sec">全部 meta 标签（' + r.metas.length + " 个）</div><table class=\"hm-table\"><tbody>" +
+    r.metas.map(m => "<tr><td>" + esc(m.name || ("charset=" + m.charset)) + "</td><td>" + esc(m.content) + "</td></tr>").join("") + "</tbody></table>";
+  $("tip").textContent = "检测完成";
+}
+$("runBtn").onclick = run;
+$("src").addEventListener("input", run);
+$("copyBtn").onclick = () => {
+  if (!$("res").textContent.trim()) return alert("暂无结果");
+  navigator.clipboard.writeText($("res").innerText).then(() => alert("✅ 已复制检测报告"));
+};
+$("demoBtn").onclick = () => {
+  $("src").value = '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>在线工具大全 - 词海工具箱</title>\n<meta name="description" content="词海工具箱提供各类免费在线工具。">\n<meta name="keywords" content="在线工具,免费工具">\n<link rel="canonical" href="https://tools.hdemba.cn/">\n</head>';
+  run();
+};
+$("src").value = '<title>示例页面标题 - 网站名</title>\n<meta name="description" content="这是一个用于演示的 meta 描述内容，长度略短。">\n<meta name="robots" content="index,follow">';
+run();
+</script>
+<style>
+.hm-sec{font-size:13px;font-weight:600;color:#444;margin:14px 0 8px;}
+.hm-table{width:100%;border-collapse:collapse;font-size:13px;max-width:760px;border:1px solid #eee;border-radius:8px;overflow:hidden;}
+.hm-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:top;word-break:break-all;}
+.hm-table td:first-child{width:150px;color:#888;background:#fafafa;}
+.hm-good{color:#1aad19 !important;}
+.hm-bad{color:#e54d42 !important;}
+.hm-item{font-size:13px;padding:9px 12px;border-radius:8px;margin-bottom:6px;max-width:760px;line-height:1.7;}
+.hm-err{background:#fdf3f3;color:#c62828;border:1px solid #ffcdd2;}
+.hm-warn{background:#fffbf0;color:#856404;border:1px solid #ffe8a3;}
+.hm-info{background:#f4f7fb;color:#4a6fa5;border:1px solid #d6e4f5;}
+.hm-ok{background:#f1f8f1;color:#2e7d32;border:1px solid #c8e6c9;}
+html.dark .hm-table{border-color:#333a42;}
+html.dark .hm-table td{color:#ddd;border-color:#2c3239;}
+html.dark .hm-table td:first-child{background:#252a31;color:#999;}
+html.dark .hm-sec{color:#ccc;}
+html.dark .hm-err{background:#2d1f1f;border-color:#4a2b2b;color:#ff8a80;}
+html.dark .hm-warn{background:#2d2818;border-color:#4a4028;color:#ffd166;}
+html.dark .hm-info{background:#1f2530;border-color:#2c3a4f;color:#8ab4f8;}
+html.dark .hm-ok{background:#1c2a1d;border-color:#2e4a30;color:#8bd08f;}
+</style>
+</body>
+</html>

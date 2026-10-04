@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线车牌号生成器 - 词海工具箱</title>
+<meta name="description" content="在线车牌号生成器：随机生成符合规则的中国车牌号，支持普通车牌与新能源车牌，可指定省份、批量生成用于测试数据。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/licplate.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="licplate" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>省份</label>
+        <select id="prov">
+          <option value="random" selected>随机</option>
+          <option value="京">京</option><option value="津">津</option><option value="冀">冀</option><option value="晋">晋</option>
+          <option value="蒙">蒙</option><option value="辽">辽</option><option value="吉">吉</option><option value="黑">黑</option>
+          <option value="沪">沪</option><option value="苏">苏</option><option value="浙">浙</option><option value="皖">皖</option>
+          <option value="闽">闽</option><option value="赣">赣</option><option value="鲁">鲁</option><option value="豫">豫</option>
+          <option value="鄂">鄂</option><option value="湘">湘</option><option value="粤">粤</option><option value="桂">桂</option>
+          <option value="琼">琼</option><option value="渝">渝</option><option value="川">川</option><option value="贵">贵</option>
+          <option value="云">云</option><option value="藏">藏</option><option value="陕">陕</option><option value="甘">甘</option>
+          <option value="青">青</option><option value="宁">宁</option><option value="新">新</option>
+        </select>
+      </div>
+      <div class="fitem"><label>车牌类型</label>
+        <select id="type">
+          <option value="normal" selected>普通蓝牌（7 位）</option>
+          <option value="green">新能源绿牌（8 位）</option>
+          <option value="mixed">混合随机</option>
+        </select>
+      </div>
+      <div class="fitem"><label>生成数量</label><input type="number" id="count" value="10" min="1" max="500"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成车牌号</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成结果</strong></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线车牌号生成器介绍：</h4>
+    <ol>
+      <li>按中国车牌编码规则随机生成车牌号，用于开发测试、演示数据、表单校验等场景。</li>
+      <li>普通车牌为 7 位：省份简称 + 发牌机关字母 + 5 位序号（字母不含 I 与 O，避免与数字混淆）。</li>
+      <li>新能源车牌为 8 位：前 5 位为数字或字母，最后一位为字母（D 代表纯电，F 代表非纯电）。</li>
+      <li>生成的号码仅供测试使用，与真实车辆无关。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+const PROVINCES = ["京","津","冀","晋","蒙","辽","吉","黑","沪","苏","浙","皖","闽","赣","鲁","豫","鄂","湘","粤","桂","琼","渝","川","贵","云","藏","陕","甘","青","宁","新"];
+const LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ";   // 去掉 I 与 O
+const DIGITS = "0123456789";
+
+function pick(arr, rnd) { return arr[Math.floor(rnd() * arr.length)]; }
+
+/* 生成一个车牌号 */
+function __xfPlate(opts, rnd) {
+  opts = opts || {};
+  rnd = rnd || Math.random;
+  const prov = opts.province && opts.province !== "random" ? opts.province : pick(PROVINCES, rnd);
+  let type = opts.type || "normal";
+  if (type === "mixed") type = rnd() < 0.5 ? "normal" : "green";
+  const org = pick(LETTERS, rnd);
+  if (type === "green") {
+    // 新能源：前 5 位 = 2 位数字 + 3 位字母数字混合；最后 1 位为字母（D/F）
+    let body = "";
+    body += pick(DIGITS, rnd);
+    body += pick(DIGITS, rnd);
+    for (let i = 0; i < 3; i++) body += pick(rnd() < 0.5 ? DIGITS : LETTERS, rnd);
+    const last = pick(["D", "F"], rnd);
+    return { plate: prov + org + body + last, type: "green", province: prov, org: org };
+  }
+  let body = "";
+  for (let i = 0; i < 5; i++) body += pick(rnd() < 0.55 ? DIGITS : LETTERS, rnd);
+  return { plate: prov + org + body, type: "normal", province: prov, org: org };
+}
+
+function __xfPlates(opts, count) {
+  const n = Math.max(1, Math.min(500, parseInt(count, 10) || 1));
+  const out = [];
+  for (let i = 0; i < n; i++) out.push(__xfPlate(opts));
+  return out;
+}
+window.__xfPlate = __xfPlate;
+window.__xfPlates = __xfPlates;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const list = __xfPlates({ province: $("prov").value, type: $("type").value }, $("count").value);
+  $("res").value = list.map(x => x.plate).join("\n");
+  const nc = list.filter(x => x.type === "normal").length;
+  $("tip").textContent = "✅ 已生成 " + list.length + " 个车牌号（普通 " + nc + " / 新能源 " + (list.length - nc) + "）";
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = () => { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制")); };
+["prov", "type", "count"].forEach(id => { $(id).addEventListener("change", run); });
+run();
+</script>
+</body>
+</html>

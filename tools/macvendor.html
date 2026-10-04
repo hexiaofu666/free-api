@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAC地址厂商查询工具 - 词海工具箱</title>
+<meta name="description" content="MAC 地址厂商查询工具：输入 MAC 地址即可根据 OUI 前缀识别网卡厂商，内置常见厂商前缀表，支持批量查询与厂商筛选。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/macvendor.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="macvendor" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>MAC 地址（每行一个，支持 : - 或 . 分隔）</label>
+        <textarea id="src" style="height:120px;" placeholder="00:1A:2B:3C:4D:5E&#10;F4:8C:50:11:22:33"></textarea>
+      </div>
+      <div class="fitem"><label>厂商名称筛选</label><input type="text" id="kw" placeholder="例如 Apple / 华为"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查询厂商</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">查询结果</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
+    </div>
+    <div class="vout">
+      <div class="vhead"><strong>常见厂商前缀表</strong></div>
+      <div id="table"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 MAC 地址厂商查询工具介绍：</h4>
+    <ol>
+      <li>MAC 地址的前 3 个字节（24 位）叫 OUI，由 IEEE 分配给不同厂商，因此可以据此判断网卡厂商。</li>
+      <li>本工具内置了一批常见厂商的 OUI 前缀，支持批量查询与厂商名称筛选。</li>
+      <li>注意：虚拟机、可自定义 MAC 的设备可能使用任意前缀，结果仅供参考。</li>
+      <li>如需更完整的数据，可对照 IEEE 官方 OUI 数据库；本工具适合日常快速判断。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* OUI 前缀表（常见厂商） */
+const OUI_LIST = [
+  ["000C29", "VMware"], ["005056", "VMware"], ["000569", "VMware"],
+  ["001C42", "Parallels (虚拟机)"], ["080027", "Oracle VirtualBox"], ["0A0027", "Oracle VirtualBox"],
+  ["525400", "QEMU/KVM 虚拟机"], ["00155D", "Microsoft Hyper-V"], ["0017FA", "Microsoft"],
+  ["001DD8", "Microsoft"], ["000D3A", "Microsoft"],
+  ["3C22FB", "Apple"], ["F4F15A", "Apple"], ["A4C361", "Apple"], ["8C8590", "Apple"],
+  ["F0189E", "Apple"], ["D0817A", "Apple"], ["DC2B2A", "Apple"], ["70DEE2", "Apple"],
+  ["F48C50", "Apple"], ["ACBC32", "Apple"],
+  ["001A2B", "华为 Huawei"], ["00259E", "华为 Huawei"], ["00E0FC", "华为 Huawei"],
+  ["F83DFF", "华为 Huawei"], ["0022A1", "华为 Huawei"], ["781DBA", "华为 Huawei"],
+  ["001E10", "华为 Huawei"], ["C81FBE", "华为 Huawei"],
+  ["001CC0", "小米 Xiaomi"], ["28E31F", "小米 Xiaomi"], ["64CC2E", "小米 Xiaomi"],
+  ["50EC50", "小米 Xiaomi"], ["8CBEBE", "小米 Xiaomi"], ["F0B429", "小米 Xiaomi"],
+  ["009EC8", "小米 Xiaomi"], ["286C07", "小米 Xiaomi"],
+  ["F4DEAF", "OPPO"], ["14755B", "OPPO"], ["C0EEFB", "OPPO"], ["8C5A25", "OPPO"],
+  ["E45F01", "vivo"], ["F8E61A", "vivo"], ["C8F230", "vivo"], ["30FC68", "vivo"],
+  ["001A8A", "Samsung 三星"], ["002454", "Samsung 三星"], ["BC1485", "Samsung 三星"],
+  ["F409D8", "Samsung 三星"], ["CC07AB", "Samsung 三星"],
+  ["0018FE", "HP"], ["3C4A92", "HP"], ["9457A5", "HP"], ["B0A5A9", "HP"],
+  ["002590", "Supermicro"], ["0026B9", "Dell"], ["14FEB5", "Dell"], ["18DBF2", "Dell"],
+  ["0021CC", "Dell"], ["C81F66", "Dell"],
+  ["0011D8", "ASUS 华硕"], ["2C56DC", "ASUS 华硕"], ["04D4C4", "ASUS 华硕"],
+  ["0024D7", "Intel"], ["001B21", "Intel"], ["3C9509", "Intel"], ["8086F2", "Intel"],
+  ["001CC4", "Realtek"], ["00E04C", "Realtek"], ["52540A", "Realtek"],
+  ["0013D4", "TP-LINK"], ["EC086B", "TP-LINK"], ["AC84C6", "TP-LINK"], ["50FA84", "TP-LINK"],
+  ["A42BB0", "TP-LINK"], ["F4F26D", "TP-LINK"],
+  ["0026F2", "NETGEAR"], ["204E7F", "NETGEAR"], ["2CB05D", "NETGEAR"],
+  ["00095B", "NETGEAR"], ["A021B7", "NETGEAR"],
+  ["0018E7", "Cisco"], ["001A30", "Cisco"], ["001B54", "Cisco"], ["000C85", "Cisco"],
+  ["EC1D8B", "Cisco"], ["F02929", "Cisco"],
+  ["0007AB", "Samsung 三星"], ["002454", "Samsung 三星"],
+  ["001CB3", "Apple"], ["0025BC", "Apple"], ["B817C2", "Apple"],
+  ["001E52", "Apple"], ["60FACD", "Apple"], ["68A86D", "Apple"],
+  ["001B63", "Apple"], ["3451C9", "Apple"], ["6C709F", "Apple"],
+  ["E0B9BA", "Apple"], ["9C207B", "Apple"],
+  ["1866DA", "Dell"], ["3448ED", "Dell"], ["D067E5", "Dell"],
+  ["0050F2", "Microsoft"], ["7C1E52", "Microsoft"],
+  ["001A11", "Google"], ["F4F5D8", "Google"], ["3C5AB4", "Google"],
+  ["DA A1 19", "Google (随机)"], ["9C4E36", "Intel"],
+  ["FCFBFB", "Cisco"], ["0050BA", "D-Link"], ["1CBDB9", "D-Link"], ["CCB255", "D-Link"],
+  ["002191", "D-Link"], ["340804", "D-Link"],
+  ["00E04C", "Realtek"], ["00D0F8", "Realtek"],
+  ["0026BB", "Apple"], ["0017F2", "Apple"],
+  ["001E64", "Intel"], ["001500", "Intel"],
+  ["5C260A", "Dell"], ["002219", "Dell"],
+  ["70B3D5", "IEEE 注册（厂商自定义）"],
+  ["000000", "Xerox（保留/特殊）"],
+  ["FFFFFF", "广播地址"]
+];
+
+/* 规范化 MAC -> 12 位大写十六进制 */
+function __xfMacNorm(mac) {
+  const h = String(mac == null ? "" : mac).replace(/[^0-9a-fA-F]/g, "").toUpperCase();
+  return h.length === 12 ? h : null;
+}
+
+/* 查询厂商 */
+function __xfMacVendor(mac) {
+  const h = __xfMacNorm(mac);
+  if (!h) return { ok: false, error: "不是合法的 MAC 地址" };
+  const oui = h.slice(0, 6);
+  // 本地管理位判断（第 2 个十六进制字符的 bit1）
+  const first = parseInt(h.slice(0, 2), 16);
+  const local = (first & 0x02) === 0x02;
+  const multicast = (first & 0x01) === 0x01;
+  const hit = OUI_LIST.find(([p]) => p.replace(/\s/g, "") === oui);
+  return {
+    ok: true, mac: h.replace(/(..)(?=.)/g, "$1:"), oui: oui.slice(0, 2) + ":" + oui.slice(2, 4) + ":" + oui.slice(4, 6),
+    vendor: hit ? hit[1] : "未收录（可查 IEEE OUI 数据库）",
+    local: local, multicast: multicast
+  };
+}
+
+window.__xfMacNorm = __xfMacNorm;
+window.__xfMacVendor = __xfMacVendor;
+
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+function renderTable() {
+  const k = $("kw").value.trim().toLowerCase();
+  const list = OUI_LIST.filter(([p, v]) => !k || v.toLowerCase().indexOf(k) >= 0 || p.toLowerCase().indexOf(k) >= 0);
+  $("table").innerHTML = '<table class="mv-table"><thead><tr><th>OUI 前缀</th><th>厂商</th></tr></thead><tbody>' +
+    list.map(([p, v]) => {
+      const o = p.replace(/\s/g, "");
+      return "<tr><td><code>" + o.slice(0, 2) + ":" + o.slice(2, 4) + ":" + o.slice(4, 6) + "</code></td><td>" + esc(v) + "</td></tr>";
+    }).join("") + "</tbody></table>";
+}
+
+function run() {
+  const lines = $("src").value.split("\n").map(x => x.trim()).filter(x => x !== "");
+  if (!lines.length) { $("res").innerHTML = '<p style="color:#999;font-size:13px;">请输入至少一个 MAC 地址</p>'; $("tip").textContent = "等待输入"; return; }
+  const rows = lines.map(line => {
+    const r = __xfMacVendor(line);
+    if (!r.ok) return '<div class="mv-item mv-bad"><code>' + esc(line) + '</code> <span class="mv-x">✘ ' + esc(r.error) + "</span></div>";
+    const flags = [];
+    if (r.local) flags.push("本地管理位");
+    if (r.multicast) flags.push("组播位");
+    return '<div class="mv-item"><div class="mv-top"><code>' + esc(r.mac) + '</code><span class="mv-vendor">' + esc(r.vendor) + "</span></div>" +
+      '<div class="mv-meta">OUI 前缀：<code>' + esc(r.oui) + "</code>" + (flags.length ? " ｜ 标记：" + flags.join("、") : "") + "</div></div>";
+  }).join("");
+  $("res").innerHTML = rows;
+  $("tip").textContent = "查询完成（共 " + lines.length + " 条）";
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = () => { $("src").value = "3C:22:FB:11:22:33\n00:1A:2B:3C:4D:5E\nF4:8C:50:AA:BB:CC\n00:0C:29:12:34:56\nF8:3D:FF:00:11:22"; run(); };
+$("kw").addEventListener("input", renderTable);
+renderTable();
+run();
+</script>
+<style>
+#table{max-height:320px;overflow:auto;border:1px solid #eee;border-radius:8px;}
+.mv-table{width:100%;border-collapse:collapse;font-size:13px;}
+.mv-table th{position:sticky;top:0;background:#f5f6f8;text-align:left;padding:8px 10px;font-weight:600;color:#444;border-bottom:1px solid #eee;}
+.mv-table td{padding:7px 10px;border-bottom:1px solid #f0f0f0;color:#333;}
+.mv-table code{font-family:Consolas,Monaco,monospace;color:#1f6feb;font-size:12px;}
+.mv-item{border:1px solid #e8e8e8;border-radius:8px;padding:9px 12px;margin-bottom:8px;background:#fafafa;max-width:720px;}
+.mv-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.mv-top code{font-family:Consolas,Monaco,monospace;font-size:14px;}
+.mv-vendor{color:#ff6500;font-weight:600;font-size:13px;}
+.mv-meta{font-size:12px;color:#888;margin-top:4px;}
+.mv-meta code{color:#1f6feb;font-family:Consolas,Monaco,monospace;}
+.mv-bad{color:#e54d42;}
+.mv-x{font-size:12px;}
+html.dark #table{border-color:#333a42;}
+html.dark .mv-table th{background:#2a2f36;color:#ddd;border-color:#333a42;}
+html.dark .mv-table td{color:#ddd;border-color:#2c3239;}
+html.dark .mv-item{background:#22262b;border-color:#333a42;}
+html.dark .mv-top code{color:#ddd;}
+html.dark .mv-meta{color:#999;}
+</style>
+</body>
+</html>

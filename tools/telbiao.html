@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上标下标电话号码生成器 - 词海工具箱</title>
+<meta name="description" content="上标/下标文字生成器：把数字、字母与符号转换成上标或下标形式，常用于电话号码、化学式、数学公式与个性昵称。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/telbiao.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="telbiao" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输入内容（数字/字母/符号）</label>
+        <input type="text" id="src" placeholder="例如 13812345678 或 H2O">
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="upBtn">转上标 ¹²³</button>
+      <button class="fbtn brown" id="lowBtn">转下标 ₁₂₃</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转换结果</strong></div>
+      <div id="res" class="tb-box"></div>
+    </div>
+    <div class="vout">
+      <div class="vhead"><strong>上标 / 下标字符对照</strong></div>
+      <div id="table"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于上标下标文字生成器介绍：</h4>
+    <ol>
+      <li>上标与下标是 Unicode 中的特殊字符（如 ¹ ² ³ 与 ₁ ₂ ₃），可直接复制到微信、微博、昵称中使用。</li>
+      <li>常见用途：电话号码排版（如 ¹³⁸¹²³⁴）、化学式（H₂O）、数学指数（x²）、社交平台个性签名。</li>
+      <li>并非所有字符都有对应的上标/下标形式（如字母 q 无上标），无法转换的字符会原样保留。</li>
+      <li>点击结果即可复制，或使用下方「复制」按钮。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+const SUP = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "+": "⁺", "-": "⁻", "=": "⁼", "(": "⁽", ")": "⁾",
+  a: "ᵃ", b: "ᵇ", c: "ᶜ", d: "ᵈ", e: "ᵉ", f: "ᶠ", g: "ᵍ", h: "ʰ", i: "ⁱ", j: "ʲ", k: "ᵏ", l: "ˡ", m: "ᵐ", n: "ⁿ", o: "ᵒ", p: "ᵖ", r: "ʳ", s: "ˢ", t: "ᵗ", u: "ᵘ", v: "ᵛ", w: "ʷ", x: "ˣ", y: "ʸ", z: "ᶻ" };
+const SUB = { "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄", "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉", "+": "₊", "-": "₋", "=": "₌", "(": "₍", ")": "₎",
+  a: "ₐ", e: "ₑ", h: "ₕ", i: "ᵢ", j: "ⱼ", k: "ₖ", l: "ₗ", m: "ₘ", n: "ₙ", o: "ₒ", p: "ₚ", r: "ᵣ", s: "ₛ", t: "ₜ", u: "ᵤ", v: "ᵥ", x: "ₓ" };
+
+/* 转换：mode = 'sup' | 'sub' */
+function __xfScript(text, mode) {
+  const map = mode === "sub" ? SUB : SUP;
+  const s = String(text == null ? "" : text);
+  let out = "", converted = 0, total = 0;
+  for (const ch of s) {
+    const lower = ch.toLowerCase();
+    const isLetter = /[a-zA-Z]/.test(ch);
+    const isDigitOrSym = /[0-9+\-=()]/.test(ch);
+    if (isDigitOrSym || isLetter) {
+      total++;
+      if (map[lower]) { out += map[lower]; converted++; }
+      else out += ch;
+    } else out += ch;
+  }
+  return { text: out, converted: converted, total: total };
+}
+window.__xfScript = __xfScript;
+
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function show(mode) {
+  const r = __xfScript($("src").value, mode);
+  $("res").innerHTML = '<div class="tb-out"><span class="tb-txt">' + esc(r.text) + '</span><button class="tb-cp" data-v="' + esc(r.text) + '">复制</button></div>' +
+    '<div class="tb-note">已转换 ' + r.converted + " / " + r.total + " 个字符" + (r.converted < r.total ? "（部分字符无对应上标/下标形式，已原样保留）" : "") + "</div>";
+  $("tip").textContent = mode === "sub" ? "下标结果" : "上标结果";
+  const btn = $("res").querySelector(".tb-cp");
+  if (btn) btn.onclick = () => navigator.clipboard.writeText(btn.getAttribute("data-v")).then(() => { btn.textContent = "已复制"; setTimeout(() => btn.textContent = "复制", 1200); });
+}
+function renderTable() {
+  const chars = "0123456789+-=()abcdefghijklmnopqrstuvwxyz".split("");
+  const rows = chars.map(c => "<tr><td>" + c + "</td><td>" + (SUP[c] || "—") + "</td><td>" + (SUB[c] || "—") + "</td></tr>").join("");
+  $("table").innerHTML = '<div style="max-height:300px;overflow:auto;"><table class="tb-table"><thead><tr><th>原字符</th><th>上标</th><th>下标</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+}
+$("upBtn").onclick = () => show("sup");
+$("lowBtn").onclick = () => show("sub");
+$("demoBtn").onclick = () => { $("src").value = "13812345678"; show("sup"); };
+$("src").addEventListener("input", () => show("sup"));
+renderTable();
+$("src").value = "13812345678";
+show("sup");
+</script>
+<style>
+.tb-out{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid #ffe0c7;background:#fff8f2;border-radius:8px;padding:14px 16px;max-width:760px;}
+.tb-txt{font-size:22px;color:#ff6500;word-break:break-all;font-weight:600;}
+.tb-cp{border:none;background:#ff6500;color:#fff;border-radius:4px;padding:4px 12px;font-size:12px;cursor:pointer;flex:0 0 auto;}
+.tb-note{font-size:12px;color:#888;margin-top:8px;}
+.tb-table{width:100%;border-collapse:collapse;font-size:13px;max-width:420px;border:1px solid #eee;border-radius:8px;overflow:hidden;}
+.tb-table th{background:#f5f6f8;padding:7px 12px;text-align:left;color:#444;font-weight:600;}
+.tb-table td{padding:6px 12px;border-top:1px solid #f0f0f0;color:#333;font-size:15px;}
+html.dark .tb-out{background:#2c2620;border-color:#4a3a28;}
+html.dark .tb-note{color:#999;}
+html.dark .tb-table{border-color:#333a42;}
+html.dark .tb-table th{background:#2a2f36;color:#ddd;}
+html.dark .tb-table td{color:#ddd;border-color:#2c3239;}
+</style>
+</body>
+</html>

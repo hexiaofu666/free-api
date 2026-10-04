@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>浏览器信息查看在线工具 - 词海工具箱</title>
+<meta name="description" content="浏览器信息查看工具：一键获取当前浏览器的 UserAgent、屏幕分辨率、像素比、语言、时区、CPU 核心数、设备内存等信息。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/browserinfo.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="browserinfo" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>UserAgent 字符串</label>
+        <textarea id="ua" readonly style="height:70px;"></textarea>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">刷新信息</button>
+      <button class="fbtn brown" id="copyBtn">复制全部信息</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>浏览器信息</strong></div>
+      <div id="res" class="bi-box"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于浏览器信息查看工具介绍：</h4>
+    <ol>
+      <li>快速查看当前浏览器与设备的关键信息，方便排查兼容性问题、填写问题反馈。</li>
+      <li>包含：UserAgent、浏览器与系统识别、屏幕分辨率与可用区域、设备像素比、语言、时区、CPU 逻辑核心数、设备内存。</li>
+      <li>还能检测 Cookie 是否可用、是否在线、是否支持触摸、Do Not Track 状态等。</li>
+      <li>所有信息均来自浏览器本地 API，不会被上传。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 解析 UA（简化版） */
+function __xfParseUa(ua) {
+  const s = String(ua || "");
+  let browser = "未知浏览器";
+  if (/Edg\//.test(s)) browser = "Microsoft Edge";
+  else if (/QQBrowser\//.test(s)) browser = "QQ 浏览器";
+  else if (/MicroMessenger\//.test(s)) browser = "微信内置浏览器";
+  else if (/Chrome\//.test(s) && !/Edg|OPR/.test(s)) browser = "Chrome";
+  else if (/Firefox\//.test(s)) browser = "Firefox";
+  else if (/Safari\//.test(s) && /Version\//.test(s)) browser = "Safari";
+  else if (/OPR\/|Opera/.test(s)) browser = "Opera";
+  let os = "未知系统";
+  if (/Windows NT 10/.test(s)) os = "Windows 10/11";
+  else if (/Windows NT/.test(s)) os = "Windows";
+  else if (/Android/.test(s)) os = "Android";
+  else if (/iPhone|iPad|iPod/.test(s)) os = "iOS";
+  else if (/Mac OS X/.test(s)) os = "macOS";
+  else if (/Linux/.test(s)) os = "Linux";
+  let device = "桌面设备";
+  if (/Mobile|Android.*Mobile|iPhone/.test(s)) device = "移动设备";
+  else if (/iPad|Tablet/.test(s)) device = "平板设备";
+  return { browser: browser, os: os, device: device };
+}
+window.__xfParseUa = __xfParseUa;
+
+const $ = id => document.getElementById(id);
+function collectInfo() {
+  const nav = (typeof navigator !== "undefined" ? navigator : {});
+  const scr = (typeof screen !== "undefined" ? screen : {});
+  const win = (typeof window !== "undefined" ? window : {});
+  const ua = nav.userAgent || "";
+  const p = __xfParseUa(ua);
+  let tz = "";
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+  return {
+    "UserAgent": ua,
+    "浏览器": p.browser,
+    "操作系统": p.os,
+    "设备类型": p.device,
+    "语言": nav.language || "-",
+    "语言列表": (nav.languages || []).join(", ") || "-",
+    "屏幕分辨率": (scr.width || "-") + " × " + (scr.height || "-"),
+    "可用区域": (scr.availWidth || "-") + " × " + (scr.availHeight || "-"),
+    "窗口内尺寸": (win.innerWidth || "-") + " × " + (win.innerHeight || "-"),
+    "设备像素比": (win.devicePixelRatio || 1) + "x",
+    "色彩深度": (scr.colorDepth || "-") + " 位",
+    "时区": tz || "-",
+    "时区偏移": "UTC" + (new Date().getTimezoneOffset() <= 0 ? "+" : "-") + Math.abs(new Date().getTimezoneOffset() / 60),
+    "CPU 逻辑核心": nav.hardwareConcurrency ? nav.hardwareConcurrency + " 核" : "不支持检测",
+    "设备内存": nav.deviceMemory ? "约 " + nav.deviceMemory + " GB" : "不支持检测",
+    "Cookie 可用": nav.cookieEnabled ? "是" : "否",
+    "在线状态": nav.onLine ? "在线" : "离线",
+    "触摸支持": ("ontouchstart" in win) ? "支持" : "不支持",
+    "Do Not Track": nav.doNotTrack || "未设置"
+  };
+}
+window.__xfCollectInfo = collectInfo;
+
+function run() {
+  const info = collectInfo();
+  $("ua").value = info["UserAgent"] || "";
+  $("res").innerHTML = Object.keys(info).map(k =>
+    '<div class="bi-row"><div class="bi-k">' + k + '</div><div class="bi-v">' + String(info[k]).replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</div></div>"
+  ).join("");
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = () => {
+  const info = collectInfo();
+  const txt = Object.keys(info).map(k => k + "：" + info[k]).join("\n");
+  navigator.clipboard.writeText(txt).then(() => alert("✅ 已复制全部信息"));
+};
+run();
+</script>
+<style>
+.bi-box{border:1px solid #eee;border-radius:8px;overflow:hidden;}
+.bi-row{display:flex;border-bottom:1px solid #f0f0f0;font-size:13px;}
+.bi-row:last-child{border-bottom:none;}
+.bi-k{flex:0 0 130px;padding:9px 12px;background:#fafafa;color:#888;}
+.bi-v{flex:1;padding:9px 12px;color:#333;word-break:break-all;}
+html.dark .bi-box{border-color:#333a42;}
+html.dark .bi-row{border-color:#2c3239;}
+html.dark .bi-k{background:#252a31;color:#999;}
+html.dark .bi-v{color:#ddd;}
+</style>
+</body>
+</html>

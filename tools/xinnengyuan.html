@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新能源汽车充电费用计算器 - 词海工具箱</title>
+<meta name="description" content="新能源充电费用计算器：按电池容量、当前电量、目标电量与电价，估算充电所需电量、充电时长与总费用，含充电损耗。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/xinnengyuan.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="xinnengyuan" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>电池容量（kWh）</label><input type="number" id="cap" value="60" min="1" step="0.1"></div>
+      <div class="fitem"><label>当前电量（%）</label><input type="number" id="from" value="20" min="0" max="100"></div>
+      <div class="fitem"><label>目标电量（%）</label><input type="number" id="to" value="90" min="0" max="100"></div>
+      <div class="fitem"><label>电价（元/度）</label><input type="number" id="price" value="1.2" min="0" step="0.01"></div>
+      <div class="fitem"><label>充电损耗（%）</label><input type="number" id="loss" value="10" min="0" max="50"></div>
+      <div class="fitem"><label>充电功率（kW，可选）</label><input type="number" id="power" value="7" min="0" step="0.1"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算费用</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">计算结果</strong></div>
+      <div id="res" class="ne-box"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于新能源充电费用计算器介绍：</h4>
+    <ol>
+      <li>按「电池容量 ×（目标电量 − 当前电量）」得到需要充入的电量，再乘电价得到电费。</li>
+      <li>实际充电存在损耗（交流慢充通常 8%-15%，直流快充 5%-10%），本工具会把损耗计入所需电量与费用。</li>
+      <li>填写充电功率后可估算充满所需时间，7kW 为家用桩常见功率，60kW 以上为公共快充。</li>
+      <li>不同地区与时段电价差异较大，请按当地实际电价填写（谷电通常更便宜）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 计算充电费用 */
+function __xfCharge(o) {
+  const cap = Number(o.capacity), from = Number(o.fromPct), to = Number(o.toPct);
+  const price = Number(o.price), lossPct = Number(o.loss) || 0, power = Number(o.power) || 0;
+  if (!cap || cap <= 0) return { error: "请输入合法的电池容量" };
+  if (isNaN(from) || isNaN(to)) return { error: "请输入电量百分比" };
+  if (from > to) return { error: "当前电量不能高于目标电量" };
+  const need = cap * (to - from) / 100;                 // 实际充入电池的电量
+  const lossFactor = 1 + lossPct / 100;
+  const consumed = need * lossFactor;                    // 电表计量电量
+  const fee = consumed * price;
+  const hours = power > 0 ? consumed / power : null;
+  return {
+    need: need.toFixed(2),
+    consumed: consumed.toFixed(2),
+    fee: fee.toFixed(2),
+    hours: hours === null ? null : hours.toFixed(1),
+    perKm: null,
+    lossKwh: (consumed - need).toFixed(2)
+  };
+}
+window.__xfCharge = __xfCharge;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const r = __xfCharge({ capacity: $("cap").value, fromPct: $("from").value, toPct: $("to").value, price: $("price").value, loss: $("loss").value, power: $("power").value });
+  if (r.error) { $("res").innerHTML = '<p style="color:#e54d42;font-size:13px;">' + r.error + "</p>"; $("tip").textContent = "计算失败"; return; }
+  const cards = [
+    ["需充入电量", r.need + " 度（kWh）"],
+    ["含损耗总用电", r.consumed + " 度"],
+    ["损耗电量", r.lossKwh + " 度"],
+    ["预计电费", "¥ " + r.fee],
+    ["预计充电时长", r.hours === null ? "未填功率" : "约 " + r.hours + " 小时"],
+    ["每度实际单价", "¥ " + (Number(r.fee) / Number(r.need)).toFixed(3)]
+  ];
+  $("res").innerHTML = cards.map(([k, v]) => '<div class="ne-card"><div class="ne-k">' + k + '</div><div class="ne-v">' + v + "</div></div>").join("");
+  $("tip").textContent = "计算结果";
+}
+["cap", "from", "to", "price", "loss", "power"].forEach(id => { $(id).addEventListener("input", run); });
+$("runBtn").onclick = run;
+$("demoBtn").onclick = () => { $("cap").value = 60; $("from").value = 20; $("to").value = 90; $("price").value = 1.2; $("loss").value = 10; $("power").value = 7; run(); };
+run();
+</script>
+<style>
+.ne-box{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.ne-card{border:1px solid #eee;border-radius:8px;padding:14px;background:#fafafa;text-align:center;}
+.ne-k{font-size:12px;color:#888;margin-bottom:8px;}
+.ne-v{font-size:17px;font-weight:700;color:#ff6500;}
+html.dark .ne-card{background:#22262b;border-color:#333a42;}
+html.dark .ne-k{color:#999;}
+</style>
+</body>
+</html>

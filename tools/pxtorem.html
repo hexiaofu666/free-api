@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS中PX批量转REM工具 - 词海工具箱</title>
+<meta name="description" content="PX 批量转 REM 工具：粘贴含 px 的 CSS 或数值列表，按根字号一键换算为 rem，也支持 rem 反算 px，适合移动端适配。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/pxtorem.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="pxtorem" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>根字号（1rem = ? px）</label><input type="number" id="base" value="16" min="1" step="1"></div>
+      <div class="fitem"><label>小数位数</label><input type="number" id="dec" value="4" min="0" max="8"></div>
+      <div class="fitem"><label>忽略 1px 以下（常用于边框）</label>
+        <select id="ignore"><option value="0" selected>否，全部转换</option><option value="1">是，保留 1px 及以下</option></select>
+      </div>
+      <div class="fitem"><label>输入内容（CSS 或数值列表）</label>
+        <textarea id="src" style="height:170px;" placeholder=".box { width: 100px; padding: 12px; font-size: 14px; }&#10;或每行一个：24px&#10;32px"></textarea>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="p2r">PX → REM</button>
+      <button class="fbtn brown" id="r2p">REM → PX</button>
+      <button class="fbtn gray" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转换结果</strong></div>
+      <textarea id="res" readonly style="height:170px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 PX 批量转 REM 工具介绍：</h4>
+    <ol>
+      <li>rem 是相对于根元素（html）字号的单位，做移动端适配时常用「根字号 + rem」方案。</li>
+      <li>本工具可批量转换 CSS 代码中所有 px 值，包括小数（如 12.5px）与负数（如 -8px）。</li>
+      <li>常用根字号为 16px（浏览器默认）或 75px（配合 vw 缩放方案）。</li>
+      <li>可选择保留 1px 及以下的值不换算，因为这些通常是边框，直接保留更清晰。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* PX -> REM（文本整体替换） */
+function __xfPx2Rem(text, base, dec, ignoreSmall) {
+  const b = Number(base) || 16;
+  return String(text == null ? "" : text).replace(/(-?\d*\.?\d+)px\b/g, (m, num) => {
+    const n = parseFloat(num);
+    if (ignoreSmall && Math.abs(n) <= 1) return m;
+    const r = n / b;
+    let s = r.toFixed(dec == null ? 4 : dec).replace(/0+$/, "").replace(/\.$/, "");
+    if (s === "-0") s = "0";
+    return s + "rem";
+  });
+}
+/* REM -> PX */
+function __xfRem2Px(text, base, dec, ignoreSmall) {
+  const b = Number(base) || 16;
+  return String(text == null ? "" : text).replace(/(-?\d*\.?\d+)rem\b/g, (m, num) => {
+    const n = parseFloat(num);
+    const p = n * b;
+    let s = p.toFixed(dec == null ? 4 : dec).replace(/0+$/, "").replace(/\.$/, "");
+    if (s === "-0") s = "0";
+    return s + "px";
+  });
+}
+window.__xfPx2Rem = __xfPx2Rem;
+window.__xfRem2Px = __xfRem2Px;
+
+const $ = id => document.getElementById(id);
+$("p2r").onclick = () => {
+  const r = __xfPx2Rem($("src").value, $("base").value, +$("dec").value, $("ignore").value === "1");
+  $("res").value = r;
+  $("tip").textContent = "✅ 已按 1rem = " + $("base").value + "px 换算为 rem";
+};
+$("r2p").onclick = () => {
+  const r = __xfRem2Px($("src").value, $("base").value, +$("dec").value, false);
+  $("res").value = r;
+  $("tip").textContent = "✅ 已按 1rem = " + $("base").value + "px 换算为 px";
+};
+$("copyBtn").onclick = () => { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制")); };
+$("src").value = ".box {\n  width: 320px;\n  padding: 12px 16px;\n  font-size: 14px;\n  border: 1px solid #eee;\n  margin-top: 24px;\n  border-radius: 8px;\n}\n\n.title {\n  font-size: 20px;\n  letter-spacing: 0.5px;\n}";
+$("p2r").onclick();
+</script>
+</body>
+</html>

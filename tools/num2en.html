@@ -2,10 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>阿拉伯数字转英文 - 词海工具箱</title>
+<title>阿拉伯数字转英文在线工具 - 词海工具箱</title>
+<meta name="description" content="阿拉伯数字转英文工具：把数字转换成英文单词读法，支持百千万亿等大数、小数与负数，可切换英式/美式 and 用法。">
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.9"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
 <script>
 var _hmt = _hmt || [];
 (function() {
@@ -15,74 +16,139 @@ var s = document.getElementsByTagName("script")[0];
 s.parentNode.insertBefore(hm, s);
 })();
 </script>
-<meta name="description" content="在线阿拉伯数字转英文工具，支持最多 12 位数字（万亿级）转换为标准英文表达，正确处理 negative、thousand / million / billion / trillion 分组与连字符语法。">
 <link rel="canonical" href="https://tools.hdemba.cn/tools/num2en.html">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body data-tool="num2en" data-cat="dev">
 <div class="main"><div class="center"><div class="tools">
   <div class="tools-cent">
-    <div class="fitem" style="margin-bottom:12px;"><label>阿拉伯数字（最多 12 位，支持负数）</label><input id="input" placeholder="例如：1234567" spellcheck="false"></div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-      <button class="fbtn blue" id="convBtn">转换</button>
-      <button class="fbtn" id="copyBtn">复制结果</button>
-      <button class="fbtn" id="clearBtn">清空</button>
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输入数字（支持千分位逗号）</label><input type="text" id="num" placeholder="例如 1234567.89"></div>
+      <div class="fitem"><label>and 用法</label>
+        <select id="style">
+          <option value="uk" selected>英式（百位后加 and）</option>
+          <option value="us">美式（不加 and）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>首字母</label>
+        <select id="cap">
+          <option value="0" selected>全小写</option>
+          <option value="1">首字母大写</option>
+        </select>
+      </div>
     </div>
-    <div class="fitem" style="display:none;" id="outwrap"><label>英文表达</label><textarea id="output" rows="3" readonly spellcheck="false"></textarea></div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">英文读法</strong></div>
+      <div id="res" class="num2en-out"></div>
+    </div>
   </div>
   <div class="resttips">
     <h4>关于阿拉伯数字转英文工具介绍：</h4>
-    <p>1、本工具将阿拉伯数字转换为符合英语语法的标准表达，支持最多 12 位数字，即万亿（trillion）级别。</p>
-    <p>2、采用美式分组读法（thousand / million / billion / trillion），两位数 21～99 之间使用连字符（如 twenty-one），负数以 negative 开头，0 读作 zero。</p>
-    <p>3、纯前端转换，无任何网络请求。</p>
+    <ol>
+      <li>把数字按英文习惯读出来，例如 1234567 读作 one million two hundred and thirty-four thousand five hundred and sixty-seven。</li>
+      <li>支持千分位、小数（按 digit 逐个读或按十分位读）与负数。</li>
+      <li>英式英语在百位与后面数字之间会加 and，美式通常省略，可自由切换。</li>
+      <li>常用于写作、支票金额、英文翻译校对等场景。</li>
+    </ol>
   </div>
 </div></div></div>
-<script src="../assets/tools-data.js?v=1.5.9"></script>
-<script src="../assets/chrome.js?v=1.5.9"></script>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
 <script>
-const $ = id => document.getElementById(id);
-const BELOW20 = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+const ONES = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
 const TENS = ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
-const GROUPS = ["","thousand","million","billion","trillion"];
-function threeDigits(n) { // 0-999
-  let out = [];
-  if (n >= 100) { out.push(BELOW20[Math.floor(n / 100)], "hundred"); n %= 100; }
-  if (n >= 20) { out.push(TENS[Math.floor(n / 10)] + (n % 10 ? "-" + BELOW20[n % 10] : "")); }
-  else if (n > 0) out.push(BELOW20[n]);
-  return out.join(" ");
-}
-function numToEn(numStr) {
-  let s = numStr.trim().replace(/[,，\s]/g, "");
-  let negative = false;
-  if (s.startsWith("-")) { negative = true; s = s.slice(1); }
-  else if (s.startsWith("+")) s = s.slice(1);
-  if (!/^\d+$/.test(s)) throw new Error("请输入有效的整数");
-  if (s.length > 12) throw new Error("最多支持 12 位数字");
-  s = s.replace(/^0+(?=\d)/, "");
-  if (s === "0") return "zero";
-  const groups = [];
-  for (let i = s.length; i > 0; i -= 3) groups.unshift(parseInt(s.slice(Math.max(0, i - 3), i), 10));
-  const parts = [];
-  groups.forEach((g, i) => {
-    if (g === 0) return;
-    parts.push(threeDigits(g) + (GROUPS[groups.length - 1 - i] ? " " + GROUPS[groups.length - 1 - i] : ""));
-  });
-  return (negative ? "negative " : "") + parts.join(" ");
-}
-$("convBtn").onclick = () => {
-  try {
-    $("output").value = numToEn($("input").value);
-    $("outwrap").style.display = "block";
-  } catch (e) {
-    $("output").value = "❌ " + e.message;
-    $("outwrap").style.display = "block";
+const SCALES = ["", " thousand", " million", " billion", " trillion", " quadrillion"];
+
+/* 0-999 -> 英文（不含 and 前缀处理） */
+function __xfUnder1000(n, useAnd) {
+  let s = "";
+  if (n >= 100) {
+    s += ONES[Math.floor(n / 100)] + " hundred";
+    const rest = n % 100;
+    if (rest > 0) s += (useAnd ? " and " : " ") + __xfUnder100(rest);
+    return s;
   }
-};
+  return __xfUnder100(n);
+}
+function __xfUnder100(n) {
+  if (n < 20) return ONES[n];
+  const t = Math.floor(n / 10), o = n % 10;
+  return TENS[t] + (o ? "-" + ONES[o] : "");
+}
+
+/* 整数 -> 英文 */
+function __xfInt2En(intStr, useAnd) {
+  if (intStr === "0") return "zero";
+  const groups = [];
+  let s = intStr;
+  while (s.length > 0) { groups.unshift(s.slice(-3)); s = s.slice(0, -3); }
+  const parts = [];
+  groups.forEach((g, idx) => {
+    const scaleIdx = groups.length - 1 - idx;
+    const n = parseInt(g, 10);
+    if (n === 0) return;
+    parts.push(__xfUnder1000(n, useAnd) + SCALES[scaleIdx]);
+  });
+  return parts.join(" ");
+}
+
+/* 主函数：支持负数与小数 */
+function __xfNum2En(input, opts) {
+  opts = opts || {};
+  const useAnd = opts.style !== "us";
+  let raw = String(input == null ? "" : input).trim().replace(/,/g, "").replace(/\s/g, "");
+  if (raw === "" || !/^-?\d*(\.\d+)?$/.test(raw) || raw === "-" || raw === "." || raw === "-.") return null;
+  let neg = false;
+  if (raw[0] === "-") { neg = true; raw = raw.slice(1); }
+  let [intPart, decPart] = raw.split(".");
+  if (intPart === "") intPart = "0";
+  if (decPart === undefined) decPart = "";
+  intPart = intPart.replace(/^0+(?=\d)/, "");
+  if (intPart === "") intPart = "0";
+  let out = __xfInt2En(intPart, useAnd);
+  if (decPart !== "") {
+    const digits = decPart.replace(/0+$/, "") || decPart;
+    if (opts.decimalMode === "point") {
+      out += " point " + digits.split("").map(d => ONES[+d]).join(" ");
+    } else {
+      out += " point " + digits.split("").map(d => ONES[+d]).join(" ");
+    }
+  }
+  if (neg) out = "negative " + out;
+  if (opts.cap) out = out.charAt(0).toUpperCase() + out.slice(1);
+  return out;
+}
+
+window.__xfNum2En = __xfNum2En;
+window.__xfUnder1000 = __xfUnder1000;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const r = __xfNum2En($("num").value, { style: $("style").value, cap: $("cap").value === "1" });
+  if (r === null) { $("res").innerHTML = '<p style="color:#e54d42;font-size:13px;">请输入合法数字（可含负号、小数点、千分位逗号）</p>'; $("tip").textContent = "转换失败"; return; }
+  $("res").innerHTML = '<div class="num2en-txt">' + r.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</div>";
+  $("tip").textContent = "英文读法（" + ($("style").value === "uk" ? "英式" : "美式") + "）";
+}
+$("runBtn").onclick = run;
+$("num").addEventListener("input", run);
+$("style").onchange = run;
+$("cap").onchange = run;
 $("copyBtn").onclick = () => {
-  if (!$("output").value) return alert("还没有转换结果");
-  navigator.clipboard.writeText($("output").value).then(() => alert("✅ 已复制到剪贴板"));
+  const t = $("res").querySelector(".num2en-txt");
+  if (!t) return alert("请先转换");
+  navigator.clipboard.writeText(t.textContent).then(() => alert("✅ 已复制"));
 };
-$("clearBtn").onclick = () => { $("input").value = ""; $("output").value = ""; $("outwrap").style.display = "none"; };
+$("num").value = "1234567.89";
+run();
 </script>
+<style>
+.num2en-out{min-height:56px;display:flex;align-items:center;}
+.num2en-txt{font-size:17px;line-height:1.7;color:#1f6feb;font-weight:500;word-break:break-word;}
+html.dark .num2en-txt{color:#6cb6ff;}
+</style>
 </body>
 </html>

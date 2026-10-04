@@ -3,27 +3,10 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>在线IPv6地址验证工具 - 词海工具箱</title>
+<meta name="description" content="IPv6 地址验证工具：批量校验 IPv6 地址格式是否合法，自动识别地址类型（全球单播/链路本地/唯一本地/组播/回环），并给出规范化结果。">
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.9"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
-<style>
-.demolist { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-.demolist span { border: 1px dashed #ccc; border-radius: 4px; padding: 4px 10px; font-size: 12px; color: #666; cursor: pointer; font-family: Consolas, monospace; }
-.demolist span:hover { border-color: #ff6500; color: #ff6500; }
-.verdict { border: 1px solid #eee; border-radius: 6px; margin-top: 12px; display: none; overflow: hidden; }
-.verdict .row { display: flex; border-bottom: 1px dashed #eee; font-size: 13px; }
-.verdict .row:last-child { border-bottom: 0; }
-.verdict .row span { flex: 0 0 130px; background: #fafafa; padding: 8px 12px; color: #666; border-right: 1px dashed #eee; }
-.verdict .row div { flex: 1; padding: 8px 12px; word-break: break-all; font-family: Consolas, monospace; color: #333; }
-.verdict .ok { font-weight: 700; color: #00b277; }
-.verdict .bad { font-weight: 700; color: #e74c3c; }
-.verdict .type-tag { display: inline-block; background: #ff6500; color: #fff; border-radius: 3px; padding: 1px 8px; font-size: 12px; font-family: inherit; }
-html.dark .demolist span { border-color: #444; color: #aaa; }
-html.dark .verdict { border-color: #2c2f33; }
-html.dark .verdict .row { border-color: #2c2f33; }
-html.dark .verdict .row span { background: #23262a; color: #aaa; border-color: #2c2f33; }
-html.dark .verdict .row div { color: #f0f2f5; }
-</style>
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
 <script>
 var _hmt = _hmt || [];
 (function() {
@@ -33,111 +16,137 @@ var s = document.getElementsByTagName("script")[0];
 s.parentNode.insertBefore(hm, s);
 })();
 </script>
-<meta name="description" content="在线 IPv6 地址验证工具，支持 IPv6 格式校验、自动展开与压缩，识别全球单播、链路本地、唯一本地、组播、环回、未指定、文档地址、IPv4 映射等类型，浏览器本地处理。">
 <link rel="canonical" href="https://tools.hdemba.cn/tools/ipv6valid.html">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body data-tool="ipv6valid" data-cat="dev">
 <div class="main"><div class="center"><div class="tools">
   <div class="tools-cent">
-    <div class="fitem" style="margin-bottom:12px;"><label>待验证的 IPv6 地址</label><input id="input" placeholder="例如：2001:db8::8a2e:370:7334" spellcheck="false"></div>
-    <div class="demolist" id="demolist"></div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-      <button class="fbtn blue" id="valBtn">立即验证</button>
-      <button class="fbtn" id="clearBtn">清空</button>
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>IPv6 地址（每行一个，可批量）</label>
+        <textarea id="ips" style="height:130px;" placeholder="2001:db8::1&#10;fe80::1&#10;:::1"></textarea>
+      </div>
     </div>
-    <div class="verdict" id="res"></div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始验证</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">验证结果</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
+    </div>
   </div>
   <div class="resttips">
-    <h4>关于IPv6地址验证工具介绍：</h4>
-    <p>1、本工具对输入的地址做严格格式校验（8 组 16 位十六进制、:: 只能出现一次、支持前导零省略与 IPv4 映射写法），并给出详细错误原因。</p>
-    <p>2、验证通过后自动识别地址类别：环回地址（::1）、未指定地址（::）、全球单播（2000::/3）、链路本地（fe80::/10）、唯一本地（fc00::/7）、组播（ff00::/8）、文档地址（2001:db8::/32）、IPv4 映射地址（::ffff:0:0/96）。</p>
-    <p>3、同时输出该地址的完整展开形式与 RFC 5952 最短压缩形式，方便核对。全部计算在浏览器本地完成。</p>
+    <h4>关于 IPv6 地址验证工具介绍：</h4>
+    <ol>
+      <li>支持批量校验，每行一个地址，工具会逐一判断格式是否合法并给出原因。</li>
+      <li>合法地址会自动识别类型：全球单播、链路本地（fe80::/10）、唯一本地（fc00::/7）、组播（ff00::/8）、回环（::1）、未指定（::）等。</li>
+      <li>常见错误包括组数不足、出现多个 ::、组内字符超长、出现非法字符等，工具会分别提示。</li>
+      <li>支持带方括号的写法（如 [2001:db8::1]）以及带 % 区域标识的链路本地地址。</li>
+    </ol>
   </div>
 </div></div></div>
-<script src="../assets/tools-data.js?v=1.5.9"></script>
-<script src="../assets/chrome.js?v=1.5.9"></script>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
 <script>
-const $ = id => document.getElementById(id);
-function parseIPv6(str) {
-  str = str.trim();
-  if (!str) return { valid: false, error: "请输入 IPv6 地址" };
-  str = str.split("%")[0];
-  const m = str.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i);
-  if (m) {
-    const p = m[1].split(".");
-    if (p.every(x => /^\d+$/.test(x) && parseInt(x, 10) <= 255)) {
-      return { valid: true, parts: ["0000","0000","0000","0000","0000","ffff",
-        (parseInt(p[0],10).toString(16).padStart(2,"0") + parseInt(p[1],10).toString(16).padStart(2,"0")),
-        (parseInt(p[2],10).toString(16).padStart(2,"0") + parseInt(p[3],10).toString(16).padStart(2,"0"))] };
+function __xfV6Compress(g) {
+  const hex = g.map(n => n.toString(16));
+  let bs = -1, bl = 0, cs = -1, cl = 0;
+  for (let i = 0; i < 8; i++) { if (g[i] === 0) { if (cs < 0) cs = i; cl++; if (cl > bl) { bl = cl; bs = cs; } } else { cs = -1; cl = 0; } }
+  if (bl < 2) return hex.join(":");
+  const left = hex.slice(0, bs).join(":"), right = hex.slice(bs + bl).join(":");
+  if (!left && !right) return "::";
+  if (!left) return "::" + right;
+  if (!right) return left + "::";
+  return left + "::" + right;
+}
+/* 返回 {ok, reason, type, groups, normalized, expand} */
+function __xfV6Check(addr) {
+  let s = String(addr == null ? "" : addr).trim();
+  if (!s) return { ok: false, reason: "空地址" };
+  let zone = "";
+  if (s.indexOf("%") >= 0) { const p = s.split("%"); s = p[0]; zone = p[1]; }
+  if (s.startsWith("[") && s.endsWith("]")) s = s.slice(1, -1);
+  if (!/^[0-9a-fA-F:.]+$/.test(s)) return { ok: false, reason: "含非法字符（只允许 0-9 a-f : .）" };
+  const dblCount = (s.match(/::/g) || []).length;
+  if (dblCount > 1) return { ok: false, reason: "出现多个连续的 :: 压缩符" };
+  let head = [], tail = [], dbl = dblCount === 1;
+  if (dbl) { const p = s.split("::"); head = p[0] ? p[0].split(":") : []; tail = p[1] ? p[1].split(":") : []; }
+  else head = s.split(":");
+  const all = head.concat(tail);
+  const groups = [];
+  for (let i = 0; i < all.length; i++) {
+    const g = all[i];
+    if (g === "") return { ok: false, reason: "存在空的分组（冒号多余）" };
+    /* 末尾嵌入的 IPv4 写法（如 ::ffff:192.168.1.1），折算为 2 组 */
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(g)) {
+      const o = g.split(".").map(Number);
+      if (o.some(n => n > 255)) return { ok: false, reason: "嵌入的 IPv4「" + g + "」存在大于 255 的段" };
+      if (i !== all.length - 1) return { ok: false, reason: "嵌入的 IPv4「" + g + "」只能出现在地址末尾" };
+      groups.push((o[0] << 8) | o[1], (o[2] << 8) | o[3]);
+      continue;
     }
-    return { valid: false, error: "IPv4 映射段的数值必须在 0～255 之间" };
+    if (!/^[0-9a-fA-F]{1,4}$/.test(g)) return { ok: false, reason: "分组「" + g + "」不是 1-4 位十六进制" };
+    groups.push(parseInt(g, 16));
   }
-  if ((str.match(/::/g) || []).length > 1) return { valid: false, error: "地址中只能有一个 ::" };
-  let parts;
-  if (str.includes("::")) {
-    const seg = str.split("::");
-    const head = seg[0] ? seg[0].split(":") : [];
-    const tail = seg[1] ? seg[1].split(":") : [];
-    const mid = 8 - head.length - tail.length;
-    if (mid < 0) return { valid: false, error: "段数超过8段" };
-    parts = head.concat(Array(mid).fill("0")).concat(tail);
-  } else parts = str.split(":");
-  if (parts.length !== 8) return { valid: false, error: "需要8段，当前" + parts.length + "段" };
-  for (let i = 0; i < parts.length; i++) {
-    if (!/^[0-9a-fA-F]{1,4}$/.test(parts[i])) return { valid: false, error: "第" + (i + 1) + "段无效" };
-  }
-  return { valid: true, parts: parts.map(x => x.toLowerCase()) };
+  if (all.length === 8 && dbl) return { ok: false, reason: "已有 8 组还使用 :: 压缩" };
+  if (all.length > 8) return { ok: false, reason: "分组数量超过 8 组" };
+  if (!dbl && all.length !== 8) return { ok: false, reason: "不足 8 组且未使用 :: 压缩（实际 " + all.length + " 组）" };
+  const fill = 8 - groups.length;
+  const full = dbl ? groups.slice(0, head.length).concat(new Array(fill).fill(0)).concat(groups.slice(head.length)) : groups;
+  let type = "全球单播（2000::/3）";
+  const b0 = full[0];
+  if (full.every(n => n === 0)) type = "未指定地址（::）";
+  else if (full.slice(0, 7).every(n => n === 0) && full[7] === 1) type = "回环地址（::1）";
+  else if ((b0 & 0xffc0) === 0xfe80) type = "链路本地（fe80::/10）";
+  else if ((b0 & 0xfe00) === 0xfc00) type = "唯一本地（fc00::/7）";
+  else if ((b0 & 0xff00) === 0xff00) type = "组播（ff00::/8）";
+  else if (full.slice(0, 5).every(n => n === 0) && full[5] === 0xffff) type = "IPv4 映射（::ffff:0:0/96）";
+  else if (full.slice(0, 6).every(n => n === 0)) type = "IPv4 兼容（::/96，已弃用）";
+  else if (b0 === 0x2002) type = "6to4（2002::/16）";
+  else if (b0 === 0x2001 && full[1] === 0x0db8) type = "文档示例（2001:db8::/32）";
+  else if ((b0 & 0xffe0) !== 0x2000) type = "保留/其他类型";
+  return { ok: true, type: type + (zone ? "（区域 " + zone + "）" : ""), groups: full, normalized: __xfV6Compress(full), expand: full.map(n => n.toString(16).padStart(4, "0")).join(":") };
 }
-function detectType(parts) {
-  const g = parts.map(x => parseInt(x, 16));
-  const hex = parts.join(":");
-  if (hex === "0000:0000:0000:0000:0000:0000:0000:0001") return "环回地址（Loopback）";
-  if (hex === "0000:0000:0000:0000:0000:0000:0000:0000") return "未指定地址（Unspecified）";
-  if ((g[0] & 0xfff0) === 0x2001 && g[1] === 0x0db8) return "文档地址（2001:db8::/32，仅示例用）";
-  if (g[0] >= 0x2000 && g[0] <= 0x3fff) return "全球单播（Global Unicast 2000::/3）";
-  if ((g[0] & 0xffc0) === 0xfe80) return "链路本地（Link-Local fe80::/10）";
-  if ((g[0] & 0xfe00) === 0xfc00) return "唯一本地（Unique Local fc00::/7）";
-  if ((g[0] & 0xff00) === 0xff00) return "组播（Multicast ff00::/8）";
-  if (g[0] === 0 && g[1] === 0 && g[2] === 0 && g[3] === 0 && g[4] === 0 && g[5] === 0xffff) return "IPv4 映射地址（::ffff:0:0/96）";
-  return "其他（保留/特殊用途段）";
+window.__xfV6Check = __xfV6Check;
+window.__xfV6Compress = __xfV6Compress;
+
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function run() {
+  const lines = $("ips").value.split("\n").map(x => x.trim()).filter(x => x !== "");
+  if (!lines.length) return alert("请至少输入一个 IPv6 地址");
+  let ok = 0;
+  const rows = lines.map(line => {
+    const r = __xfV6Check(line);
+    if (r.ok) ok++;
+    const badge = r.ok ? '<span class="v6ok">✔ 合法</span>' : '<span class="v6bad">✘ 非法</span>';
+    const detail = r.ok
+      ? '<div class="v6meta">类型：' + esc(r.type) + '</div><div class="v6meta">规范：<code>' + esc(r.normalized) + "</code></div>"
+      : '<div class="v6meta v6err">原因：' + esc(r.reason) + "</div>";
+    return '<div class="v6item"><div class="v6top"><code>' + esc(line) + "</code>" + badge + "</div>" + detail + "</div>";
+  }).join("");
+  $("res").innerHTML = '<div class="v6sum">共 ' + lines.length + " 条，合法 " + ok + " 条，非法 " + (lines.length - ok) + " 条</div>" + rows;
+  $("tip").textContent = "验证完成";
 }
-function compressIPv6(parts) {
-  const short = parts.map(p => parseInt(p, 16).toString(16));
-  let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0;
-  for (let i = 0; i < parts.length; i++) {
-    if (parseInt(parts[i], 16) === 0) { if (curStart === -1) { curStart = i; curLen = 1; } else curLen++; }
-    else { if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; } curStart = -1; curLen = 0; }
-  }
-  if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
-  if (bestLen < 2) return short.join(":");
-  const arr = [];
-  for (let i = 0; i < short.length; i++) {
-    if (i >= bestStart && i < bestStart + bestLen) { if (i === bestStart) arr.push(""); continue; }
-    arr.push(short[i]);
-  }
-  let out = arr.join(":");
-  if (bestStart === 0) out = ":" + out;
-  if (bestStart + bestLen === 8) out = out + ":";
-  return out;
-}
-const row = (label, val) => `<div class="row"><span>${label}</span><div>${val}</div></div>`;
-$("valBtn").onclick = () => {
-  const r = parseIPv6($("input").value);
-  if (!r.valid) {
-    $("res").innerHTML = row("验证结果", `<span class="bad">❌ 无效</span>`) + row("错误原因", r.error);
-  } else {
-    const full = r.parts.map(p => p.padStart(4, "0")).join(":");
-    $("res").innerHTML = row("验证结果", `<span class="ok">✅ 有效</span>`) + row("地址类型", `<span class="type-tag">${detectType(r.parts)}</span>`) + row("完整展开形式", full) + row("最短压缩形式", compressIPv6(r.parts));
-  }
-  $("res").style.display = "block";
-};
-$("clearBtn").onclick = () => { $("input").value = ""; $("res").style.display = "none"; };
-const demos = ["2001:db8::8a2e:370:7334", "::1", "::", "fe80::1", "fd12:3456:789a::1", "ff02::1", "::ffff:192.168.1.1", "2001:0db8::1::", "12345::"];
-$("demolist").innerHTML = demos.map(d => `<span data-value="${d}">${d}</span>`).join("");
-$("demolist").addEventListener("click", e => {
-  if (e.target.dataset.value) { $("input").value = e.target.dataset.value; $("res").style.display = "none"; }
-});
+$("runBtn").onclick = run;
+$("demoBtn").onclick = () => { $("ips").value = "2001:db8::1\nfe80::1%eth0\n::1\n::ffff:192.168.1.1\n2001:db8:::1\n12345::1\n2001:db8:0:0:0:0:0:0:1"; run(); };
+$("ips").value = "2001:db8::1\nfe80::1\n:::1";
+run();
 </script>
+<style>
+.v6sum{font-size:13px;color:#666;margin-bottom:8px;}
+.v6item{border:1px solid #e8e8e8;border-radius:8px;padding:8px 12px;margin-bottom:8px;background:#fafafa;max-width:760px;}
+.v6top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.v6top code{font-family:Consolas,Monaco,monospace;font-size:14px;word-break:break-all;}
+.v6ok{color:#1aad19;font-size:12px;font-weight:600;}
+.v6bad{color:#e54d42;font-size:12px;font-weight:600;}
+.v6meta{font-size:12px;color:#888;margin-top:4px;}
+.v6meta code{color:#1f6feb;font-family:Consolas,Monaco,monospace;}
+.v6err{color:#e54d42;}
+html.dark .v6item{background:#22262b;border-color:#333a42;}
+html.dark .v6sum{color:#aaa;}
+html.dark .v6meta{color:#999;}
+</style>
 </body>
 </html>

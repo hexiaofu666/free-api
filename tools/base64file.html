@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64与文件互转工具 - 词海工具箱</title>
+<meta name="description" content="Base64 与文件互转工具：上传任意文件生成 Base64（含 Data URL），或把 Base64 字符串还原并下载为文件，全程本地处理不上传服务器。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/base64file.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="base64file" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>① 文件 → Base64</label><input type="file" id="file"></div>
+      <div class="fitem"><label>② Base64 → 文件（粘贴 Base64 或 Data URL）</label>
+        <textarea id="b64in" style="height:120px;" placeholder="data:image/png;base64,iVBORw0KGgo... 或纯 Base64 字符串"></textarea>
+      </div>
+      <div class="fitem"><label>还原文件名</label><input type="text" id="fname" placeholder="例如 output.png"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="toB64">文件转换为 Base64</button>
+      <button class="fbtn brown" id="toFile">Base64 还原为文件</button>
+      <button class="fbtn gray" id="copyBtn">复制 Base64</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">Base64 结果</strong></div>
+      <textarea id="res" readonly style="height:170px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 Base64 与文件互转工具介绍：</h4>
+    <ol>
+      <li>Base64 常用在接口传输图片、附件，或把二进制数据嵌进文本、CSS、HTML 中。</li>
+      <li>上传文件后会自动生成带 MIME 的完整 Data URL（data:image/png;base64,...），也给出纯 Base64 部分。</li>
+      <li>粘贴 Base64 或 Data URL 可还原文件并下载，文件名可自定义（工具会尽量从 MIME 推断扩展名）。</li>
+      <li>所有转换都在浏览器本地完成，文件不会上传到任何服务器，安全放心。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+const MIME_EXT = { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp", "image/svg+xml": "svg", "image/bmp": "bmp", "application/pdf": "pdf", "application/zip": "zip", "application/json": "json", "text/plain": "txt", "text/html": "html", "text/css": "css", "application/javascript": "js", "audio/mpeg": "mp3", "video/mp4": "mp4" };
+
+/* 提取 Base64 主体与 MIME */
+function __xfParseB64(input) {
+  let s = String(input == null ? "" : input).trim();
+  let mime = "";
+  const m = s.match(/^data:([^;,]+)?(;charset=[^;,]+)?;base64,(.*)$/is);
+  if (m) { mime = m[1] || ""; s = m[3]; }
+  s = s.replace(/\s/g, "");
+  return { mime: mime, data: s };
+}
+
+/* 校验 Base64 是否合法 */
+function __xfB64Check(s) {
+  if (!s) return false;
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(s)) return false;
+  return s.length % 4 === 0;
+}
+
+/* Base64 -> 字节长度估算与原大小 */
+function __xfB64Size(s) {
+  const pad = (s.match(/=+$/) || [""])[0].length;
+  return Math.floor(s.length * 3 / 4) - pad;
+}
+
+/* 推断文件名 */
+function __xfGuessName(mime) {
+  const ext = MIME_EXT[mime] || "bin";
+  return "output." + ext;
+}
+
+window.__xfParseB64 = __xfParseB64;
+window.__xfB64Check = __xfB64Check;
+window.__xfB64Size = __xfB64Size;
+window.__xfGuessName = __xfGuessName;
+
+const $ = id => document.getElementById(id);
+function fmtSize(n) {
+  if (n < 1024) return n + " B";
+  if (n < 1024 * 1024) return (n / 1024).toFixed(2) + " KB";
+  return (n / 1024 / 1024).toFixed(2) + " MB";
+}
+
+$("toB64").onclick = () => {
+  const f = $("file").files[0];
+  if (!f) return alert("请先选择文件");
+  const reader = new FileReader();
+  reader.onload = () => {
+    const url = reader.result;
+    $("res").value = url;
+    const m = String(url).match(/^data:([^;]+);base64,/);
+    $("tip").textContent = "✅ " + f.name + "（" + fmtSize(f.size) + "，类型 " + (f.type || "未知") + "）";
+    if (!$("fname").value) $("fname").value = f.name;
+  };
+  reader.readAsDataURL(f);
+};
+
+$("toFile").onclick = () => {
+  const p = __xfParseB64($("b64in").value);
+  if (!p.data) return alert("请先粘贴 Base64 内容");
+  if (!__xfB64Check(p.data)) { $("tip").textContent = "❌ Base64 格式不合法（含非法字符或长度非 4 的倍数）"; return; }
+  const mime = p.mime || "application/octet-stream";
+  try {
+    const bin = atob(p.data);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], { type: mime });
+    const name = $("fname").value.trim() || __xfGuessName(mime);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    $("tip").textContent = "✅ 已还原并下载：" + name + "（" + fmtSize(bytes.length) + "，MIME " + mime + "）";
+  } catch (e) {
+    $("tip").textContent = "❌ 解码失败：" + e.message;
+  }
+};
+
+$("copyBtn").onclick = () => {
+  const v = $("res").value || $("b64in").value;
+  if (!v) return alert("暂无内容");
+  navigator.clipboard.writeText(v).then(() => alert("✅ 已复制"));
+};
+$("b64in").addEventListener("input", () => {
+  const p = __xfParseB64($("b64in").value);
+  if (!p.data) { $("tip").textContent = "等待输入"; return; }
+  const v = __xfB64Check(p.data);
+  $("tip").textContent = (v ? "✅ Base64 格式合法" : "⚠️ 格式可疑") + "（约 " + fmtSize(__xfB64Size(p.data)) + (p.mime ? "，MIME " + p.mime : "") + "）";
+});
+$("tip").textContent = "等待输入";
+</script>
+</body>
+</html>

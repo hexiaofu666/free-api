@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线临时笔记本 - 词海工具箱</title>
+<meta name="description" content="在线临时笔记本：打开即用的极简记事工具，内容自动保存在浏览器本地，支持字数统计、一键复制、下载为 TXT。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/txtbook.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="txtbook" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>笔记内容（自动保存到本机浏览器）</label>
+        <textarea id="note" style="height:300px;" placeholder="随手记点什么，关掉页面也不会丢……"></textarea>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制内容</button>
+      <button class="fbtn teal" id="dlBtn">下载为 TXT</button>
+      <button class="fbtn gray" id="clrBtn">清空笔记</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">统计</strong></div>
+      <div id="stat" class="nb-stat"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线临时笔记本介绍：</h4>
+    <ol>
+      <li>极简记事本，打开就能写，内容自动保存在浏览器本地（localStorage），刷新或关闭页面都不会丢。</li>
+      <li>由于保存在本机浏览器，换设备或清理浏览器数据后会丢失，重要内容请及时下载保存。</li>
+      <li>实时统计字符数、行数与中文字数，方便控制篇幅。</li>
+      <li>支持一键复制与下载为 TXT 文件。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+const KEY = "xf_txtbook_v1";
+
+/* 统计文本 */
+function __xfTextStat(s) {
+  const t = String(s == null ? "" : s);
+  const lines = t === "" ? 0 : t.split("\n").length;
+  const cjk = (t.match(/[\u4e00-\u9fa5]/g) || []).length;
+  return { chars: t.length, charsNoSpace: t.replace(/\s/g, "").length, lines: lines, cjk: cjk };
+}
+window.__xfTextStat = __xfTextStat;
+
+const $ = id => document.getElementById(id);
+function save() {
+  try { localStorage.setItem(KEY, $("note").value); } catch (e) {}
+}
+function stat() {
+  const s = __xfTextStat($("note").value);
+  $("stat").innerHTML = [
+    ["字符数", s.chars], ["不含空白", s.charsNoSpace], ["行数", s.lines], ["中文字数", s.cjk]
+  ].map(([k, v]) => '<div class="nb-card"><div class="nb-v">' + v + '</div><div class="nb-k">' + k + "</div></div>").join("");
+}
+let timer = null;
+$("note").addEventListener("input", () => {
+  stat();
+  clearTimeout(timer);
+  timer = setTimeout(() => { save(); $("tip").textContent = "已自动保存 " + new Date().toLocaleTimeString("zh-CN"); }, 500);
+});
+$("copyBtn").onclick = () => { if (!$("note").value) return alert("笔记是空的"); navigator.clipboard.writeText($("note").value).then(() => alert("✅ 已复制")); };
+$("dlBtn").onclick = () => {
+  if (!$("note").value) return alert("笔记是空的");
+  const blob = new Blob([$("note").value], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "笔记_" + new Date().toISOString().slice(0, 10) + ".txt"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+};
+$("clrBtn").onclick = () => { if (!confirm("确定要清空笔记内容吗？此操作不可恢复。")) return; $("note").value = ""; save(); stat(); $("tip").textContent = "已清空"; };
+try { $("note").value = localStorage.getItem(KEY) || ""; } catch (e) {}
+stat();
+</script>
+<style>
+#note{font-family:inherit;line-height:1.8;resize:vertical;}
+.nb-stat{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+.nb-card{border:1px solid #eee;border-radius:8px;padding:10px 12px;background:#fafafa;text-align:center;}
+.nb-v{font-size:18px;font-weight:700;color:#ff6500;}
+.nb-k{font-size:12px;color:#888;margin-top:4px;}
+html.dark .nb-card{background:#22262b;border-color:#333a42;}
+html.dark .nb-k{color:#999;}
+</style>
+</body>
+</html>

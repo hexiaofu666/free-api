@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>年龄计算器在线工具 - 词海工具箱</title>
+<meta name="description" content="在线年龄计算器：输入出生日期，精确计算周岁、月龄、天数，并显示生肖、星座、下次生日倒计时与已度过天数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/nianlingjsq.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="nianlingjsq" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>出生日期</label><input type="date" id="birth"></div>
+      <div class="fitem"><label>计算基准日期</label><input type="date" id="now"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始计算</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">年龄计算结果</strong></div>
+      <div id="res" class="ag-box"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于年龄计算器介绍：</h4>
+    <ol>
+      <li>精确计算从出生日期到指定日期的年龄，同时给出「几岁几个月几天」的完整表述。</li>
+      <li>一并计算：总天数、总周数、总月数、已度过小时数，以及虚岁（按传统计法）。</li>
+      <li>自动识别生肖与星座，并给出距下一个生日的倒计时。</li>
+      <li>常用于填写表格、入职体检、入学年龄核对等场景。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+const ZODIAC = ["鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"];
+const SIGNS = [[1, 20, "水瓶座"], [2, 19, "双鱼座"], [3, 21, "白羊座"], [4, 20, "金牛座"], [5, 21, "双子座"], [6, 22, "巨蟹座"], [7, 23, "狮子座"], [8, 23, "处女座"], [9, 23, "天秤座"], [10, 24, "天蝎座"], [11, 23, "射手座"], [12, 22, "摩羯座"]];
+
+function __xfZodiac(year) {
+  // 1900 年为鼠年
+  const idx = ((year - 1900) % 12 + 12) % 12;
+  return ZODIAC[idx];
+}
+function __xfSign(month, day) {
+  for (let i = SIGNS.length - 1; i >= 0; i--) {
+    const [m, d, name] = SIGNS[i];
+    if (month > m || (month === m && day >= d)) return name;
+  }
+  return "摩羯座";
+}
+
+/* 年龄计算 */
+function __xfAge(birthStr, nowStr) {
+  const b = new Date(birthStr + "T00:00:00");
+  const n = new Date(nowStr + "T00:00:00");
+  if (isNaN(b.getTime()) || isNaN(n.getTime())) return { error: "请输入合法的日期" };
+  if (b > n) return { error: "出生日期不能晚于计算日期" };
+  let years = n.getFullYear() - b.getFullYear();
+  let months = n.getMonth() - b.getMonth();
+  let days = n.getDate() - b.getDate();
+  if (days < 0) {
+    months--;
+    const prevMonth = new Date(n.getFullYear(), n.getMonth(), 0).getDate();
+    days += prevMonth;
+  }
+  if (months < 0) { years--; months += 12; }
+  const totalDays = Math.floor((n - b) / 86400000);
+  const totalWeeks = Math.floor(totalDays / 7);
+  const totalMonths = years * 12 + months;
+  // 下一个生日
+  let next = new Date(n.getFullYear(), b.getMonth(), b.getDate());
+  if (next < n) next = new Date(n.getFullYear() + 1, b.getMonth(), b.getDate());
+  const daysToNext = Math.round((next - n) / 86400000);
+  // 虚岁
+  const xu = n.getFullYear() - b.getFullYear() + 1;
+  return {
+    years: years, months: months, days: days,
+    text: years + " 岁 " + months + " 个月 " + days + " 天",
+    totalDays: totalDays, totalWeeks: totalWeeks, totalMonths: totalMonths,
+    totalHours: totalDays * 24,
+    zodiac: __xfZodiac(b.getFullYear()),
+    sign: __xfSign(b.getMonth() + 1, b.getDate()),
+    xu: xu,
+    daysToNext: daysToNext,
+    nextDate: next.getFullYear() + "-" + String(next.getMonth() + 1).padStart(2, "0") + "-" + String(next.getDate()).padStart(2, "0")
+  };
+}
+window.__xfAge = __xfAge;
+window.__xfZodiac = __xfZodiac;
+window.__xfSign = __xfSign;
+
+const $ = id => document.getElementById(id);
+function todayStr() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function run() {
+  const r = __xfAge($("birth").value, $("now").value);
+  if (r.error) { $("res").innerHTML = '<p style="color:#e54d42;font-size:13px;">' + r.error + "</p>"; $("tip").textContent = "计算失败"; return; }
+  const cards = [
+    ["周岁", r.text], ["虚岁", r.xu + " 岁"], ["生肖", r.zodiac], ["星座", r.sign],
+    ["已度过天数", r.totalDays.toLocaleString("en-US") + " 天"], ["已度过周数", r.totalWeeks.toLocaleString("en-US") + " 周"],
+    ["已度过月数", r.totalMonths.toLocaleString("en-US") + " 个月"], ["距下次生日", r.daysToNext + " 天（" + r.nextDate + "）"]
+  ];
+  $("res").innerHTML = cards.map(([k, v]) => '<div class="ag-card"><div class="ag-k">' + k + '</div><div class="ag-v">' + v + "</div></div>").join("");
+  $("tip").textContent = "年龄计算结果";
+}
+$("runBtn").onclick = run;
+$("birth").addEventListener("change", run);
+$("now").addEventListener("change", run);
+$("demoBtn").onclick = () => { $("birth").value = "1995-06-15"; $("now").value = todayStr(); run(); };
+$("birth").value = "1995-06-15";
+$("now").value = todayStr();
+run();
+</script>
+<style>
+.ag-box{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+.ag-card{border:1px solid #eee;border-radius:8px;padding:12px 14px;background:#fafafa;}
+.ag-k{font-size:12px;color:#888;margin-bottom:6px;}
+.ag-v{font-size:16px;font-weight:600;color:#ff6500;line-height:1.4;word-break:break-all;}
+html.dark .ag-card{background:#22262b;border-color:#333a42;}
+html.dark .ag-k{color:#999;}
+</style>
+</body>
+</html>

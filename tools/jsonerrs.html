@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON校验在线工具 - 词海工具箱</title>
+<meta name="description" content="JSON 校验工具：检测 JSON 语法是否正确，精确定位错误所在的行号与列号，并给出通俗的中文错误说明与修复建议。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jsonerrs.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jsonerrs" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>粘贴 JSON 文本</label>
+        <textarea id="txt" style="height:200px;" placeholder='{"name":"词海工具箱","tools":125}'></textarea>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">校验 JSON</button>
+      <button class="fbtn gray" id="demoBtn">填入错误示例</button>
+      <button class="fbtn brown" id="fmtBtn">校验并格式化</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">校验结果</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 JSON 校验工具介绍：</h4>
+    <ol>
+      <li>JSON 对格式要求非常严格：键必须用双引号、不能有注释、不能有多余逗号。</li>
+      <li>本工具不仅告诉你「错在哪」，还会计算错误字符所在的行号与列号，方便快速定位。</li>
+      <li>常见的错误包括：多余的尾随逗号、单引号、中文标点、注释、缺少引号等，工具会给出通俗说明。</li>
+      <li>点击「校验并格式化」可以直接得到缩进美化后的正确 JSON。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 根据字符偏移计算 行/列 */
+function __xfPosToLineCol(text, pos) {
+  let line = 1, col = 1;
+  for (let i = 0; i < pos && i < text.length; i++) {
+    if (text[i] === "\n") { line++; col = 1; } else col++;
+  }
+  return { line: line, col: col };
+}
+
+/* 把浏览器错误信息翻译为中文说明 */
+function __xfExplain(msg, text, pos) {
+  const m = String(msg);
+  if (/Unexpected token/i.test(m)) {
+    const t = text[pos] || "";
+    if (t === "}") return "这里多出来一个 }，通常是上一条属性末尾多了逗号（尾随逗号）";
+    if (t === "]") return "这里多出来一个 ]，通常是数组末尾多了逗号（尾随逗号）";
+    if (t === "'") return "JSON 不允许单引号，请把 ' 改成 \"";
+    return "出现了不该出现的字符「" + t + "」，请检查该位置附近是否有拼写或标点错误";
+  }
+  if (/Expected property name|Expected double-quoted property name/i.test(m)) return "对象的键必须用双引号包裹，例如 \"name\": 1";
+  if (/Expected .* after property value|Expecting .*,.* or .*}/i.test(m)) return "属性之间缺少逗号，或属性值后格式不完整";
+  if (/Unterminated string/i.test(m)) return "字符串没有正确闭合，缺少结尾的双引号";
+  if (/Unexpected end of JSON input|Unexpected end/i.test(m)) return "JSON 内容不完整，缺少结尾的 } 或 ]";
+  if (/Bad control character/i.test(m)) return "字符串中含有非法控制字符（如未转义的换行）";
+  return "语法错误：" + m;
+}
+
+/* 校验 */
+function __xfJsonCheck(text) {
+  const s = String(text == null ? "" : text);
+  if (s.trim() === "") return { ok: false, error: "内容为空", explain: "请输入需要校验的 JSON 文本" };
+  try {
+    const val = JSON.parse(s);
+    const type = Array.isArray(val) ? "数组" : (val === null ? "null" : typeof val);
+    let size = 0;
+    if (Array.isArray(val)) size = val.length;
+    else if (val && typeof val === "object") size = Object.keys(val).length;
+    return { ok: true, type: type, size: size };
+  } catch (e) {
+    const msg = e.message || String(e);
+    let pos = -1;
+    let mm = msg.match(/position\s+(\d+)/i);
+    if (mm) pos = parseInt(mm[1], 10);
+    if (pos < 0) {
+      // 新版 V8：无法定位时回退到末尾
+      pos = s.length;
+    }
+    const lc = __xfPosToLineCol(s, pos);
+    return { ok: false, error: msg, explain: __xfExplain(msg, s, pos), pos: pos, line: lc.line, col: lc.col, near: s.slice(Math.max(0, pos - 20), pos + 20) };
+  }
+}
+
+window.__xfJsonCheck = __xfJsonCheck;
+window.__xfPosToLineCol = __xfPosToLineCol;
+
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function run(format) {
+  const r = __xfJsonCheck($("txt").value);
+  if (r.ok) {
+    $("tip").textContent = "✅ JSON 格式正确";
+    let html = '<div class="jc-ok"><b>✅ 格式正确</b><div>根类型：' + esc(r.type) + (r.size ? "（共 " + r.size + (r.type === "数组" ? " 个元素" : " 个字段") + "）" : "") + "</div></div>";
+    if (format) {
+      const pretty = JSON.stringify(JSON.parse($("txt").value), null, 2);
+      $("txt").value = pretty;
+      html += '<div class="jc-pretty">已美化缩进</div>';
+    }
+    $("res").innerHTML = html;
+  } else {
+    $("tip").textContent = "❌ JSON 格式错误";
+    $("res").innerHTML = '<div class="jc-bad"><b>❌ 格式错误</b>' +
+      (r.line ? '<div class="jc-loc">位置：第 <b>' + r.line + "</b> 行，第 <b>" + r.col + "</b> 列（字符偏移 " + r.pos + "）</div>" : "") +
+      '<div class="jc-why">原因：' + esc(r.explain || r.error) + "</div>" +
+      (r.near ? '<div class="jc-near">附近内容：<code>' + esc(r.near) + "</code></div>" : "") + "</div>";
+  }
+}
+$("runBtn").onclick = () => run(false);
+$("fmtBtn").onclick = () => run(true);
+$("demoBtn").onclick = () => { $("txt").value = '{\n  "name": "词海工具箱",\n  "count": 125,\n}'; run(false); };
+$("txt").value = '{\n  "name": "词海工具箱",\n  "type": "在线工具",\n  "tools": 155\n}';
+run(false);
+</script>
+<style>
+.jc-ok{border:1px solid #c8e6c9;background:#f1f8f1;border-radius:8px;padding:12px 14px;color:#2e7d32;font-size:14px;line-height:1.8;max-width:720px;}
+.jc-bad{border:1px solid #ffcdd2;background:#fdf3f3;border-radius:8px;padding:12px 14px;color:#c62828;font-size:14px;line-height:1.9;max-width:760px;}
+.jc-loc b{color:#c62828;}
+.jc-why{margin-top:4px;color:#8a4b00;}
+.jc-near{margin-top:6px;color:#666;font-size:13px;}
+.jc-near code{font-family:Consolas,Monaco,monospace;background:#fff;padding:2px 6px;border-radius:4px;color:#1f6feb;word-break:break-all;}
+.jc-pretty{margin-top:8px;font-size:12px;color:#888;}
+html.dark .jc-ok{background:#1c2a1d;border-color:#2e4a30;color:#8bd08f;}
+html.dark .jc-bad{background:#2d1f1f;border-color:#4a2b2b;color:#ff8a80;}
+html.dark .jc-why{color:#e0a060;}
+html.dark .jc-near{color:#999;}
+</style>
+</body>
+</html>

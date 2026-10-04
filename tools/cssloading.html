@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS加载Loading动画代码生成 - 词海工具箱</title>
+<meta name="description" content="CSS Loading 加载动画生成器：提供旋转、脉冲、跳动、三点、波浪等常见加载动画，可调颜色大小速度并复制完整代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssloading.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssloading" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>动画类型</label>
+        <select id="type">
+          <option value="spin" selected>旋转圆环</option>
+          <option value="pulse">脉冲缩放</option>
+          <option value="bounce">弹跳小球</option>
+          <option value="dots">三点跳动</option>
+          <option value="wave">波浪柱状</option>
+        </select>
+      </div>
+      <div class="fitem"><label>主色</label><input type="color" id="color" value="#ff6500"></div>
+      <div class="fitem"><label>尺寸 <b id="sv">40</b>px</label><input type="range" id="size" min="20" max="100" value="40"></div>
+      <div class="fitem"><label>动画时长 <b id="dv">1.0</b>s</label><input type="range" id="dur" min="4" max="30" value="10"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div class="cld-prev"><div id="prev"></div></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:260px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CSS 加载动画代码介绍：</h4>
+    <ol>
+      <li>页面加载、接口请求、数据提交时都需要 Loading 提示，纯 CSS 动画无需图片与 JS，体积小、性能好。</li>
+      <li>旋转圆环是最常用的形式，靠 border 的透明与着色差异配合旋转动画实现。</li>
+      <li>三点跳动与波浪柱状常用于聊天、上传等场景，通过 animation-delay 制造错落节奏。</li>
+      <li>生成的代码包含 HTML 结构与完整 CSS，可直接复制使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 生成各类型 CSS */
+function __xfLoadingCss(o) {
+  const c = o.color, s = o.size, d = o.dur;
+  if (o.type === "spin") {
+    return [
+      ".loader {",
+      "  width: " + s + "px;",
+      "  height: " + s + "px;",
+      "  border: " + Math.max(2, Math.round(s / 10)) + "px solid rgba(0,0,0,0.12);",
+      "  border-top-color: " + c + ";",
+      "  border-radius: 50%;",
+      "  animation: loader-spin " + d + "s linear infinite;",
+      "}",
+      "",
+      "@keyframes loader-spin {",
+      "  to { transform: rotate(360deg); }",
+      "}"
+    ].join("\n");
+  }
+  if (o.type === "pulse") {
+    return [
+      ".loader {",
+      "  width: " + s + "px;",
+      "  height: " + s + "px;",
+      "  background: " + c + ";",
+      "  border-radius: 50%;",
+      "  animation: loader-pulse " + d + "s ease-in-out infinite;",
+      "}",
+      "",
+      "@keyframes loader-pulse {",
+      "  0%, 100% { transform: scale(0.6); opacity: 0.5; }",
+      "  50% { transform: scale(1); opacity: 1; }",
+      "}"
+    ].join("\n");
+  }
+  if (o.type === "bounce") {
+    return [
+      ".loader {",
+      "  width: " + s + "px;",
+      "  height: " + s + "px;",
+      "  background: " + c + ";",
+      "  border-radius: 50%;",
+      "  animation: loader-bounce " + d + "s ease-in-out infinite;",
+      "}",
+      "",
+      "@keyframes loader-bounce {",
+      "  0%, 100% { transform: translateY(0); }",
+      "  50% { transform: translateY(-" + Math.round(s * 0.9) + "px); }",
+      "}"
+    ].join("\n");
+  }
+  if (o.type === "dots") {
+    return [
+      ".loader { display: flex; gap: " + Math.round(s / 5) + "px; }",
+      ".loader span {",
+      "  width: " + Math.round(s / 3) + "px;",
+      "  height: " + Math.round(s / 3) + "px;",
+      "  background: " + c + ";",
+      "  border-radius: 50%;",
+      "  animation: loader-dots " + d + "s ease-in-out infinite;",
+      "}",
+      ".loader span:nth-child(2) { animation-delay: " + (d / 6).toFixed(2) + "s; }",
+      ".loader span:nth-child(3) { animation-delay: " + (d / 3).toFixed(2) + "s; }",
+      "",
+      "@keyframes loader-dots {",
+      "  0%, 100% { transform: translateY(0); opacity: 0.5; }",
+      "  40% { transform: translateY(-" + Math.round(s / 2) + "px); opacity: 1; }",
+      "}"
+    ].join("\n");
+  }
+  // wave
+  return [
+    ".loader { display: flex; align-items: flex-end; gap: " + Math.round(s / 6) + "px; height: " + s + "px; }",
+    ".loader span {",
+    "  width: " + Math.round(s / 6) + "px;",
+    "  height: 40%;",
+    "  background: " + c + ";",
+    "  border-radius: 2px;",
+    "  animation: loader-wave " + d + "s ease-in-out infinite;",
+    "}",
+    ".loader span:nth-child(2) { animation-delay: " + (d / 8).toFixed(2) + "s; }",
+    ".loader span:nth-child(3) { animation-delay: " + (d / 4).toFixed(2) + "s; }",
+    ".loader span:nth-child(4) { animation-delay: " + (d / 2.67).toFixed(2) + "s; }",
+    ".loader span:nth-child(5) { animation-delay: " + (d / 2).toFixed(2) + "s; }",
+    "",
+    "@keyframes loader-wave {",
+    "  0%, 100% { height: 40%; }",
+    "  50% { height: 100%; }",
+    "}"
+  ].join("\n");
+}
+window.__xfLoadingCss = __xfLoadingCss;
+
+const $ = id => document.getElementById(id);
+function html(o) {
+  if (o.type === "dots") return '<span></span><span></span><span></span>';
+  if (o.type === "wave") return '<span></span><span></span><span></span><span></span><span></span>';
+  return "";
+}
+function applyDemo(o) {
+  const p = $("prev");
+  p.className = "loader";
+  p.innerHTML = html(o);
+  p.removeAttribute("style");
+  p.style.cssText = "";
+  const s = o.size, c = o.color, d = o.dur;
+  if (o.type === "spin") {
+    p.style.cssText = "width:" + s + "px;height:" + s + "px;border:" + Math.max(2, Math.round(s / 10)) + "px solid rgba(0,0,0,0.12);border-top-color:" + c + ";border-radius:50%;animation:cld-spin " + d + "s linear infinite;";
+  } else if (o.type === "pulse") {
+    p.style.cssText = "width:" + s + "px;height:" + s + "px;background:" + c + ";border-radius:50%;animation:cld-pulse " + d + "s ease-in-out infinite;";
+  } else if (o.type === "bounce") {
+    p.style.cssText = "width:" + s + "px;height:" + s + "px;background:" + c + ";border-radius:50%;animation:cld-bounce " + d + "s ease-in-out infinite;";
+  } else if (o.type === "dots") {
+    p.style.cssText = "display:flex;gap:" + Math.round(s / 5) + "px;";
+    Array.prototype.forEach.call(p.children, (el, i) => {
+      el.style.cssText = "width:" + Math.round(s / 3) + "px;height:" + Math.round(s / 3) + "px;background:" + c + ";border-radius:50%;animation:cld-dots " + d + "s ease-in-out infinite;animation-delay:" + (i * d / 6).toFixed(2) + "s;";
+    });
+  } else {
+    p.style.cssText = "display:flex;align-items:flex-end;gap:" + Math.round(s / 6) + "px;height:" + s + "px;";
+    Array.prototype.forEach.call(p.children, (el, i) => {
+      el.style.cssText = "width:" + Math.round(s / 6) + "px;height:40%;background:" + c + ";border-radius:2px;animation:cld-wave " + d + "s ease-in-out infinite;animation-delay:" + (i * d / 8).toFixed(2) + "s;";
+    });
+  }
+}
+function collect() { return { type: $("type").value, color: $("color").value, size: +$("size").value, dur: (+$("dur").value / 10).toFixed(1) }; }
+function run() {
+  const o = collect();
+  $("sv").textContent = o.size; $("dv").textContent = o.dur;
+  applyDemo(o);
+  $("res").value = __xfLoadingCss(o);
+}
+["type", "color", "size", "dur"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("type").value = "spin"; $("color").value = "#ff6500"; $("size").value = 40; $("dur").value = 10; run(); };
+run();
+</script>
+<style>
+.cld-prev{display:flex;align-items:center;justify-content:center;padding:46px 20px;background:#f5f6f8;border-radius:8px;min-height:110px;}
+html.dark .cld-prev{background:#1e2227;}
+@keyframes cld-spin{to{transform:rotate(360deg);}}
+@keyframes cld-pulse{0%,100%{transform:scale(.6);opacity:.5;}50%{transform:scale(1);opacity:1;}}
+@keyframes cld-bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-36px);}}
+@keyframes cld-dots{0%,100%{transform:translateY(0);opacity:.5;}40%{transform:translateY(-20px);opacity:1;}}
+@keyframes cld-wave{0%,100%{height:40%;}50%{height:100%;}}
+</style>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS霓虹灯文字特效生成器 - 词海工具箱</title>
+<meta name="description" content="CSS 霓虹灯文字特效生成器：设置文字内容、发光颜色与强度，一键生成多层 text-shadow 霓虹代码，实时预览赛博朋克风格效果。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssneon.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssneon" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>文字内容</label><input type="text" id="text" value="NEON 词海"></div>
+      <div class="fitem"><label>发光颜色</label><input type="color" id="glow" value="#ff2d95"></div>
+      <div class="fitem"><label>文字颜色</label><input type="color" id="tc" value="#ffffff"></div>
+      <div class="fitem"><label>发光强度 <b id="iv">1.0</b></label><input type="range" id="intensity" min="0.2" max="2" step="0.1" value="1"></div>
+      <div class="fitem"><label>字号 <b id="fv">38</b>px</label><input type="range" id="fs" min="18" max="90" value="38"></div>
+      <div class="fitem"><label>字重</label>
+        <select id="fw"><option value="400">常规</option><option value="600" selected>半粗</option><option value="800">特粗</option></select>
+      </div>
+      <div class="fitem"><label>背景颜色</label><input type="color" id="bg" value="#0b0b16"></div>
+      <div class="fitem"><label>闪烁动画</label>
+        <select id="blink"><option value="0" selected>否</option><option value="1">是（呼吸闪烁）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div id="prev" class="cneon-prev"><span id="prevTxt" class="cneon-txt">NEON 词海</span></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CSS 霓虹灯文字特效生成器介绍：</h4>
+    <ol>
+      <li>霓虹灯效果通过多层同色 text-shadow 叠加实现，模糊值越小越「实」，越大越「散」。 </li>
+      <li>通常用 4 层发光（例如 0/4/11/19/40px），配合白色文字或同色文字，效果最接近真实霓虹灯。</li>
+      <li>开启闪烁动画后用 CSS animation 控制 opacity 的呼吸变化，模拟灯管闪烁。</li>
+      <li>适合活动页、游戏站、赛博朋克风格的标题设计。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+function __xfHexRgb(hex) {
+  const h = String(hex).replace("#", "");
+  const f = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  return [parseInt(f.slice(0, 2), 16), parseInt(f.slice(2, 4), 16), parseInt(f.slice(4, 6), 16)];
+}
+/* 生成霓虹 text-shadow */
+function __xfNeonShadow(o) {
+  const i = o.intensity;
+  const c = o.glow;
+  const px = n => (n * i).toFixed(1).replace(/\.0$/, "") + "px";
+  return [
+    "0 0 " + px(4) + " " + c,
+    "0 0 " + px(11) + " " + c,
+    "0 0 " + px(19) + " " + c,
+    "0 0 " + px(40) + " " + c
+  ].join(", ");
+}
+function __xfNeonCss(o) {
+  let css = ".neon {\n  color: " + o.tc + ";\n  font-size: " + o.fs + "px;\n  font-weight: " + o.fw + ";\n  text-shadow: " + __xfNeonShadow(o) + ";\n}";
+  if (o.blink) {
+    css += "\n\n.neon {\n  animation: neon-flicker 1.6s ease-in-out infinite alternate;\n}\n\n@keyframes neon-flicker {\n  from { opacity: 1; }\n  to { opacity: 0.55; }\n}";
+  }
+  return css;
+}
+window.__xfNeonCss = __xfNeonCss;
+window.__xfNeonShadow = __xfNeonShadow;
+
+const $ = id => document.getElementById(id);
+function collect() {
+  return { text: $("text").value, glow: $("glow").value, tc: $("tc").value, intensity: +$("intensity").value, fs: +$("fs").value, fw: $("fw").value, bg: $("bg").value, blink: $("blink").value === "1" };
+}
+function run() {
+  const o = collect();
+  $("iv").textContent = o.intensity.toFixed(1); $("fv").textContent = o.fs;
+  const box = $("prev"), t = $("prevTxt");
+  box.style.background = o.bg;
+  t.textContent = o.text || "NEON";
+  t.style.color = o.tc;
+  t.style.fontSize = o.fs + "px";
+  t.style.fontWeight = o.fw;
+  t.style.textShadow = __xfNeonShadow(o);
+  t.style.animation = o.blink ? "neon-flicker 1.6s ease-in-out infinite alternate" : "";
+  $("res").value = __xfNeonCss(o);
+}
+["text", "glow", "tc", "intensity", "fs", "fw", "bg", "blink"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("text").value = "NEON 词海"; $("glow").value = "#ff2d95"; $("tc").value = "#ffffff"; $("intensity").value = 1; $("fs").value = 38; $("fw").value = "600"; $("bg").value = "#0b0b16"; $("blink").value = "0"; run(); };
+run();
+</script>
+<style>
+.cneon-prev{display:flex;align-items:center;justify-content:center;padding:44px 20px;border-radius:10px;overflow:hidden;}
+.cneon-txt{letter-spacing:2px;line-height:1.3;text-align:center;}
+@keyframes neon-flicker{from{opacity:1;}to{opacity:.55;}}
+</style>
+</body>
+</html>

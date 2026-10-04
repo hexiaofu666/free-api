@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON转TOML在线转换器 - 词海工具箱</title>
+<meta name="description" content="JSON 转 TOML 工具：把 JSON 对象转换为标准 TOML 配置格式，自动处理嵌套表、数组与数据类型，支持复制与下载。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/json2toml.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="json2toml" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>JSON 内容</label>
+        <textarea id="src" style="height:190px;" placeholder='{"title":"demo","owner":{"name":"Tom"},"ports":[8000,8001]}'></textarea>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换为 TOML</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+      <button class="fbtn gray" id="dlBtn">下载 .toml</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">TOML 结果</strong></div>
+      <textarea id="res" readonly style="height:240px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 JSON 转 TOML 转换器介绍：</h4>
+    <ol>
+      <li>TOML 是常见的配置文件格式（Cargo.toml、pyproject.toml 等），比 JSON 更适合人工阅读与编辑。</li>
+      <li>本工具把 JSON 对象的普通字段写成 key = value，嵌套对象写成 [table] 段落。</li>
+      <li>支持字符串、整数、浮点、布尔、数组（含内联数组）与嵌套表，非法 JSON 会给出提示。</li>
+      <li>转换结果可直接复制或下载为 .toml 文件。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 值 -> TOML 字面量 */
+function __xfTomlValue(v) {
+  if (v === null || v === undefined) return '""';
+  if (typeof v === "boolean") return v ? "true" : "false";
+  if (typeof v === "number") return Number.isFinite(v) ? String(v) : '""';
+  if (typeof v === "string") return JSON.stringify(v);
+  if (Array.isArray(v)) return "[" + v.map(x => __xfTomlValue(x)).join(", ") + "]";
+  return '""';
+}
+function __xfIsTable(v) { return v && typeof v === "object" && !Array.isArray(v); }
+
+/* JSON 对象 -> TOML */
+function __xfJson2Toml(obj, prefix) {
+  prefix = prefix || "";
+  const lines = [];
+  const tables = [];
+  const keys = Object.keys(obj);
+  keys.forEach(k => {
+    const v = obj[k];
+    const safeKey = /^[A-Za-z0-9_-]+$/.test(k) ? k : JSON.stringify(k);
+    if (__xfIsTable(v)) {
+      const path = prefix ? prefix + "." + safeKey : safeKey;
+      tables.push({ path: path, value: v });
+    } else if (Array.isArray(v) && v.length && v.every(__xfIsTable)) {
+      // 数组表：[[table]]
+      v.forEach(item => tables.push({ path: (prefix ? prefix + "." : "") + safeKey, value: item, isArrayTable: true }));
+    } else {
+      lines.push(safeKey + " = " + __xfTomlValue(v));
+    }
+  });
+  let out = lines.join("\n");
+  tables.forEach(t => {
+    const head = t.isArrayTable ? "[[" + t.path + "]]" : "[" + t.path + "]";
+    const body = __xfJson2Toml(t.value, t.isArrayTable ? t.path : t.path);
+    out += (out ? "\n\n" : "") + head + "\n" + body;
+  });
+  return out;
+}
+
+function __xfJsonToToml(text) {
+  let data;
+  try { data = JSON.parse(String(text == null ? "" : text)); }
+  catch (e) { return { error: "JSON 解析失败：" + e.message }; }
+  if (!__xfIsTable(data)) return { error: "TOML 的根必须是对象（{}），当前是 " + (Array.isArray(data) ? "数组" : typeof data) };
+  return { toml: __xfJson2Toml(data) };
+}
+
+window.__xfJsonToToml = __xfJsonToToml;
+window.__xfTomlValue = __xfTomlValue;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const r = __xfJsonToToml($("src").value);
+  if (r.error) { $("res").value = ""; $("tip").textContent = "❌ " + r.error; return; }
+  $("res").value = r.toml;
+  $("tip").textContent = "✅ 转换完成";
+}
+$("runBtn").onclick = run;
+$("src").addEventListener("input", run);
+$("copyBtn").onclick = () => { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制")); };
+$("dlBtn").onclick = () => {
+  if (!$("res").value) return alert("暂无结果");
+  const blob = new Blob([$("res").value], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "config.toml"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+};
+$("src").value = '{\n  "title": "词海工具箱",\n  "version": "1.0.0",\n  "debug": false,\n  "ports": [8000, 8001],\n  "owner": {\n    "name": "小富子",\n    "site": "tools.hdemba.cn"\n  }\n}';
+run();
+</script>
+</body>
+</html>

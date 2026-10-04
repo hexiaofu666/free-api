@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS条纹背景在线生成 - 词海工具箱</title>
+<meta name="description" content="CSS 条纹背景生成器：用 repeating-linear-gradient 生成斜纹、竖纹、横纹背景，可调颜色宽度角度，实时预览并复制代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssstripe.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssstripe" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>方向</label>
+        <select id="dir"><option value="45" selected>45° 斜纹（右下）</option><option value="-45">-45° 斜纹（右上）</option><option value="90">90° 竖纹</option><option value="0">0° 横纹</option><option value="135">135° 斜纹</option></select>
+      </div>
+      <div class="fitem"><label>颜色 1</label><input type="color" id="c1" value="#ff6500"></div>
+      <div class="fitem"><label>颜色 2</label><input type="color" id="c2" value="#ffb27a"></div>
+      <div class="fitem"><label>条纹宽度 <b id="wv">14</b>px</label><input type="range" id="w" min="2" max="60" value="14"></div>
+      <div class="fitem"><label>空白占比 <b id="gv">50</b>%</label><input type="range" id="gap" min="5" max="95" value="50"></div>
+      <div class="fitem"><label>虚线感（等宽条纹）</label>
+        <select id="even"><option value="1" selected>是（两色等宽）</option><option value="0">否（按空白占比）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div id="prev" class="cst-prev"></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:110px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CSS 条纹背景生成器介绍：</h4>
+    <ol>
+      <li>条纹背景用 repeating-linear-gradient 实现，无需图片，随意改变尺寸也不会模糊。</li>
+      <li>常见于「施工中」「未完成」「占位图」等提示性背景，也可用于进度条与装饰条。</li>
+      <li>45° 斜纹是最经典的样式，两色等宽得到均匀条纹，调整占比可得到宽窄不同的效果。</li>
+      <li>生成的代码可直接用于任何元素的 background 属性。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 生成 repeating-linear-gradient 值 */
+function __xfStripeValue(o) {
+  const w = o.width;
+  const a = o.c1, b = o.c2;
+  if (o.even) {
+    return "repeating-linear-gradient(" + o.dir + "deg, " + a + " 0, " + a + " " + w + "px, " + b + " " + w + "px, " + b + " " + (w * 2) + "px)";
+  }
+  const gap = Math.round(w * (100 - o.gap) / o.gap);
+  return "repeating-linear-gradient(" + o.dir + "deg, " + a + " 0, " + a + " " + w + "px, " + b + " " + w + "px, " + b + " " + (w + gap) + "px)";
+}
+function __xfStripeCss(o) {
+  return ".stripe {\n  background: " + __xfStripeValue(o) + ";\n}";
+}
+window.__xfStripeCss = __xfStripeCss;
+window.__xfStripeValue = __xfStripeValue;
+
+const $ = id => document.getElementById(id);
+function collect() {
+  return { dir: +$("dir").value, c1: $("c1").value, c2: $("c2").value, width: +$("w").value, gap: +$("gap").value, even: $("even").value === "1" };
+}
+function run() {
+  const o = collect();
+  $("wv").textContent = o.width; $("gv").textContent = o.gap;
+  $("prev").style.background = __xfStripeValue(o);
+  $("res").value = __xfStripeCss(o);
+}
+["dir", "c1", "c2", "w", "gap", "even"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("dir").value = "45"; $("c1").value = "#ff6500"; $("c2").value = "#ffb27a"; $("w").value = 14; $("gap").value = 50; $("even").value = "1"; run(); };
+run();
+</script>
+<style>
+.cst-prev{height:150px;border-radius:8px;border:1px solid #eee;}
+html.dark .cst-prev{border-color:#333a42;}
+</style>
+</body>
+</html>

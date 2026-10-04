@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS圆角效果在线生成 - 词海工具箱</title>
+<meta name="description" content="CSS 圆角生成器：四个角独立调节圆角半径，支持像素/百分比单位，实时预览并复制 border-radius 代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssradius.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssradius" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>单位</label>
+        <select id="unit"><option value="px" selected>像素 px</option><option value="%">百分比 %</option><option value="rem">rem</option></select>
+      </div>
+      <div class="fitem"><label>左上角 <b id="tlv">16</b></label><input type="range" id="tl" min="0" max="100" value="16"></div>
+      <div class="fitem"><label>右上角 <b id="trv">16</b></label><input type="range" id="tr" min="0" max="100" value="16"></div>
+      <div class="fitem"><label>右下角 <b id="brv">16</b></label><input type="range" id="br" min="0" max="100" value="16"></div>
+      <div class="fitem"><label>左下角 <b id="blv">16</b></label><input type="range" id="bl" min="0" max="100" value="16"></div>
+      <div class="fitem"><label>填充色</label><input type="color" id="bg" value="#ff6500"></div>
+      <div class="fitem"><label>联动四角</label>
+        <select id="link"><option value="0" selected>否（独立调节）</option><option value="1">是（一起变化）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div class="crd-prev"><div id="prev" class="crd-box"></div></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:100px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CSS 圆角生成器介绍：</h4>
+    <ol>
+      <li>border-radius 可以给元素加圆角，四个角可分别设置，顺序为 左上、右上、右下、左下。</li>
+      <li>使用百分比时，形状会随元素尺寸自动变化（100% 可得到圆形或椭圆）。</li>
+      <li>常见用法：卡片圆角 8-16px、按钮圆角 4-999px（胶囊按钮）、头像 50%（圆形）。</li>
+      <li>若四个角取值相同，工具会自动简写为一个值，代码更简洁。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 生成 border-radius 值（四角相同时简写） */
+function __xfRadiusValue(tl, tr, br, bl, unit) {
+  unit = unit || "px";
+  const v = [tl, tr, br, bl].map(n => n + unit);
+  if (v[0] === v[1] && v[1] === v[2] && v[2] === v[3]) return v[0];
+  if (v[0] === v[2] && v[1] === v[3]) return v[0] + " " + v[1];
+  return v.join(" ");
+}
+function __xfRadiusCss(o) {
+  const val = __xfRadiusValue(o.tl, o.tr, o.br, o.bl, o.unit);
+  const lines = ["border-radius: " + val + ";"];
+  if (o.bg) lines.push("background: " + o.bg + ";");
+  return ".box {\n  " + lines.join("\n  ") + "\n}";
+}
+window.__xfRadiusCss = __xfRadiusCss;
+window.__xfRadiusValue = __xfRadiusValue;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const o = { tl: +$("tl").value, tr: +$("tr").value, br: +$("br").value, bl: +$("bl").value, unit: $("unit").value, bg: $("bg").value };
+  $("tlv").textContent = o.tl; $("trv").textContent = o.tr; $("brv").textContent = o.br; $("blv").textContent = o.bl;
+  const p = $("prev");
+  p.style.borderRadius = o.tl + o.unit + " " + o.tr + o.unit + " " + o.br + o.unit + " " + o.bl + o.unit;
+  p.style.background = o.bg;
+  $("res").value = __xfRadiusCss(o);
+}
+let linking = false;
+["tl", "tr", "br", "bl"].forEach(id => {
+  $(id).addEventListener("input", () => {
+    if ($("link").value === "1" && !linking) {
+      linking = true;
+      const v = $(id).value;
+      ["tl", "tr", "br", "bl"].forEach(x => { $(x).value = v; });
+      linking = false;
+    }
+    run();
+  });
+});
+["unit", "bg", "link"].forEach(id => { $(id).addEventListener("change", run); });
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("unit").value = "px"; $("tl").value = 16; $("tr").value = 16; $("br").value = 16; $("bl").value = 16; $("bg").value = "#ff6500"; $("link").value = "0"; run(); };
+run();
+</script>
+<style>
+.crd-prev{display:flex;justify-content:center;align-items:center;padding:30px;background:repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 18px 18px;border-radius:8px;}
+.crd-box{width:180px;height:120px;}
+html.dark .crd-prev{background:#20242a;}
+</style>
+</body>
+</html>

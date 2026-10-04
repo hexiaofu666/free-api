@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS三角形生成器在线工具 - 词海工具箱</title>
+<meta name="description" content="CSS 三角形生成器：选择上下左右方向与大小、颜色，自动生成 border 技巧实现的纯 CSS 三角形代码，实时预览。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/csstriangle.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="csstriangle" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>三角形方向（顶点朝向）</label>
+        <select id="dir"><option value="up" selected>向上 ▲</option><option value="down">向下 ▼</option><option value="left">向左 ◀</option><option value="right">向右 ▶</option><option value="tl">左上 ◤</option><option value="tr">右上 ◥</option><option value="bl">左下 ◣</option><option value="br">右下 ◢</option></select>
+      </div>
+      <div class="fitem"><label>半宽 <b id="wv">40</b>px</label><input type="range" id="w" min="4" max="160" value="40"></div>
+      <div class="fitem"><label>高 <b id="hv">40</b>px</label><input type="range" id="h" min="4" max="160" value="40"></div>
+      <div class="fitem"><label>颜色</label><input type="color" id="color" value="#ff6500"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div class="ctri-prev"><div id="prev" class="ctri-box"></div></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:150px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CSS 三角形生成器介绍：</h4>
+    <ol>
+      <li>纯 CSS 三角形的原理是：元素宽高为 0，用不同方向的透明 border 拼出形状，只给一个方向设置实色。</li>
+      <li>常用于气泡框箭头、下拉菜单指示、列表标记等场景，无需引入图片。</li>
+      <li>「半宽」决定底边的一半长度，「高」是三角形的高度。</li>
+      <li>四个斜角方向的实现略有不同，工具会自动给出对应代码。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 生成三角形 CSS */
+function __xfTriangleCss(o) {
+  const c = o.color, w = o.w, h = o.h;
+  const lines = ["width: 0;", "height: 0;"];
+  switch (o.dir) {
+    case "up":
+      lines.push("border-left: " + w + "px solid transparent;", "border-right: " + w + "px solid transparent;", "border-bottom: " + h + "px solid " + c + ";");
+      break;
+    case "down":
+      lines.push("border-left: " + w + "px solid transparent;", "border-right: " + w + "px solid transparent;", "border-top: " + h + "px solid " + c + ";");
+      break;
+    case "left":
+      lines.push("border-top: " + w + "px solid transparent;", "border-bottom: " + w + "px solid transparent;", "border-right: " + h + "px solid " + c + ";");
+      break;
+    case "right":
+      lines.push("border-top: " + w + "px solid transparent;", "border-bottom: " + w + "px solid transparent;", "border-left: " + h + "px solid " + c + ";");
+      break;
+    case "tl":
+      lines.push("border-top: " + h + "px solid " + c + ";", "border-right: " + w + "px solid transparent;");
+      break;
+    case "tr":
+      lines.push("border-top: " + h + "px solid " + c + ";", "border-left: " + w + "px solid transparent;");
+      break;
+    case "bl":
+      lines.push("border-bottom: " + h + "px solid " + c + ";", "border-right: " + w + "px solid transparent;");
+      break;
+    case "br":
+      lines.push("border-bottom: " + h + "px solid " + c + ";", "border-left: " + w + "px solid transparent;");
+      break;
+  }
+  return ".triangle {\n  " + lines.join("\n  ") + "\n}";
+}
+/* 应用样式到元素 */
+function __xfApply(el, o) {
+  el.style.width = "0"; el.style.height = "0";
+  el.style.borderTop = el.style.borderRight = el.style.borderBottom = el.style.borderLeft = "";
+  const c = o.color, w = o.w + "px", h = o.h + "px", t = "solid transparent";
+  switch (o.dir) {
+    case "up": el.style.borderLeft = w + " " + t; el.style.borderRight = w + " " + t; el.style.borderBottom = h + " solid " + c; break;
+    case "down": el.style.borderLeft = w + " " + t; el.style.borderRight = w + " " + t; el.style.borderTop = h + " solid " + c; break;
+    case "left": el.style.borderTop = w + " " + t; el.style.borderBottom = w + " " + t; el.style.borderRight = h + " solid " + c; break;
+    case "right": el.style.borderTop = w + " " + t; el.style.borderBottom = w + " " + t; el.style.borderLeft = h + " solid " + c; break;
+    case "tl": el.style.borderTop = h + " solid " + c; el.style.borderRight = w + " " + t; break;
+    case "tr": el.style.borderTop = h + " solid " + c; el.style.borderLeft = w + " " + t; break;
+    case "bl": el.style.borderBottom = h + " solid " + c; el.style.borderRight = w + " " + t; break;
+    case "br": el.style.borderBottom = h + " solid " + c; el.style.borderLeft = w + " " + t; break;
+  }
+}
+window.__xfTriangleCss = __xfTriangleCss;
+window.__xfApply = __xfApply;
+
+const $ = id => document.getElementById(id);
+function collect() { return { dir: $("dir").value, w: +$("w").value, h: +$("h").value, color: $("color").value }; }
+function run() {
+  const o = collect();
+  $("wv").textContent = o.w; $("hv").textContent = o.h;
+  __xfApply($("prev"), o);
+  $("res").value = __xfTriangleCss(o);
+}
+["dir", "w", "h", "color"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("dir").value = "up"; $("w").value = 40; $("h").value = 40; $("color").value = "#ff6500"; run(); };
+run();
+</script>
+<style>
+.ctri-prev{display:flex;justify-content:center;align-items:center;padding:40px;background:repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 18px 18px;border-radius:8px;}
+html.dark .ctri-prev{background:#20242a;}
+</style>
+</body>
+</html>

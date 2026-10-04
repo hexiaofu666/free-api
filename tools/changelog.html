@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.9"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -68,13 +68,23 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.5.9"></script>
-<script src="../assets/chrome.js?v=1.5.9"></script>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.6.0", date: "2026-10-04",
+    items: [
+      ["new", "一次性新增 50 款工具（工具总数 155 → 205）。网络与格式类 20 款：IPv4转IPv6（映射/6to4/NAT64）、IPv6压缩展开、IPv6地址生成、IPv6地址验证、Magic Bytes文件头识别、数字转英文读法、BOM头检测移除、文件目录树生成、文本行数统计、MAC转EUI-64、ULID解析、JSON校验（行列定位）、JSON转TOML、TOML转JSON、JSON与GET参数互转、Cookie转JSON、JSON转Cookie、Base64与文件互转、随机数生成器、MAC厂商查询"],
+      ["new", "新增 17 款站长与 CSS 生成器：CSS边框、CSS毛玻璃、Flex布局编辑器、CSS圆角、CSS三角形、CSS文字阴影、DIV阴影、CSS按钮、CSS渐变背景、CSS霓虹灯文字、CSS加载动画、CSS条纹背景、新拟态风格、PX批量转REM、URL转Sitemap、网页META检测、浏览器信息查看（均可视化调节+实时预览+一键复制代码）"],
+      ["new", "新增 13 款生活办公工具：年龄计算器（含生肖星座）、宝宝百日计算器、日出日落计算器（NOAA 天文算法）、电视观看距离计算、新能源充电费用计算、北京标准时间、时间进度条、在线手持弹幕、在线临时笔记本、上标下标生成器、在线白板画板、键盘按键测试、车牌号生成器"],
+      ["opt", "分类规模：编程开发 88 款、站长工具 34 款、图片颜色 30 款、生活工具 32 款、数学工具 11 款、效率办公 10 款，合计 205 款"],
+      ["opt", "新增多项自研引擎：IPv6 地址解析与 RFC 5952 压缩算法、TOML 解析器（支持表/数组表/内联数组/注释）、日出日落天文算法、UTF-8 字节统计、EUI-64 位翻转"],
+    ]
+  },
   {
     ver: "v1.5.9", date: "2026-09-28",
     items: [

@@ -3,14 +3,10 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>在线IPv6地址生成器 - 词海工具箱</title>
+<meta name="description" content="在线 IPv6 地址生成器：按指定前缀批量生成随机或顺序递增的 IPv6 地址，支持压缩格式与数量设置，可一键复制导出。">
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.9"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
-<style>
-.ggrid { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-.ggrid .fitem { flex: 1; min-width: 150px; }
-.ggrid .fitem select, .ggrid .fitem input { display: flex; width: 100%; }
-</style>
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
 <script>
 var _hmt = _hmt || [];
 (function() {
@@ -20,121 +16,147 @@ var s = document.getElementsByTagName("script")[0];
 s.parentNode.insertBefore(hm, s);
 })();
 </script>
-<meta name="description" content="专业 IPv6 地址生成器，支持全球单播（2000::/3）、链路本地（fe80::/10）、唯一本地（fc00::/7）、组播（ff00::/8）等多种类型，可自定义 CIDR 前缀显示，批量随机或顺序递增生成，浏览器本地处理。">
 <link rel="canonical" href="https://tools.hdemba.cn/tools/ipv6gen.html">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body data-tool="ipv6gen" data-cat="dev">
 <div class="main"><div class="center"><div class="tools">
   <div class="tools-cent">
-    <div class="ggrid">
-      <div class="fitem"><label>地址类型</label><select id="addrType">
-        <option value="global">Global Unicast (2000::/3)</option>
-        <option value="link-local">Link-Local (fe80::/10)</option>
-        <option value="unique-local">Unique Local (fc00::/7)</option>
-        <option value="multicast">Multicast (ff00::/8)</option>
-      </select></div>
-      <div class="fitem"><label>CIDR 位长显示</label><select id="prefixLen">
-        <option value="none">不显示</option>
-        <option value="32">/32</option>
-        <option value="48">/48</option>
-        <option value="56">/56</option>
-        <option value="64" selected>/64</option>
-        <option value="128">/128</option>
-      </select></div>
-      <div class="fitem"><label>输出格式</label><select id="format">
-        <option value="compressed">压缩格式 (::)</option>
-        <option value="full">完整格式 (8段)</option>
-      </select></div>
-      <div class="fitem"><label>十六进制大小写</label><select id="letterCase">
-        <option value="lower">小写 a-f</option>
-        <option value="upper">大写 A-F</option>
-      </select></div>
-      <div class="fitem"><label>生成模式</label><select id="mode">
-        <option value="random">随机生成</option>
-        <option value="sequential">顺序递增</option>
-      </select></div>
-      <div class="fitem"><label>生成数量</label><input id="count" type="number" min="1" max="1000" value="10"></div>
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>地址前缀</label><input type="text" id="prefix" placeholder="例如 2001:db8:abcd::"></div>
+      <div class="fitem"><label>生成数量</label><input type="number" id="count" value="10" min="1" max="1000"></div>
+      <div class="fitem"><label>生成模式</label>
+        <select id="mode">
+          <option value="rand" selected>随机（前 64 位固定）</option>
+          <option value="seq">顺序递增</option>
+        </select>
+      </div>
+      <div class="fitem"><label>输出格式</label>
+        <select id="fmt">
+          <option value="compress" selected>压缩形式 ::</option>
+          <option value="expand">完整展开</option>
+        </select>
+      </div>
     </div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-      <button class="fbtn blue" id="genBtn">立即生成</button>
-      <button class="fbtn" id="copyBtn">复制结果</button>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成地址</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
     </div>
-    <div class="fitem" style="display:none;" id="outwrap"><label>生成结果（每行一个）</label><textarea id="output" rows="10" readonly spellcheck="false"></textarea></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成的 IPv6 地址</strong></div>
+      <textarea id="res" readonly placeholder="生成结果在这里"></textarea>
+    </div>
   </div>
   <div class="resttips">
-    <h4>关于IPv6地址生成器介绍：</h4>
-    <p>1、IPv6 地址共 128 位，常见类型：全球单播（2000::/3，公网可路由）、链路本地（fe80::/10，仅同一链路有效）、唯一本地（fc00::/7，相当于 IPv6 私网）、组播（ff00::/8）。</p>
-    <p>2、随机模式在对应地址段内完全随机生成；顺序递增模式以随机起始值逐个 +1，适合批量测试场景。</p>
-    <p>3、可选显示 CIDR 位长后缀（如 /64）、压缩或完整 8 段格式、大小写，单次最多生成 1000 个。生成在浏览器本地完成，不联网。</p>
+    <h4>关于在线 IPv6 地址生成器介绍：</h4>
+    <ol>
+      <li>输入一个 IPv6 前缀（如 2001:db8::），工具会保留前缀部分，随机或顺序填充后面的部分。</li>
+      <li>随机模式固定前 64 位不变，后 64 位随机生成，符合常见子网划分习惯。</li>
+      <li>顺序模式从前缀起始地址开始逐个递增，适合做批量测试数据的编号。</li>
+      <li>生成结果支持压缩或展开两种写法，最多一次生成 1000 条，可复制到剪贴板。</li>
+    </ol>
   </div>
 </div></div></div>
-<script src="../assets/tools-data.js?v=1.5.9"></script>
-<script src="../assets/chrome.js?v=1.5.9"></script>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
 <script>
-const $ = id => document.getElementById(id);
-function rnd16() { return Math.floor(Math.random() * 0x10000); }
-function genOne(type, mode, seq) {
-  const g = new Array(8).fill(0);
-  if (type === "global") { g[0] = 0x2000 + rnd16() % 0x2000; for (let i = 1; i < 8; i++) g[i] = rnd16(); }
-  else if (type === "link-local") { g[0] = 0xfe80; g[1] = rnd16() & 0x03ff; for (let i = 2; i < 8; i++) g[i] = rnd16(); }
-  else if (type === "unique-local") { g[0] = 0xfd00 + rnd16() % 0x100; for (let i = 1; i < 8; i++) g[i] = rnd16(); }
-  else { g[0] = 0xff00 + rnd16() % 0x100; for (let i = 1; i < 8; i++) g[i] = rnd16(); }
-  if (mode === "sequential") for (let i = 7; i >= 1; i--) { if (seq > 0) { g[i] = (g[i] + seq) % 0x10000; seq = Math.floor(seq / 0x10000) + (seq % 0x10000 ? 0 : 0); } }
-  // sequential：直接把序号加到末 64 位（简化实现：低32位 + seq）
-  return g;
-}
-function genSequential(type, seq) {
-  const g = new Array(8).fill(0);
-  if (type === "global") { g[0] = 0x2000 + rnd16() % 0x2000; for (let i = 1; i < 4; i++) g[i] = rnd16(); }
-  else if (type === "link-local") { g[0] = 0xfe80; g[1] = rnd16() & 0x03ff; for (let i = 2; i < 4; i++) g[i] = rnd16(); }
-  else if (type === "unique-local") { g[0] = 0xfd00 + rnd16() % 0x100; for (let i = 1; i < 4; i++) g[i] = rnd16(); }
-  else { g[0] = 0xff00 + rnd16() % 0x100; for (let i = 1; i < 4; i++) g[i] = rnd16(); }
-  g[4] = Math.floor(seq / 0x100000000) % 0x10000;
-  g[5] = Math.floor(seq / 0x100000000 / 0x10000) % 0x10000;
-  g[6] = Math.floor(seq / 0x10000) % 0x10000;
-  g[7] = seq % 0x10000;
-  return g;
-}
-function fmt(g, format, lower) {
-  let out;
-  if (format === "full") out = g.map(x => x.toString(16).padStart(4, "0")).join(":");
-  else {
-    const parts = g.map(x => x.toString(16));
-    let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0;
-    for (let i = 0; i < 8; i++) {
-      if (g[i] === 0) { if (curStart === -1) { curStart = i; curLen = 1; } else curLen++; }
-      else { if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; } curStart = -1; curLen = 0; }
+function __xfV6Parse(addr) {
+  let s = String(addr == null ? "" : addr).trim();
+  if (!s) return null;
+  if (s.startsWith("[") && s.endsWith("]")) s = s.slice(1, -1);
+  s = s.split("%")[0];
+  if (s.indexOf("::") !== s.lastIndexOf("::")) return null;
+  let head = [], tail = [], dbl = false;
+  if (s.indexOf("::") >= 0) { dbl = true; const p = s.split("::"); head = p[0] ? p[0].split(":") : []; tail = p[1] ? p[1].split(":") : []; }
+  else head = s.split(":");
+  const all = head.concat(tail);
+  if (all.length > 8) return null;
+  if (!dbl && all.length !== 8) return null;
+  const groups = [];
+  for (let i = 0; i < all.length; i++) {
+    const g = all[i];
+    /* 末尾嵌入的 IPv4 写法（如 ::ffff:192.168.1.1）折算为 2 组 */
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(g)) {
+      const o = g.split(".").map(Number);
+      if (i !== all.length - 1 || o.some(n => n > 255)) return null;
+      groups.push((o[0] << 8) | o[1], (o[2] << 8) | o[3]);
+      continue;
     }
-    if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
-    if (bestLen >= 2) {
-      const head = parts.slice(0, bestStart).join(":"), tail = parts.slice(bestStart + bestLen).join(":");
-      out = head === "" ? "::" + tail : (tail === "" ? head + "::" : head + "::" + tail);
-    } else out = parts.join(":");
+    if (!/^[0-9a-fA-F]{1,4}$/.test(g)) return null;
+    groups.push(parseInt(g, 16));
   }
-  if (!lower) out = out.toUpperCase();
+  const fill = 8 - groups.length;
+  if (dbl && fill < 1) return null;
+  if (!dbl && fill !== 0) return null;
+  const full = dbl ? groups.slice(0, head.length).concat(new Array(fill).fill(0)).concat(groups.slice(head.length)) : groups;
+  return full.length === 8 ? full : null;
+}
+function __xfV6Compress(g) {
+  if (!Array.isArray(g)) g = __xfV6Parse(g);
+  if (!g) return null;
+  const hex = g.map(n => n.toString(16));
+  let bs = -1, bl = 0, cs = -1, cl = 0;
+  for (let i = 0; i < 8; i++) { if (g[i] === 0) { if (cs < 0) cs = i; cl++; if (cl > bl) { bl = cl; bs = cs; } } else { cs = -1; cl = 0; } }
+  if (bl < 2) return hex.join(":");
+  const left = hex.slice(0, bs).join(":"), right = hex.slice(bs + bl).join(":");
+  if (!left && !right) return "::";
+  if (!left) return "::" + right;
+  if (!right) return left + "::";
+  return left + "::" + right;
+}
+function __xfV6Expand(g) {
+  if (!Array.isArray(g)) g = __xfV6Parse(g);
+  if (!g) return null;
+  return g.map(n => n.toString(16).padStart(4, "0")).join(":");
+}
+
+/* 生成：rnd 为 0-1 随机函数（便于测试注入） */
+function __xfV6Gen(prefix, count, mode, rnd) {
+  rnd = rnd || Math.random;
+  count = Math.max(1, Math.min(1000, parseInt(count, 10) || 1));
+  const base = __xfV6Parse(prefix);
+  if (!base) return null;
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const g = base.slice();
+    if (mode === "seq") {
+      // 按 128 位加法递增：进位可跨过后四组一直向前传播，避免低位溢出时生成错误/重复地址
+      const inc = [0, 0, 0, 0, 0, 0, Math.floor(i / 65536) & 0xffff, i & 0xffff];
+      let carry = 0;
+      for (let k = 7; k >= 0; k--) {
+        const sum = g[k] + inc[k] + carry;
+        g[k] = sum & 0xffff;
+        carry = sum > 0xffff ? 1 : 0;
+      }
+    } else {
+      for (let k = 4; k < 8; k++) g[k] = Math.floor(rnd() * 65536) & 0xffff;
+    }
+    out.push(g);
+  }
   return out;
 }
-$("genBtn").onclick = () => {
-  const type = $("addrType").value, format = $("format").value, lower = $("letterCase").value === "lower";
-  const mode = $("mode").value, prefix = $("prefixLen").value;
-  let n = parseInt($("count").value, 10);
-  if (isNaN(n) || n < 1) n = 1; if (n > 1000) n = 1000;
-  const seqBase = Math.floor(Math.random() * 0xffffffffffff);
-  const lines = [];
-  for (let i = 0; i < n; i++) {
-    const g = mode === "random" ? genOne(type) : genSequential(type, seqBase + i);
-    let addr = fmt(g, format, lower);
-    if (prefix !== "none") addr += "/" + prefix;
-    lines.push(addr);
-  }
-  $("output").value = lines.join("\n");
-  $("outwrap").style.display = "block";
-};
-$("copyBtn").onclick = () => {
-  if (!$("output").value) return alert("还没有生成结果");
-  navigator.clipboard.writeText($("output").value).then(() => alert("✅ 已复制到剪贴板"));
-};
+
+window.__xfV6Parse = __xfV6Parse;
+window.__xfV6Compress = __xfV6Compress;
+window.__xfV6Expand = __xfV6Expand;
+window.__xfV6Gen = __xfV6Gen;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const fmt = $("fmt").value;
+  const list = __xfV6Gen($("prefix").value, $("count").value, $("mode").value);
+  if (!list) { $("res").value = ""; $("tip").textContent = "前缀不合法，请检查"; return; }
+  const lines = list.map(g => fmt === "expand" ? __xfV6Expand(g) : __xfV6Compress(g));
+  $("res").value = lines.join("\n");
+  $("tip").textContent = "已生成 " + lines.length + " 个 IPv6 地址（" + ($("mode").value === "seq" ? "顺序" : "随机") + "）";
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = () => { if (!$("res").value) return alert("请先生成地址"); navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制")); };
+$("prefix").value = "2001:db8:abcd::";
+run();
 </script>
+<style>
+#res{height:260px;}
+</style>
 </body>
 </html>

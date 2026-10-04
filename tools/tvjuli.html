@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电视最佳观看距离计算器 - 词海工具箱</title>
+<meta name="description" content="电视最佳观看距离计算器：按屏幕尺寸与分辨率（1080P/4K/8K）计算合适的观看距离、屏幕尺寸与推荐视野角度，选购电视必看。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/tvjuli.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="tvjuli" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>屏幕尺寸（英寸，对角线）</label><input type="number" id="size" value="65" min="10" max="200" step="1"></div>
+      <div class="fitem"><label>分辨率</label>
+        <select id="res">
+          <option value="1080">1080P 全高清</option>
+          <option value="4k" selected>4K 超高清</option>
+          <option value="8k">8K 超高清</option>
+        </select>
+      </div>
+      <div class="fitem"><label>屏幕比例</label>
+        <select id="ratio"><option value="16:9" selected>16:9（主流电视）</option><option value="21:9">21:9（带鱼屏）</option><option value="4:3">4:3（老式）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算观看距离</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">计算结果</strong></div>
+      <div id="res" class="tv-box"></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>各分辨率推荐距离速查（当前尺寸）</strong></div>
+      <div id="chart"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于电视最佳观看距离计算器介绍：</h4>
+    <ol>
+      <li>观看距离与「屏幕高度」密切相关，行业常用「屏幕高度的倍数」来估算最佳距离。</li>
+      <li>1080P 建议约 3 倍屏高，4K 建议约 1.5 倍屏高，8K 可进一步缩短到 1 倍屏高左右。</li>
+      <li>距离过近容易看到像素点且伤眼，过远则失去高清细节带来的沉浸感。</li>
+      <li>结果同时给出屏幕物理宽高与推荐视野角度，方便结合客厅实际尺寸选择。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 计算电视观看参数 */
+function __xfTvDistance(diagInch, resKey, ratioKey) {
+  const d = Number(diagInch);
+  if (!d || d <= 0) return { error: "请输入合法的屏幕尺寸" };
+  const ratioMap = { "16:9": [16, 9], "21:9": [21, 9], "4:3": [4, 3] };
+  const [rw, rh] = ratioMap[ratioKey] || [16, 9];
+  const diagPx = Math.sqrt(rw * rw + rh * rh);
+  const hInch = d * rh / diagPx;
+  const wInch = d * rw / diagPx;
+  const hM = hInch * 0.0254;
+  const wM = wInch * 0.0254;
+  const factorMap = { "1080": 3, "4k": 1.5, "8k": 1 };
+  const f = factorMap[resKey] || 1.5;
+  const best = hM * f;
+  const min = hM * f * 0.75;
+  const max = hM * f * 1.35;
+  // 推荐视野角（水平）
+  const fov = 2 * Math.atan((wM / 2) / best) * 180 / Math.PI;
+  return {
+    screenW: wM.toFixed(2), screenH: hM.toFixed(2),
+    best: best.toFixed(2), min: min.toFixed(2), max: max.toFixed(2),
+    fov: Math.round(fov),
+    factor: f
+  };
+}
+window.__xfTvDistance = __xfTvDistance;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const r = __xfTvDistance($("size").value, $("res").value, $("ratio").value);
+  if (r.error) { $("res").innerHTML = '<p style="color:#e54d42;font-size:13px;">' + r.error + "</p>"; $("tip").textContent = "计算失败"; return; }
+  const cards = [
+    ["最佳观看距离", r.best + " 米"], ["舒适范围", r.min + " ~ " + r.max + " 米"],
+    ["屏幕物理宽度", r.screenW + " 米"], ["屏幕物理高度", r.screenH + " 米"],
+    ["推荐水平视野角", r.fov + "°"]
+  ];
+  $("res").innerHTML = cards.map(([k, v]) => '<div class="tv-card"><div class="tv-k">' + k + '</div><div class="tv-v">' + v + "</div></div>").join("");
+  // 速查表
+  const d = Number($("size").value);
+  const rows = [["1080P", 3], ["4K", 1.5], ["8K", 1]].map(([name, f]) => {
+    const rr = __xfTvDistance(d, name === "1080P" ? "1080" : name.toLowerCase(), $("ratio").value);
+    return "<tr><td>" + name + "</td><td>" + (rr.error ? "-" : rr.best + " 米") + "</td></tr>";
+  }).join("");
+  $("chart").innerHTML = '<table class="tv-table"><thead><tr><th>分辨率</th><th>推荐观看距离</th></tr></thead><tbody>' + rows + "</tbody></table>";
+  $("tip").textContent = "计算结果（" + d + " 英寸）";
+}
+["size", "res", "ratio"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("runBtn").onclick = run;
+$("demoBtn").onclick = () => { $("size").value = 65; $("res").value = "4k"; $("ratio").value = "16:9"; run(); };
+run();
+</script>
+<style>
+.tv-box{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.tv-card{border:1px solid #eee;border-radius:8px;padding:14px;background:#fafafa;text-align:center;}
+.tv-k{font-size:12px;color:#888;margin-bottom:8px;}
+.tv-v{font-size:17px;font-weight:700;color:#ff6500;}
+.tv-table{width:100%;max-width:420px;border-collapse:collapse;font-size:13px;border:1px solid #eee;border-radius:8px;overflow:hidden;}
+.tv-table th{background:#f5f6f8;padding:8px 12px;text-align:left;color:#444;font-weight:600;}
+.tv-table td{padding:8px 12px;border-top:1px solid #f0f0f0;color:#333;}
+html.dark .tv-card{background:#22262b;border-color:#333a42;}
+html.dark .tv-k{color:#999;}
+html.dark .tv-table{border-color:#333a42;}
+html.dark .tv-table th{background:#2a2f36;color:#ddd;}
+html.dark .tv-table td{color:#ddd;border-color:#2c3239;}
+</style>
+</body>
+</html>

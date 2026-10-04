@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ULID解析在线工具 - 词海工具箱</title>
+<meta name="description" content="ULID 解析工具：解析 26 位 ULID 字符串，提取时间戳、随机部分与生成时间，并校验字符是否合法。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ulidparser.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ulidparser" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>ULID 字符串（26 位）</label><input type="text" id="ulid" placeholder="例如 01ARZ3NDEKTSV4RRFFQ69G5FAV"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">解析</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+      <button class="fbtn brown" id="genBtn">生成一个 ULID</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">解析结果</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 ULID 解析工具介绍：</h4>
+    <ol>
+      <li>ULID（Universally Unique Lexicographically Sortable Identifier）共 26 个字符，使用 Crockford Base32 编码。</li>
+      <li>前 10 个字符是 48 位毫秒时间戳，后 16 个字符是 80 位随机数。</li>
+      <li>因为它按时间递增且字典序可排序，常被用作数据库主键、日志 ID，替代 UUID。</li>
+      <li>本工具可解析出生成时间、时间戳毫秒值、随机部分，并校验字符与长度是否合法。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+const CROCK = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";   // Crockford Base32（不含 I L O U）
+const ULID_RE = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+
+/* 解析 ULID */
+function __xfUlidParse(s) {
+  const raw = String(s == null ? "" : s).trim().toUpperCase();
+  if (raw.length !== 26) return { ok: false, error: "长度必须为 26 个字符（当前 " + raw.length + "）" };
+  if (!ULID_RE.test(raw)) return { ok: false, error: "含有非法字符（ULID 使用 Crockford Base32，不含 I、L、O、U）" };
+  let timeMs = 0;
+  for (let i = 0; i < 10; i++) timeMs = timeMs * 32 + CROCK.indexOf(raw[i]);
+  if (timeMs > Number.MAX_SAFE_INTEGER / 1000) return { ok: false, error: "时间戳超出可解析范围（首字符不得大于 7）" };
+  const random = raw.slice(10);
+  const d = new Date(timeMs);
+  const iso = isNaN(d.getTime()) ? "" : d.toISOString();
+  return {
+    ok: true,
+    value: raw,
+    timeMs: timeMs,
+    time: iso,
+    local: isNaN(d.getTime()) ? "" : d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0") + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + ":" + String(d.getSeconds()).padStart(2, "0"),
+    random: random,
+    timestampPart: raw.slice(0, 10)
+  };
+}
+
+/* 生成一个 ULID（rnd 可注入） */
+function __xfUlidGen(time, rnd) {
+  rnd = rnd || Math.random;
+  const t = time == null ? Date.now() : time;
+  let ts = "";
+  let n = t;
+  for (let i = 0; i < 10; i++) { ts = CROCK[n % 32] + ts; n = Math.floor(n / 32); }
+  let r = "";
+  for (let i = 0; i < 16; i++) r += CROCK[Math.floor(rnd() * 32)];
+  return ts + r;
+}
+
+window.__xfUlidParse = __xfUlidParse;
+window.__xfUlidGen = __xfUlidGen;
+
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function run() {
+  const r = __xfUlidParse($("ulid").value);
+  if (!r.ok) { $("res").innerHTML = '<p style="color:#e54d42;font-size:13px;">解析失败：' + esc(r.error) + "</p>"; $("tip").textContent = "解析失败"; return; }
+  const rows = [
+    ["ULID", r.value],
+    ["生成时间（本地）", r.local],
+    ["生成时间（UTC）", r.time],
+    ["时间戳（毫秒）", String(r.timeMs)],
+    ["时间戳部分（前 10 位）", r.timestampPart],
+    ["随机部分（后 16 位）", r.random]
+  ];
+  $("tip").textContent = "解析成功";
+  $("res").innerHTML = '<div class="v6rows">' + rows.map(([n, val]) =>
+    '<div class="v6row"><div class="v6lab"><b>' + n + "</b></div><div class=\"v6val\"><code>" + esc(val) + "</code></div></div>"
+  ).join("") + "</div>";
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = () => { $("ulid").value = "01ARZ3NDEKTSV4RRFFQ69G5FAV"; run(); };
+$("genBtn").onclick = () => { $("ulid").value = __xfUlidGen(); run(); };
+$("ulid").addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+$("ulid").value = "01ARZ3NDEKTSV4RRFFQ69G5FAV";
+run();
+</script>
+<style>
+.v6rows{display:flex;flex-direction:column;gap:8px;max-width:760px;}
+.v6row{border:1px solid #e8e8e8;border-radius:8px;padding:8px 12px;background:#fafafa;}
+.v6lab{font-size:12px;color:#888;margin-bottom:4px;}
+.v6lab b{color:#333;font-size:13px;font-weight:600;}
+.v6val code{font-family:Consolas,Monaco,monospace;font-size:14px;color:#1f6feb;word-break:break-all;}
+html.dark .v6row{background:#22262b;border-color:#333a42;}
+html.dark .v6lab b{color:#e6e6e6;}
+html.dark .v6val code{color:#6cb6ff;}
+</style>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON转Cookie在线工具 - 词海工具箱</title>
+<meta name="description" content="JSON 转 Cookie 工具：把 JSON 对象转换成浏览器 Cookie 字符串（k=v; k2=v2），支持 URL 编码、数组处理与一键复制。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/json2cookie.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="json2cookie" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>JSON 对象</label>
+        <textarea id="src" style="height:150px;" placeholder='{"sessionid":"abc123","lang":"zh-CN","uid":10086}'></textarea>
+      </div>
+      <div class="fitem"><label>值编码</label>
+        <select id="enc"><option value="1" selected>URL 编码中文与特殊字符</option><option value="0">原样输出</option></select>
+      </div>
+      <div class="fitem"><label>嵌套/数组</label>
+        <select id="nest"><option value="json" selected>整体 JSON 编码</option><option value="string">toString 拼接</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换为 Cookie</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">Cookie 字符串</strong></div>
+      <textarea id="res" readonly style="height:100px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 JSON 转 Cookie 工具介绍：</h4>
+    <ol>
+      <li>把 JSON 对象转换成浏览器 Cookie 字符串格式，方便手动设置 document.cookie 或粘贴到调试工具。</li>
+      <li>中文与特殊字符可选择做 URL 编码，避免浏览器解析异常。</li>
+      <li>遇到数组或嵌套对象时，可选择整体 JSON 编码后存储（最常见做法）。</li>
+      <li>转换结果可直接复制，粘贴到浏览器控制台即可使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 对象 -> Cookie 字符串 */
+function __xfObj2Cookie(obj, opts) {
+  opts = opts || {};
+  const enc = opts.encode !== false;
+  const parts = [];
+  Object.keys(obj).forEach(k => {
+    const v = obj[k];
+    let sv;
+    if (v === null || v === undefined) sv = "";
+    else if (typeof v === "object") sv = opts.nest === "string" ? String(v) : JSON.stringify(v);
+    else sv = String(v);
+    parts.push((enc ? encodeURIComponent(k) : k) + "=" + (enc ? encodeURIComponent(sv) : sv));
+  });
+  return parts.join("; ");
+}
+
+function __xfJson2Cookie(text, opts) {
+  let data;
+  try { data = JSON.parse(String(text == null ? "" : text)); }
+  catch (e) { return { error: "JSON 解析失败：" + e.message }; }
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return { error: "根节点必须是 JSON 对象" };
+  return { cookie: __xfObj2Cookie(data, opts) };
+}
+
+window.__xfObj2Cookie = __xfObj2Cookie;
+window.__xfJson2Cookie = __xfJson2Cookie;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const r = __xfJson2Cookie($("src").value, { encode: $("enc").value === "1", nest: $("nest").value });
+  if (r.error) { $("res").value = ""; $("tip").textContent = "❌ " + r.error; return; }
+  $("res").value = r.cookie;
+  $("tip").textContent = "✅ 转换完成";
+}
+$("runBtn").onclick = run;
+$("src").addEventListener("input", run);
+$("enc").onchange = run; $("nest").onchange = run;
+$("copyBtn").onclick = () => { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制")); };
+$("src").value = '{\n  "sessionid": "abc123",\n  "lang": "zh-CN",\n  "uid": 10086,\n  "nick": "小富子",\n  "prefs": { "theme": "light" }\n}';
+run();
+</script>
+</body>
+</html>

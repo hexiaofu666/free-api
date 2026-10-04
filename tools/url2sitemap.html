@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线url转sitemap工具 - 词海工具箱</title>
+<meta name="description" content="URL 转 Sitemap 工具：粘贴网址列表，设置更新频率与优先级，一键生成符合 Sitemap 协议标准的 XML 文件，支持下载。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/url2sitemap.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="url2sitemap" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>网址列表（每行一个）</label>
+        <textarea id="urls" style="height:130px;" placeholder="https://tools.hdemba.cn/&#10;https://tools.hdemba.cn/tools/cron.html"></textarea>
+      </div>
+      <div class="fitem"><label>更新频率 changefreq</label>
+        <select id="freq"><option value="daily" selected>daily 每天</option><option value="always">always</option><option value="hourly">hourly</option><option value="weekly">weekly</option><option value="monthly">monthly</option><option value="yearly">yearly</option><option value="never">never</option></select>
+      </div>
+      <div class="fitem"><label>优先级 priority <b id="pv">0.8</b></label><input type="range" id="prio" min="0" max="10" value="8"></div>
+      <div class="fitem"><label>最后修改时间 lastmod</label>
+        <select id="lm"><option value="today" selected>使用今天日期</option><option value="none">不输出 lastmod</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成 Sitemap</button>
+      <button class="fbtn brown" id="copyBtn">复制 XML</button>
+      <button class="fbtn gray" id="dlBtn">下载 sitemap.xml</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">Sitemap XML</strong></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 URL 转 Sitemap 工具介绍：</h4>
+    <ol>
+      <li>Sitemap（站点地图）是给搜索引擎看的网址清单，帮助爬虫更快发现和收录你的页面。</li>
+      <li>标准格式为 XML，每个 url 包含 loc（必需）以及 lastmod、changefreq、priority（可选）。</li>
+      <li>单个 sitemap 文件最多包含 50000 个网址，超出需使用索引文件拆分。</li>
+      <li>生成后上传到网站根目录，并在 robots.txt 中用 Sitemap: 指令声明地址。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+function __xfXmlEsc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+function __xfIsoDate(d) {
+  const t = d || new Date();
+  return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+}
+/* 生成 sitemap XML */
+function __xfSitemap(opts) {
+  const urls = (opts.urls || []).map(u => String(u).trim()).filter(u => u !== "");
+  if (!urls.length) return { error: "请至少输入一个网址" };
+  const bad = urls.filter(u => !/^https?:\/\/.+/i.test(u));
+  if (bad.length) return { error: "以下网址缺少 http(s):// 前缀：" + bad.slice(0, 3).join("、") };
+  const lastmod = opts.lastmod ? "<lastmod>" + opts.lastmod + "</lastmod>" : "";
+  const body = urls.map(u =>
+    "  <url>\n    <loc>" + __xfXmlEsc(u) + "</loc>\n" + (lastmod ? "    " + lastmod + "\n" : "") +
+    "    <changefreq>" + opts.changefreq + "</changefreq>\n    <priority>" + opts.priority + "</priority>\n  </url>"
+  ).join("\n");
+  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + body + "\n</urlset>";
+  return { xml: xml, count: urls.length };
+}
+window.__xfSitemap = __xfSitemap;
+window.__xfXmlEsc = __xfXmlEsc;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const lm = $("lm").value === "today" ? __xfIsoDate() : "";
+  const r = __xfSitemap({ urls: $("urls").value.split("\n"), changefreq: $("freq").value, priority: (+$("prio").value / 10).toFixed(1), lastmod: lm });
+  if (r.error) { $("res").value = ""; $("tip").textContent = "❌ " + r.error; return; }
+  $("res").value = r.xml;
+  $("tip").textContent = "✅ 已生成，共 " + r.count + " 条网址";
+}
+$("prio").addEventListener("input", () => { $("pv").textContent = (+$("prio").value / 10).toFixed(1); });
+["freq", "prio", "lm"].forEach(id => { $(id).addEventListener("change", run); $(id).addEventListener("input", run); });
+$("runBtn").onclick = run;
+$("copyBtn").onclick = () => { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制")); };
+$("dlBtn").onclick = () => {
+  if (!$("res").value) return alert("暂无结果");
+  const blob = new Blob([$("res").value], { type: "application/xml;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "sitemap.xml"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+};
+$("urls").value = "https://tools.hdemba.cn/\nhttps://tools.hdemba.cn/tools/url2sitemap.html\nhttps://tools.hdemba.cn/tools/metas.html";
+run();
+</script>
+</body>
+</html>

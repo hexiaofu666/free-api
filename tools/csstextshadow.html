@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS文字阴影效果在线生成 - 词海工具箱</title>
+<meta name="description" content="CSS 文字阴影生成器：调节水平/垂直偏移、模糊半径、颜色与不透明度，支持发光、描边等预设，实时预览并复制 text-shadow 代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/csstextshadow.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="csstextshadow" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>预览文字</label><input type="text" id="text" value="词海工具箱"></div>
+      <div class="fitem"><label>水平偏移 X <b id="xv">2</b>px</label><input type="range" id="x" min="-20" max="20" value="2"></div>
+      <div class="fitem"><label>垂直偏移 Y <b id="yv">2</b>px</label><input type="range" id="y" min="-20" max="20" value="2"></div>
+      <div class="fitem"><label>模糊半径 <b id="bv">4</b>px</label><input type="range" id="blur" min="0" max="40" value="4"></div>
+      <div class="fitem"><label>阴影颜色</label><input type="color" id="color" value="#000000"></div>
+      <div class="fitem"><label>阴影不透明度 <b id="av">0.50</b></label><input type="range" id="alpha" min="0" max="100" value="50"></div>
+      <div class="fitem"><label>文字颜色</label><input type="color" id="tcolor" value="#333333"></div>
+      <div class="fitem"><label>快速预设</label>
+        <select id="preset">
+          <option value="">自定义</option>
+          <option value="shadow">柔和阴影</option>
+          <option value="glow">发光效果</option>
+          <option value="outline">描边效果</option>
+          <option value="3d">3D 立体</option>
+          <option value="emboss">浮雕效果</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div class="cts-prev"><div id="prev" class="cts-txt">词海工具箱</div></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:130px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 CSS 文字阴影生成器介绍：</h4>
+    <ol>
+      <li>text-shadow 的语法是「水平偏移 垂直偏移 模糊 颜色」，可以叠加多层（用逗号隔开）实现发光、描边与立体效果。</li>
+      <li>描边效果通常用四个方向的 0 模糊阴影叠加实现；发光效果则是多层不同模糊的同色阴影。</li>
+      <li>不透明度用 rgba 控制，模糊越大越柔和，模糊为 0 时是硬边阴影。</li>
+      <li>可切换常用预设快速套用，再微调参数。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+function __xfHexRgb(hex) {
+  const h = String(hex).replace("#", "");
+  const f = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  return [parseInt(f.slice(0, 2), 16), parseInt(f.slice(2, 4), 16), parseInt(f.slice(4, 6), 16)];
+}
+function __xfRgba(hex, a) { return "rgba(" + __xfHexRgb(hex).join(", ") + ", " + a + ")"; }
+
+/* 生成 text-shadow 值 */
+function __xfTextShadowValue(o) {
+  const base = o.x + "px " + o.y + "px " + o.blur + "px " + __xfRgba(o.color, o.alpha);
+  if (o.preset === "outline") {
+    const c = __xfRgba(o.color, o.alpha === 0 ? 1 : o.alpha);
+    return ["-1px -1px 0 " + c, "1px -1px 0 " + c, "-1px 1px 0 " + c, "1px 1px 0 " + c].join(", ");
+  }
+  if (o.preset === "glow") {
+    const c = __xfRgba(o.color, 0.9);
+    return ["0 0 4px " + c, "0 0 11px " + c, "0 0 19px " + c, "0 0 40px " + c].join(", ");
+  }
+  if (o.preset === "3d") {
+    return ["1px 1px 0 " + __xfRgba(o.color, 1), "2px 2px 0 " + __xfRgba(o.color, 0.7), "3px 3px 0 " + __xfRgba(o.color, 0.4)].join(", ");
+  }
+  if (o.preset === "emboss") {
+    return "1px 1px 0 rgba(255,255,255,0.8), -1px -1px 0 " + __xfRgba(o.color, o.alpha <= 0 ? 0.5 : o.alpha);
+  }
+  return base;
+}
+function __xfTextShadowCss(o) {
+  const lines = ["color: " + o.tcolor + ";", "text-shadow: " + __xfTextShadowValue(o) + ";"];
+  return ".text {\n  " + lines.join("\n  ") + "\n}";
+}
+window.__xfTextShadowCss = __xfTextShadowCss;
+window.__xfTextShadowValue = __xfTextShadowValue;
+window.__xfRgba = __xfRgba;
+
+const $ = id => document.getElementById(id);
+const PRESETS = {
+  shadow: { x: 2, y: 2, blur: 4, color: "#000000", alpha: 0.5 },
+  glow: { x: 0, y: 0, blur: 8, color: "#ff6500", alpha: 0.9 },
+  outline: { x: 1, y: 1, blur: 0, color: "#333333", alpha: 1 },
+  "3d": { x: 2, y: 2, blur: 0, color: "#999999", alpha: 1 },
+  emboss: { x: 1, y: 1, blur: 1, color: "#666666", alpha: 0.6 }
+};
+function collect() {
+  return { text: $("text").value, x: +$("x").value, y: +$("y").value, blur: +$("blur").value, color: $("color").value, alpha: (+$("alpha").value / 100).toFixed(2), tcolor: $("tcolor").value, preset: $("preset").value };
+}
+function run() {
+  const o = collect();
+  $("xv").textContent = o.x; $("yv").textContent = o.y; $("bv").textContent = o.blur; $("av").textContent = o.alpha;
+  const p = $("prev");
+  p.textContent = o.text || "词海工具箱";
+  p.style.color = o.tcolor;
+  p.style.textShadow = __xfTextShadowValue(o);
+  $("res").value = __xfTextShadowCss({ ...o, text: undefined });
+}
+["x", "y", "blur", "color", "alpha", "tcolor", "text"].forEach(id => { $(id).addEventListener("input", run); });
+$("preset").addEventListener("change", () => {
+  const p = PRESETS[$("preset").value];
+  if (p) { $("x").value = p.x; $("y").value = p.y; $("blur").value = p.blur; $("color").value = p.color; $("alpha").value = Math.round(p.alpha * 100); }
+  run();
+});
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("x").value = 2; $("y").value = 2; $("blur").value = 4; $("color").value = "#000000"; $("alpha").value = 50; $("tcolor").value = "#333333"; $("preset").value = ""; run(); };
+run();
+</script>
+<style>
+.cts-prev{display:flex;justify-content:center;align-items:center;padding:40px 20px;background:repeating-conic-gradient(#f7f7f7 0% 25%, #ffffff 0% 50%) 50% / 18px 18px;border-radius:8px;}
+.cts-txt{font-size:34px;font-weight:700;}
+html.dark .cts-prev{background:#20242a;}
+</style>
+</body>
+</html>

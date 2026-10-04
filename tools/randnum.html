@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>随机数生成器在线工具 - 词海工具箱</title>
+<meta name="description" content="在线随机数生成器：按指定范围与数量批量生成随机整数或小数，支持去重、排序、结果导出，可用于抽奖、测试数据、抽样。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/randnum.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="randnum" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>最小值</label><input type="number" id="min" value="1"></div>
+      <div class="fitem"><label>最大值</label><input type="number" id="max" value="100"></div>
+      <div class="fitem"><label>生成数量</label><input type="number" id="count" value="10" min="1" max="10000"></div>
+      <div class="fitem"><label>数值类型</label>
+        <select id="type"><option value="int" selected>整数</option><option value="float">小数</option></select>
+      </div>
+      <div class="fitem"><label>小数位数</label><input type="number" id="dec" value="2" min="0" max="10"></div>
+      <div class="fitem"><label>是否去重</label>
+        <select id="uniq"><option value="1" selected>不重复</option><option value="0">允许重复</option></select>
+      </div>
+      <div class="fitem"><label>输出排序</label>
+        <select id="sort"><option value="0" selected>随机顺序</option><option value="1">升序</option><option value="-1">降序</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成随机数</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">结果</strong></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于随机数生成器介绍：</h4>
+    <ol>
+      <li>在指定区间内批量生成随机数，可用于抽奖、抽样、生成测试数据、模拟数据等场景。</li>
+      <li>支持整数与小数（可设小数位数），并可选择是否去重——去重数量不能超过区间内可取值的个数。</li>
+      <li>结果可以升序、降序或保持随机顺序输出。</li>
+      <li>采用浏览器内置的加密级随机源（crypto.getRandomValues）时更均匀，本工具使用标准随机算法。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 生成随机数：rnd 可注入便于测试 */
+function __xfRand(opts, rnd) {
+  rnd = rnd || Math.random;
+  let min = Number(opts.min), max = Number(opts.max);
+  const count = Math.max(1, Math.min(10000, parseInt(opts.count, 10) || 1));
+  if (isNaN(min) || isNaN(max)) return { error: "请输入合法的数值范围" };
+  if (min > max) { const t = min; min = max; max = t; }
+  const isFloat = opts.type === "float";
+  const dec = Math.max(0, Math.min(10, parseInt(opts.dec, 10) || 0));
+  const uniq = opts.uniq !== false;
+  if (uniq && !isFloat) {
+    const span = Math.floor(max) - Math.ceil(min) + 1;
+    if (count > span) return { error: "去重模式下数量（" + count + "）超过区间可取整数个数（" + span + "）" };
+  }
+  const out = [];
+  const seen = {};
+  let guard = 0;
+  while (out.length < count) {
+    let v;
+    if (isFloat) v = Number((min + rnd() * (max - min)).toFixed(dec));
+    else v = Math.floor(min + rnd() * (max - min + 1));
+    if (uniq && !isFloat) {
+      if (seen[v]) { if (guard++ > count * 1000) break; continue; }
+      seen[v] = 1;
+    }
+    out.push(v);
+    if (guard++ > count * 1000 + 100000) break;
+  }
+  if (opts.sort === "1") out.sort((a, b) => a - b);
+  else if (opts.sort === "-1") out.sort((a, b) => b - a);
+  return { nums: out };
+}
+
+window.__xfRand = __xfRand;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const r = __xfRand({
+    min: $("min").value, max: $("max").value, count: $("count").value,
+    type: $("type").value, dec: $("dec").value, uniq: $("uniq").value === "1", sort: $("sort").value
+  });
+  if (r.error) { $("res").value = ""; $("tip").textContent = "❌ " + r.error; return; }
+  $("res").value = r.nums.join("\n");
+  $("tip").textContent = "✅ 已生成 " + r.nums.length + " 个随机数";
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = () => { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制")); };
+$("type").onchange = () => { $("dec").parentNode.style.display = $("type").value === "float" ? "" : "none"; };
+$("type").onchange();
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日出日落时间计算器 - 词海工具箱</title>
+<meta name="description" content="日出日落时间计算器：根据经纬度与日期，用天文算法精确计算日出、日落时间、昼长与太阳正午时刻，支持常用城市坐标。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/sunriseset.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="sunriseset" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>常用城市</label>
+        <select id="city">
+          <option value="">手动输入坐标</option>
+          <option value="39.9042,116.4074">北京</option>
+          <option value="31.2304,121.4737">上海</option>
+          <option value="23.1291,113.2644">广州</option>
+          <option value="22.5431,114.0579">深圳</option>
+          <option value="30.2741,120.1551">杭州</option>
+          <option value="34.3416,108.9398">西安</option>
+          <option value="30.5728,104.0668">成都</option>
+          <option value="29.5630,106.5516">重庆</option>
+          <option value="45.8038,126.5349">哈尔滨</option>
+          <option value="43.8256,87.6168">乌鲁木齐</option>
+          <option value="22.1987,113.5439">澳门</option>
+          <option value="25.0330,121.5654">台北</option>
+        </select>
+      </div>
+      <div class="fitem"><label>纬度（北纬为正）</label><input type="number" id="lat" value="39.9042" step="0.0001"></div>
+      <div class="fitem"><label>经度（东经为正）</label><input type="number" id="lng" value="116.4074" step="0.0001"></div>
+      <div class="fitem"><label>日期</label><input type="date" id="date"></div>
+      <div class="fitem"><label>时区偏移（小时）</label><input type="number" id="tz" value="8" step="0.5"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算日出日落</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">计算结果</strong></div>
+      <div id="res" class="ss-box"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于日出日落时间计算器介绍：</h4>
+    <ol>
+      <li>基于天文算法（太阳赤纬与时角公式）计算日出、日落、正午时刻与昼长。</li>
+      <li>计算采用标准太阳高度角 -0.833°（含大气折射与太阳视半径修正），与常见天文台数据接近。</li>
+      <li>结果按你填写的时区偏移换算为当地时间，中国为 UTC+8。</li>
+      <li>高纬度地区在极昼/极夜期间可能出现「太阳不落」或「太阳不出」的情况，工具会给出提示。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 基于 julian day 的太阳位置算法（简化 suncalc） */
+function __xfSunTimes(lat, lng, date, tzOffset) {
+  const rad = Math.PI / 180;
+  const dayMs = 86400000, J1970 = 2440588, J2000 = 2451545;
+  const toJulian = d => d.valueOf() / dayMs - 0.5 + J1970;
+  const fromJulian = j => new Date((j + 0.5 - J1970) * dayMs);
+  const toDays = d => toJulian(d) - J2000;
+  const e = rad * 23.4397;
+
+  const declination = (l) => Math.asin(Math.sin(e) * Math.sin(l));
+  const solarMeanAnomaly = (d) => rad * (357.5291 + 0.98560028 * d);
+  const eclipticLongitude = (M) => {
+    const C = rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
+    const P = rad * 102.9372;
+    return M + C + P + Math.PI;
+  };
+  const julianCycle = (d, lw) => Math.round(d - 0.0009 - lw / (2 * Math.PI));
+  const approxTransit = (Ht, lw, n) => 0.0009 + (Ht + lw) / (2 * Math.PI) + n;
+  const solarTransitJ = (ds, M, L) => J2000 + ds + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+  const hourAngle = (h, phi, d) => Math.acos((Math.sin(h) - Math.sin(phi) * Math.sin(d)) / (Math.cos(phi) * Math.cos(d)));
+
+  const lw = rad * -lng;
+  const phi = rad * lat;
+  const d = toDays(date);
+  const n = julianCycle(d, lw);
+  const ds = approxTransit(0, lw, n);
+  const M = solarMeanAnomaly(ds);
+  const L = eclipticLongitude(M);
+  const dec = declination(L);
+  const Jnoon = solarTransitJ(ds, M, L);
+
+  const h0 = rad * -0.833;
+  const cosH = (Math.sin(h0) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec));
+  let Jset, Jrise, polar = null;
+  if (cosH > 1) polar = "polar-night";
+  else if (cosH < -1) polar = "polar-day";
+  if (polar === null) {
+    const w = Math.acos(cosH);
+    Jset = solarTransitJ(approxTransit(w, lw, n), M, L);
+    Jrise = Jnoon - (Jset - Jnoon);
+  }
+
+  // 换算到指定时区显示
+  function fmt(julian) {
+    const utc = fromJulian(julian);
+    const shifted = new Date(utc.getTime() + tzOffset * 3600000);
+    return String(shifted.getUTCHours()).padStart(2, "0") + ":" + String(shifted.getUTCMinutes()).padStart(2, "0");
+  }
+  if (polar === "polar-night") return { polar: "极夜：当天太阳不升起", noon: fmt(Jnoon) };
+  if (polar === "polar-day") return { polar: "极昼：当天太阳不落下", noon: fmt(Jnoon) };
+
+  const riseMs = Jrise, setMs = Jset;
+  const dayLenH = (setMs - riseMs) * 24;
+  return {
+    sunrise: fmt(Jrise),
+    sunset: fmt(Jset),
+    noon: fmt(Jnoon),
+    dayLength: Math.floor(dayLenH) + " 小时 " + Math.round((dayLenH - Math.floor(dayLenH)) * 60) + " 分钟",
+    sunAltitude: Math.round((90 - Math.abs(lat - dec / rad)) * 10) / 10
+  };
+}
+window.__xfSunTimes = __xfSunTimes;
+
+const $ = id => document.getElementById(id);
+function todayStr() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function run() {
+  const lat = parseFloat($("lat").value), lng = parseFloat($("lng").value);
+  const dateStr = $("date").value || todayStr();
+  if (isNaN(lat) || isNaN(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    $("res").innerHTML = '<p style="color:#e54d42;font-size:13px;">请输入合法的经纬度（纬度 -90~90，经度 -180~180）</p>'; $("tip").textContent = "计算失败"; return;
+  }
+  const date = new Date(dateStr + "T12:00:00Z");
+  const tz = parseFloat($("tz").value) || 0;
+  const r = __xfSunTimes(lat, lng, date, tz);
+  if (r.polar) {
+    $("res").innerHTML = '<div class="ss-card ss-polar"><div class="ss-k">' + r.polar + '</div><div class="ss-d">正午时刻：' + r.noon + "</div></div>";
+    $("tip").textContent = "计算结果"; return;
+  }
+  const cards = [["日出时间", r.sunrise], ["日落时间", r.sunset], ["太阳正午", r.noon], ["昼长", r.dayLength], ["正午太阳高度角", r.sunAltitude + "°"]];
+  $("res").innerHTML = cards.map(([k, v]) => '<div class="ss-card"><div class="ss-k">' + k + '</div><div class="ss-v">' + v + "</div></div>").join("");
+  $("tip").textContent = "计算结果（" + dateStr + "）";
+}
+$("city").addEventListener("change", () => {
+  const v = $("city").value;
+  if (v) { const p = v.split(","); $("lat").value = p[0]; $("lng").value = p[1]; }
+  run();
+});
+["lat", "lng", "date", "tz"].forEach(id => { $(id).addEventListener("change", run); $(id).addEventListener("input", run); });
+$("runBtn").onclick = run;
+$("demoBtn").onclick = () => { $("city").value = "39.9042,116.4074"; $("lat").value = "39.9042"; $("lng").value = "116.4074"; $("tz").value = 8; $("date").value = todayStr(); run(); };
+$("date").value = todayStr();
+run();
+</script>
+<style>
+.ss-box{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;}
+.ss-card{border:1px solid #eee;border-radius:8px;padding:14px;background:#fafafa;text-align:center;}
+.ss-k{font-size:12px;color:#888;margin-bottom:8px;}
+.ss-v{font-size:20px;font-weight:700;color:#ff6500;font-family:Consolas,Monaco,monospace;}
+.ss-d{font-size:13px;color:#888;margin-top:6px;}
+.ss-polar{grid-column:1/-1;background:#fffbf0;border-color:#ffe8a3;}
+.ss-polar .ss-k{color:#856404;font-size:14px;font-weight:600;}
+html.dark .ss-card{background:#22262b;border-color:#333a42;}
+html.dark .ss-k{color:#999;}
+html.dark .ss-polar{background:#2d2818;border-color:#4a4028;}
+</style>
+</body>
+</html>

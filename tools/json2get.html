@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON与GET请求字符串互转 - 词海工具箱</title>
+<meta name="description" content="JSON 与 GET 请求参数互转工具：把 JSON 对象转换成 URL 查询字符串（自动编码），或把查询字符串解析回 JSON，支持双向转换。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/json2get.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="json2get" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>JSON 对象</label>
+        <textarea id="json" style="height:150px;" placeholder='{"page":1,"kw":"词海工具箱","tags":["seo","tools"]}'></textarea>
+      </div>
+      <div class="fitem"><label>查询字符串</label>
+        <textarea id="qs" style="height:70px;" placeholder="page=1&kw=%E8%AF%8D%E6%B5%B7"></textarea>
+      </div>
+      <div class="fitem"><label>数组/嵌套处理</label>
+        <select id="mode">
+          <option value="repeat" selected>数组展开为同名重复参数 tags=a&tags=b</option>
+          <option value="join">数组用逗号连接 tags=a,b</option>
+          <option value="json">数组/对象整体 JSON 编码</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="j2q">JSON → 查询串</button>
+      <button class="fbtn brown" id="q2j">查询串 → JSON</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转换结果</strong></div>
+      <textarea id="res" readonly style="height:130px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 JSON 与 GET 请求字符串互转介绍：</h4>
+    <ol>
+      <li>调用接口时经常需要在 JSON 对象与 URL 查询字符串之间转换，本工具提供双向转换。</li>
+      <li>JSON → 查询串：自动对中文与特殊字符做 URL 编码，可直接拼到接口地址后面。</li>
+      <li>查询串 → JSON：把 ?a=1&b=2 解析为对象，并自动解码 URL 编码，重复键自动合并为数组。</li>
+      <li>数组支持三种处理方式：同名重复参数、逗号连接、整体 JSON 编码，可按后端习惯选择。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+function __xfEnc(v) { return encodeURIComponent(v); }
+
+/* JSON 对象 -> 查询串 */
+function __xfJson2Qs(obj, mode) {
+  mode = mode || "repeat";
+  const parts = [];
+  const walk = (k, v) => {
+    if (v === null || v === undefined) { parts.push(__xfEnc(k) + "="); return; }
+    if (Array.isArray(v)) {
+      if (mode === "join") parts.push(__xfEnc(k) + "=" + __xfEnc(v.join(",")));
+      else if (mode === "json") parts.push(__xfEnc(k) + "=" + __xfEnc(JSON.stringify(v)));
+      else v.forEach(x => parts.push(__xfEnc(k) + "=" + __xfEnc(x === null || x === undefined ? "" : String(x))));
+      return;
+    }
+    if (typeof v === "object") {
+      if (mode === "json") parts.push(__xfEnc(k) + "=" + __xfEnc(JSON.stringify(v)));
+      else Object.keys(v).forEach(kk => Object.prototype.hasOwnProperty.call(v, kk) && walk(k + "[" + kk + "]", v[kk]));
+      return;
+    }
+    parts.push(__xfEnc(k) + "=" + __xfEnc(String(v)));
+  };
+  Object.keys(obj).forEach(k => walk(k, obj[k]));
+  return parts.join("&");
+}
+
+/* 查询串 -> JSON 对象（重复键合并为数组） */
+function __xfQs2Json(qs) {
+  let s = String(qs == null ? "" : qs).trim();
+  if (s.startsWith("?")) s = s.slice(1);
+  const out = {};
+  if (!s) return out;
+  s.split("&").forEach(pair => {
+    if (pair === "") return;
+    const i = pair.indexOf("=");
+    let k, v;
+    if (i < 0) { k = pair; v = ""; } else { k = pair.slice(0, i); v = pair.slice(i + 1); }
+    try { k = decodeURIComponent(k.replace(/\+/g, " ")); } catch (e) {}
+    try { v = decodeURIComponent(v.replace(/\+/g, " ")); } catch (e) {}
+    if (Object.prototype.hasOwnProperty.call(out, k)) {
+      if (Array.isArray(out[k])) out[k].push(v);
+      else out[k] = [out[k], v];
+    } else out[k] = v;
+  });
+  return out;
+}
+
+function __xfJsonToQs(text, mode) {
+  let data;
+  try { data = JSON.parse(String(text == null ? "" : text)); }
+  catch (e) { return { error: "JSON 解析失败：" + e.message }; }
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return { error: "根节点必须是 JSON 对象" };
+  return { qs: __xfJson2Qs(data, mode) };
+}
+
+window.__xfJson2Qs = __xfJson2Qs;
+window.__xfQs2Json = __xfQs2Json;
+window.__xfJsonToQs = __xfJsonToQs;
+
+const $ = id => document.getElementById(id);
+$("j2q").onclick = () => {
+  const r = __xfJsonToQs($("json").value, $("mode").value);
+  if (r.error) { $("tip").textContent = "❌ " + r.error; return; }
+  $("res").value = r.qs;
+  $("qs").value = r.qs;
+  $("tip").textContent = "✅ 已生成查询字符串";
+};
+$("q2j").onclick = () => {
+  const o = __xfQs2Json($("qs").value);
+  const txt = JSON.stringify(o, null, 2);
+  $("res").value = txt;
+  $("json").value = txt;
+  $("tip").textContent = "✅ 已解析为 JSON";
+};
+$("json").value = '{\n  "page": 1,\n  "kw": "词海工具箱",\n  "tags": ["seo", "tools"],\n  "filter": {\n    "hot": true\n  }\n}';
+$("j2q").onclick();
+</script>
+</body>
+</html>

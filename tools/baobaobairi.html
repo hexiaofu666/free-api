@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宝宝百日计算器在线工具 - 词海工具箱</title>
+<meta name="description" content="宝宝百日计算器：输入出生日期，自动计算满月、百日、半岁、周岁等重要纪念日，并标注已过去或还有多少天，方便安排拍摄与宴请。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/baobaobairi.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="baobaobairi" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>宝宝出生日期</label><input type="date" id="birth"></div>
+      <div class="fitem"><label>计算基准日期（默认今天）</label><input type="date" id="now"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算纪念日</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">重要纪念日</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于宝宝百日计算器介绍：</h4>
+    <ol>
+      <li>宝宝出生后有几个重要节点：满月（约 30 天）、百日（约 100 天）、半岁（6 个月）、周岁（1 年）。</li>
+      <li>本工具自动算出这些纪念日的具体日期，并标注已经过去还是尚未到来。</li>
+      <li>满月与百日基于出生日期推算；由于「出生当天是否计入第 1 天」的口径差异，结果可能有 1 天的出入，请以当地习俗为准。</li>
+      <li>便于提前安排百天照、宴席与体检，避免临到跟前才手忙脚乱。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+function __xfFmt(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function __xfAddMonths(d, m) {
+  const y = d.getFullYear() + Math.floor((d.getMonth() + m) / 12);
+  const mo = (d.getMonth() + m) % 12;
+  const day = Math.min(d.getDate(), new Date(y, mo + 1, 0).getDate());
+  return new Date(y, mo, day);
+}
+
+/* 计算纪念日 */
+function __xfBabyDays(birthStr, nowStr) {
+  const b = new Date(birthStr + "T00:00:00");
+  const n = new Date(nowStr + "T00:00:00");
+  if (isNaN(b.getTime()) || isNaN(n.getTime())) return { error: "请输入合法的日期" };
+  const dayOfBirth = 1;   // 出生当天为第 1 天
+  const milestones = [
+    { key: "满月", days: 30 },
+    { key: "百日", days: 100 },
+    { key: "半岁", months: 6 },
+    { key: "周岁", months: 12 },
+    { key: "两岁", months: 24 },
+    { key: "三岁", months: 36 }
+  ];
+  const list = milestones.map(m => {
+    let date;
+    /* 与页面说明一致：满月 = 出生后 30 天，百日 = 出生后 100 天 */
+    if (m.days) date = new Date(b.getTime() + m.days * 86400000);
+    else date = __xfAddMonths(b, m.months);
+    const diff = Math.round((date - n) / 86400000);
+    return { name: m.key, date: __xfFmt(date), diff: diff, passed: diff < 0, today: diff === 0 };
+  });
+  const babyDays = Math.floor((n - b) / 86400000) + dayOfBirth;
+  return { list: list, babyDays: babyDays };
+}
+window.__xfBabyDays = __xfBabyDays;
+window.__xfFmt = __xfFmt;
+
+const $ = id => document.getElementById(id);
+function todayStr() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function run() {
+  const r = __xfBabyDays($("birth").value, $("now").value);
+  if (r.error) { $("res").innerHTML = '<p style="color:#e54d42;font-size:13px;">' + r.error + "</p>"; $("tip").textContent = "计算失败"; return; }
+  const rows = r.list.map(m => {
+    let status, cls;
+    if (m.today) { status = "就是今天 🎉"; cls = "bd-today"; }
+    else if (m.passed) { status = "已过去 " + Math.abs(m.diff) + " 天"; cls = "bd-past"; }
+    else { status = "还有 " + m.diff + " 天"; cls = "bd-future"; }
+    return '<div class="bd-item ' + cls + '"><div class="bd-name">' + m.name + '</div><div class="bd-date">' + m.date + '</div><div class="bd-st">' + status + "</div></div>";
+  }).join("");
+  const head = r.babyDays >= 0 ? '<div class="bd-head">宝宝今天已经出生 <b>' + r.babyDays + "</b> 天</div>" : "";
+  $("res").innerHTML = head + '<div class="bd-grid">' + rows + "</div>";
+  $("tip").textContent = "重要纪念日";
+}
+$("runBtn").onclick = run;
+$("birth").addEventListener("change", run);
+$("now").addEventListener("change", run);
+$("demoBtn").onclick = () => { $("birth").value = "2026-06-01"; $("now").value = todayStr(); run(); };
+$("birth").value = "2026-06-01";
+$("now").value = todayStr();
+run();
+</script>
+<style>
+.bd-head{font-size:14px;color:#666;margin-bottom:12px;}
+.bd-head b{color:#ff6500;font-size:18px;}
+.bd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;}
+.bd-item{border:1px solid #eee;border-radius:8px;padding:12px 14px;background:#fafafa;}
+.bd-name{font-size:14px;font-weight:600;color:#333;}
+.bd-date{font-size:13px;color:#1f6feb;margin:6px 0;font-family:Consolas,Monaco,monospace;}
+.bd-st{font-size:12px;color:#888;}
+.bd-today{background:#fff3e8;border-color:#ffd9bd;}
+.bd-today .bd-name{color:#ff6500;}
+.bd-today .bd-st{color:#ff6500;font-weight:600;}
+.bd-future .bd-st{color:#1aad19;}
+.bd-past{opacity:.62;}
+html.dark .bd-item{background:#22262b;border-color:#333a42;}
+html.dark .bd-name{color:#e6e6e6;}
+html.dark .bd-head{color:#aaa;}
+html.dark .bd-today{background:#2c2620;border-color:#4a3a28;}
+</style>
+</body>
+</html>

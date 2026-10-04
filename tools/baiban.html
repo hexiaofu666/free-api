@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线白板画板工具 - 词海工具箱</title>
+<meta name="description" content="在线白板工具：无需安装即可在浏览器里自由手绘，支持画笔颜色、粗细、橡皮擦、撤销与保存为 PNG 图片。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/baiban.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="baiban" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>画笔颜色</label><input type="color" id="color" value="#333333"></div>
+      <div class="fitem"><label>画笔粗细 <b id="wv">4</b>px</label><input type="range" id="width" min="1" max="40" value="4"></div>
+      <div class="fitem"><label>工具</label>
+        <select id="tool"><option value="pen" selected>画笔</option><option value="eraser">橡皮擦</option><option value="line">直线</option><option value="rect">矩形</option></select>
+      </div>
+      <div class="fitem"><label>画布背景</label><input type="color" id="bg" value="#ffffff"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn gray" id="undoBtn">撤销</button>
+      <button class="fbtn teal" id="saveBtn">保存为 PNG</button>
+      <button class="fbtn brown" id="clearBtn">清空画布</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>画布（按住鼠标或手指绘制）</strong></div>
+      <div class="bb-wrap"><canvas id="cv" class="bb-cv"></canvas></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线白板工具介绍：</h4>
+    <ol>
+      <li>打开即用的手绘白板，无需注册与安装，适合临时画草图、讲解思路、标注截图。</li>
+      <li>支持画笔、橡皮擦、直线与矩形四种工具，颜色与粗细可调，支持撤销与清空。</li>
+      <li>画好后可一键保存为 PNG 图片，方便分享给同事或存档。</li>
+      <li>触屏设备可直接用手指绘制，手机与平板同样可用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 供测试：计算 canvas 像素坐标（考虑 CSS 缩放） */
+function __xfCanvasPos(clientX, clientY, rect, scaleX, scaleY) {
+  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+}
+window.__xfCanvasPos = __xfCanvasPos;
+
+const $ = id => document.getElementById(id);
+const cv = $("cv"), ctx = cv.getContext("2d");
+let drawing = false, last = null, snap = null;
+const history = [];
+let bgColor = "#ffffff";
+
+function resize() {
+  const wrap = cv.parentNode;
+  const w = Math.max(300, wrap.clientWidth - 2);
+  const h = 380;
+  const dpr = (typeof window !== "undefined" && window.devicePixelRatio) || 1;
+  cv.style.width = w + "px";
+  cv.style.height = h + "px";
+  cv.width = Math.round(w * dpr);
+  cv.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, w, h);
+}
+function pushHistory() {
+  history.push(cv.toDataURL());
+  if (history.length > 20) history.shift();
+}
+function posOf(e) {
+  const r = cv.getBoundingClientRect();
+  const dpr = (typeof window !== "undefined" && window.devicePixelRatio) || 1;
+  const cx = (e.touches ? e.touches[0].clientX : e.clientX);
+  const cy = (e.touches ? e.touches[0].clientY : e.clientY);
+  return __xfCanvasPos(cx, cy, r, dpr, dpr);
+}
+function start(e) {
+  e.preventDefault();
+  pushHistory();
+  drawing = true;
+  last = posOf(e);
+  if ($("tool").value === "pen" || $("tool").value === "eraser") { drawLine(last, last); }
+  else { snap = cv.toDataURL(); }
+}
+function move(e) {
+  if (!drawing) return;
+  e.preventDefault();
+  const p = posOf(e);
+  const tool = $("tool").value;
+  if (tool === "pen" || tool === "eraser") { drawLine(last, p); last = p; }
+  else {
+    ctx.putImageData(ctx.getImageData(0, 0, cv.width, cv.height), 0, 0);
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width / ((window.devicePixelRatio) || 1), cv.height / ((window.devicePixelRatio) || 1));
+      strokeShape(snap ? last : last, p, tool);
+    };
+    img.src = snap;
+    strokeShape(last, p, tool);
+  }
+}
+function strokeShape(a, b, tool) {
+  ctx.save();
+  ctx.strokeStyle = tool === "eraser" ? bgColor : $("color").value;
+  ctx.lineWidth = +$("width").value;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  if (tool === "line") { ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); }
+  else { ctx.rect(a.x, a.y, b.x - a.x, b.y - a.y); }
+  ctx.stroke();
+  ctx.restore();
+}
+function drawLine(a, b) {
+  const tool = $("tool").value;
+  ctx.save();
+  ctx.strokeStyle = tool === "eraser" ? bgColor : $("color").value;
+  ctx.lineWidth = +$("width").value * (tool === "eraser" ? 2.5 : 1);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+  ctx.restore();
+}
+function end() {
+  if (!drawing) return;
+  drawing = false; last = null; snap = null;
+}
+cv.addEventListener("mousedown", start);
+cv.addEventListener("mousemove", move);
+cv.addEventListener("mouseup", end);
+cv.addEventListener("mouseleave", end);
+cv.addEventListener("touchstart", start, { passive: false });
+cv.addEventListener("touchmove", move, { passive: false });
+cv.addEventListener("touchend", end);
+
+$("width").addEventListener("input", () => { $("wv").textContent = $("width").value; });
+$("bg").addEventListener("input", () => {
+  const old = bgColor;
+  bgColor = $("bg").value;
+  snip: { /* 简单处理：整块替换同色像素成本高，这里直接重绘背景 */
+  }
+  const data = ctx.getImageData(0, 0, cv.width, cv.height);
+  const oc = hexToRgb(old), nc = hexToRgb(bgColor);
+  for (let i = 0; i < data.data.length; i += 4) {
+    if (data.data[i] === oc[0] && data.data[i + 1] === oc[1] && data.data[i + 2] === oc[2]) {
+      data.data[i] = nc[0]; data.data[i + 1] = nc[1]; data.data[i + 2] = nc[2];
+    }
+  }
+  ctx.putImageData(data, 0, 0);
+});
+function hexToRgb(h) { const s = h.replace("#", ""); return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)]; }
+
+$("un3doBtn") && ($("un3doBtn").onclick = null);
+$("undoBtn").onclick = () => {
+  if (!history.length) return alert("没有可撤销的操作");
+  const data = history.pop();
+  const img = new Image();
+  img.onload = () => { ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width / ((window.devicePixelRatio) || 1), cv.height / ((window.devicePixelRatio) || 1)); };
+  img.src = data;
+};
+$("saveBtn").onclick = () => {
+  const a = document.createElement("a");
+  a.href = cv.toDataURL("image/png");
+  a.download = "白板_" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".png";
+  a.click();
+};
+$("clearBtn").onclick = () => {
+  if (!confirm("确定清空画布吗？")) return;
+  pushHistory();
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, cv.width, cv.height);
+};
+resize();
+window.addEventListener("resize", () => { const data = cv.toDataURL(); const img = new Image(); img.onload = () => { resize(); ctx.drawImage(img, 0, 0, cv.width / ((window.devicePixelRatio) || 1), cv.height / ((window.devicePixelRatio) || 1)); }; img.src = data; });
+</script>
+<style>
+.bb-wrap{background:#fff;border:1px solid #e2e5e9;border-radius:8px;overflow:hidden;box-shadow:inset 0 0 0 1px #f7f8fa;}
+.bb-cv{display:block;cursor:crosshair;touch-action:none;}
+html.dark .bb-wrap{border-color:#3a424b;}
+</style>
+</body>
+</html>

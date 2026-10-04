@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时间进度条在线工具 - 词海工具箱</title>
+<meta name="description" content="时间进度可视化工具：实时展示今天、本周、本月、本季、本年已过去的百分比与剩余时间，支持进度条动画。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/timeprogress.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="timeprogress" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vout on">
+      <div class="vhead"><strong>时间进度</strong></div>
+      <div id="list" class="tp-list"></div>
+    </div>
+    <div class="vsetup" style="margin-top:12px;">
+      <div class="fitem"><label>自定义日期（可选，计算该年进度）</label><input type="date" id="custom"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn gray" id="refreshBtn">立即刷新</button>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于时间进度可视化工具介绍：</h4>
+    <ol>
+      <li>把抽象的时间变成直观的进度条，提醒你「这一年已经过去多少了」。</li>
+      <li>包含今天、本周、本月、本季、本年的时间进度，附剩余时间与百分比。</li>
+      <li>可输入自定义日期，查看该日期所在年份的进度，用于设定目标与复盘。</li>
+      <li>页面每 10 秒自动刷新，进度条平滑过渡。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+const DAY = 86400000;
+
+/* 计算各类时间进度 */
+function __xfProgress(now, customDate) {
+  const d = customDate ? new Date(customDate + "T00:00:00") : new Date(now);
+  const base = customDate ? d : now;
+
+  const startOfDay = new Date(base.getFullYear(), base.getMonth(), base.getDate()).getTime();
+  const endOfDay = startOfDay + DAY;
+  const dayPct = (base - startOfDay) / DAY;
+
+  // 周一为一周开始
+  const dow = (base.getDay() + 6) % 7;
+  const startOfWeek = startOfDay - dow * DAY;
+  const weekPct = (base - startOfWeek) / (7 * DAY);
+
+  const startOfMonth = new Date(base.getFullYear(), base.getMonth(), 1).getTime();
+  const endOfMonth = new Date(base.getFullYear(), base.getMonth() + 1, 1).getTime();
+  const monthPct = (base - startOfMonth) / (endOfMonth - startOfMonth);
+
+  const q = Math.floor(base.getMonth() / 3);
+  const startOfQuarter = new Date(base.getFullYear(), q * 3, 1).getTime();
+  const endOfQuarter = new Date(base.getFullYear(), q * 3 + 3, 1).getTime();
+  const quarterPct = (base - startOfQuarter) / (endOfQuarter - startOfQuarter);
+
+  const startOfYear = new Date(base.getFullYear(), 0, 1).getTime();
+  const endOfYear = new Date(base.getFullYear() + 1, 0, 1).getTime();
+  const yearPct = (base - startOfYear) / (endOfYear - startOfYear);
+
+  const clamp = p => Math.max(0, Math.min(1, p));
+  const remainMs = (total, p) => Math.round(total * (1 - p));
+  function fmtRemain(ms) {
+    const totalMin = Math.floor(ms / 60000);
+    const dd = Math.floor(totalMin / 1440);
+    const hh = Math.floor((totalMin % 1440) / 60);
+    const mm = totalMin % 60;
+    if (dd > 0) return dd + " 天 " + hh + " 小时";
+    if (hh > 0) return hh + " 小时 " + mm + " 分钟";
+    return mm + " 分钟";
+  }
+
+  return [
+    { name: "今天", pct: clamp(dayPct), remain: fmtRemain(remainMs(DAY, dayPct)) },
+    { name: "本周", pct: clamp(weekPct), remain: fmtRemain(remainMs(7 * DAY, weekPct)) },
+    { name: "本月", pct: clamp(monthPct), remain: fmtRemain(remainMs(endOfMonth - startOfMonth, monthPct)) },
+    { name: "本季度", pct: clamp(quarterPct), remain: fmtRemain(remainMs(endOfQuarter - startOfQuarter, quarterPct)) },
+    { name: "本年", pct: clamp(yearPct), remain: fmtRemain(remainMs(endOfYear - startOfYear, yearPct)) }
+  ];
+}
+window.__xfProgress = __xfProgress;
+
+const $ = id => document.getElementById(id);
+function render() {
+  const name = $("custom").value;
+  const list = __xfProgress(Date.now(), name);
+  $("list").innerHTML = list.map(it => {
+    const p = (it.pct * 100);
+    return '<div class="tp-item"><div class="tp-top"><span class="tp-name">' + it.name + '</span><span class="tp-pct">' + p.toFixed(1) + '%</span></div>' +
+      '<div class="tp-bar"><div class="tp-fill" style="width:' + p.toFixed(2) + '%"></div></div>' +
+      '<div class="tp-remain">剩余 ' + it.remain + "</div></div>";
+  }).join("");
+}
+$("custom").addEventListener("change", render);
+$("refreshBtn").onclick = render;
+render();
+setInterval(render, 10000);
+</script>
+<style>
+.tp-list{display:flex;flex-direction:column;gap:14px;}
+.tp-item{border:1px solid #eee;border-radius:8px;padding:12px 14px;background:#fafafa;}
+.tp-top{display:flex;justify-content:space-between;align-items:baseline;}
+.tp-name{font-size:14px;font-weight:600;color:#333;}
+.tp-pct{font-size:16px;font-weight:700;color:#ff6500;font-family:Consolas,Monaco,monospace;}
+.tp-bar{height:10px;background:#eceef1;border-radius:6px;overflow:hidden;margin:8px 0 6px;}
+.tp-fill{height:100%;background:linear-gradient(90deg,#ff6500,#ff9a44);border-radius:6px;transition:width .6s ease;}
+.tp-remain{font-size:12px;color:#888;}
+html.dark .tp-item{background:#22262b;border-color:#333a42;}
+html.dark .tp-name{color:#e6e6e6;}
+html.dark .tp-bar{background:#2c3239;}
+html.dark .tp-remain{color:#999;}
+</style>
+</body>
+</html>

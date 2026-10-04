@@ -3,20 +3,10 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MAC地址转EUI-64转换器 - 词海工具箱</title>
+<meta name="description" content="MAC 地址转 EUI-64 工具：把 48 位 MAC 地址转换为 EUI-64 接口标识符，并生成 IPv6 链路本地地址，自动处理第 7 位翻转。">
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.9"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
-<style>
-.macres { border: 1px solid #eee; border-radius: 6px; margin-top: 12px; display: none; overflow: hidden; }
-.macres .row { display: flex; border-bottom: 1px dashed #eee; font-size: 13px; }
-.macres .row:last-child { border-bottom: 0; }
-.macres .row span { flex: 0 0 170px; background: #fafafa; padding: 8px 12px; color: #666; border-right: 1px dashed #eee; }
-.macres .row div { flex: 1; padding: 8px 12px; word-break: break-all; font-family: Consolas, monospace; color: #333; }
-html.dark .macres { border-color: #2c2f33; }
-html.dark .macres .row { border-color: #2c2f33; }
-html.dark .macres .row span { background: #23262a; color: #aaa; border-color: #2c2f33; }
-html.dark .macres .row div { color: #f0f2f5; }
-</style>
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
 <script>
 var _hmt = _hmt || [];
 (function() {
@@ -26,102 +16,128 @@ var s = document.getElementsByTagName("script")[0];
 s.parentNode.insertBefore(hm, s);
 })();
 </script>
-<meta name="description" content="在线 EUI-64 转换器，支持将 MAC 地址快速转换为 IPv6 接口标识符与完整 IPv6 地址，兼容冒号、短横线、Cisco 点分、连续 hex 四种 MAC 格式，自动生成 Link-Local 地址，浏览器本地处理。">
 <link rel="canonical" href="https://tools.hdemba.cn/tools/mac2eui64.html">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body data-tool="mac2eui64" data-cat="dev">
 <div class="main"><div class="center"><div class="tools">
   <div class="tools-cent">
-    <div class="fitem" style="margin-bottom:12px;"><label>MAC 地址（支持 00:1A:2B:3C:4D:5E / 00-1A-2B-3C-4D-5E / 001A.2B3C.4D5E / 001A2B3C4D5E）</label><input id="mac" placeholder="00:1A:2B:3C:4D:5E" spellcheck="false"></div>
-    <div class="fitem" style="margin-bottom:12px;"><label>IPv6 前缀（留空默认 fe80::，生成链路本地地址）</label><input id="prefix" placeholder="fe80::" spellcheck="false"></div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-      <button class="fbtn blue" id="convBtn">立即转换</button>
-      <button class="fbtn" id="demoBtn">填充示例</button>
-      <button class="fbtn" id="copyBtn">复制完整地址</button>
-      <button class="fbtn" id="clearBtn">清空</button>
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>MAC 地址（支持 : 或 - 分隔）</label><input type="text" id="mac" placeholder="例如 00:1A:2B:3C:4D:5E"></div>
+      <div class="fitem"><label>IPv6 前缀</label><input type="text" id="prefix" value="fe80::" placeholder="默认 fe80::（链路本地）"></div>
     </div>
-    <div class="macres" id="res"></div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转换结果</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
+    </div>
   </div>
   <div class="resttips">
-    <h4>关于MAC地址转EUI-64转换器介绍：</h4>
-    <p>1、EUI-64 是将 48 位 MAC 地址扩展为 64 位 IPv6 接口标识符的标准方法：在 MAC 中间（OUI 与设备号之间）插入 FFFE，并将第 1 字节的 U/L 位（bit 1，次低位）取反。</p>
-    <p>2、得到接口标识符后，与前缀拼接即得完整 IPv6 地址；默认前缀 fe80:: 生成链路本地地址（Link-Local），也可填入全球单播前缀（如 2001:db8:1::/64）。</p>
-    <p>3、支持冒号、短横线、Cisco 点分、连续 hex 四种 MAC 输入格式，自动去除分隔符。转换在浏览器本地完成。</p>
+    <h4>关于 MAC 地址转 EUI-64 转换器介绍：</h4>
+    <ol>
+      <li>EUI-64 是 64 位的接口标识符，由 48 位 MAC 地址扩展而来：在中间插入 FF:FE 两个字节。</li>
+      <li>同时需要把第一个字节的第 7 位（U/L 位）取反，MAC 址中该位为 0 表示全球唯一。</li>
+      <li>生成的 EUI-64 可与 IPv6 前缀拼成完整地址，链路本地地址（fe80::/10）常用于同网段设备发现。</li>
+      <li>本工具会同时给出字节序列、EUI-64、IPv6 完整地址与压缩形式。</li>
+    </ol>
   </div>
 </div></div></div>
-<script src="../assets/tools-data.js?v=1.5.9"></script>
-<script src="../assets/chrome.js?v=1.5.9"></script>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
 <script>
+/* 解析 MAC -> 6 字节数组，非法返回 null */
+function __xfMacBytes(mac) {
+  const s = String(mac == null ? "" : mac).trim();
+  const h = s.replace(/[^0-9a-fA-F]/g, "");
+  if (h.length !== 12) return null;
+  const out = [];
+  for (let i = 0; i < 12; i += 2) out.push(parseInt(h.substr(i, 2), 16));
+  return out;
+}
+
+/* MAC -> EUI-64（8 字节） */
+function __xfEui64(mac) {
+  const b = __xfMacBytes(mac);
+  if (!b) return null;
+  const flipped = b[0] ^ 0x02;   // 翻转 U/L 位（第 7 位，值 0x02）
+  const eui = [flipped, b[1], b[2], 0xFF, 0xFE, b[3], b[4], b[5]];
+  const hex = eui.map(x => x.toString(16).padStart(2, "0"));
+  const euiStr = hex.join(":").toUpperCase();
+  /* 接口 ID 按 IPv6 写法分 4 组、每组 4 位十六进制 */
+  const ifid = [hex.slice(0, 2), hex.slice(2, 4), hex.slice(4, 6), hex.slice(6, 8)].map(g => g.join("")).join(":");
+  const ifidUpper = ifid.toUpperCase();
+  return {
+    macHex: b.map(x => x.toString(16).padStart(2, "0")).join(":").toUpperCase(),
+    flipped: "0x" + flipped.toString(16).padStart(2, "0").toUpperCase() + "（原 0x" + b[0].toString(16).padStart(2, "0").toUpperCase() + "）",
+    eui64: euiStr,
+    ifid: ifidUpper,
+    bytes: eui
+  };
+}
+
+/* 与前缀拼出 IPv6（简化：仅展开形式拼接） */
+function __xfMac2Ipv6(mac, prefix) {
+  const e = __xfEui64(mac);
+  if (!e) return null;
+  let pfx = String(prefix == null ? "" : prefix).trim();
+  if (!pfx) pfx = "fe80::";
+  // 用十六进制组拼接，避免复杂解析
+  const ifidGroups = [e.bytes.slice(0, 2), e.bytes.slice(2, 4), e.bytes.slice(4, 6), e.bytes.slice(6, 8)]
+    .map(g => g.map(x => x.toString(16).padStart(2, "0")).join(""));
+  const ifid = ifidGroups.join(":");
+  if (pfx.endsWith("::")) return pfx + ifid;
+  if (pfx.endsWith(":")) return pfx + ifid;
+  return pfx + ":" + ifid;
+}
+
+window.__xfMacBytes = __xfMacBytes;
+window.__xfEui64 = __xfEui64;
+window.__xfMac2Ipv6 = __xfMac2Ipv6;
+
 const $ = id => document.getElementById(id);
-const DEFAULT_PREFIX_GROUPS = ["fe80", "0000", "0000", "0000"];
-function cleanMacInput(s) { return s.replace(/[^0-9a-f]/gi, "").toLowerCase(); }
-function convertMacToEUI64(mac) {
-  const withFFFE = mac.slice(0, 6) + "fffe" + mac.slice(6);
-  const first = parseInt(withFFFE.slice(0, 2), 16);
-  const flipped = (first ^ 2).toString(16).padStart(2, "0");
-  const id = flipped + withFFFE.slice(2);
-  const groups = [id.slice(0, 4), id.slice(4, 8), id.slice(8, 12), id.slice(12, 16)];
-  return { interfaceId: groups.join(":"), groups };
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function run() {
+  const e = __xfEui64($("mac").value);
+  if (!e) { $("res").innerHTML = '<p style="color:#e54d42;font-size:13px;">请输入合法的 MAC 址（12 位十六进制，如 00:1A:2B:3C:4D:5E）</p>'; $("tip").textContent = "转换失败"; return; }
+  const ipv6 = __xfMac2Ipv6($("mac").value, $("prefix").value);
+  const rows = [
+    ["原始 MAC", e.macHex],
+    ["第 1 字节（U/L 位翻转后）", e.flipped],
+    ["EUI-64 接口标识符", e.eui64],
+    ["接口 ID（IPv6 写法）", e.ifid],
+    ["IPv6 完整地址", ipv6],
+    ["字节序列（十进制）", e.bytes.join(" ")]
+  ];
+  $("tip").textContent = "转换结果";
+  $("res").innerHTML = '<div class="v6rows">' + rows.map(([n, val]) =>
+    '<div class="v6row"><div class="v6lab"><b>' + n + "</b></div>" +
+    '<div class="v6val"><code>' + esc(val) + '</code><button class="v6cp" data-v="' + esc(val) + '">复制</button></div></div>'
+  ).join("") + "</div>";
+  Array.prototype.forEach.call($("res").querySelectorAll(".v6cp"), btn => {
+    btn.onclick = () => navigator.clipboard.writeText(btn.getAttribute("data-v")).then(() => { btn.textContent = "已复制"; setTimeout(() => btn.textContent = "复制", 1200); });
+  });
 }
-function expandPrefix(p) {
-  p = p.split("/")[0].trim().toLowerCase();
-  if (!p) return null;
-  if ((p.match(/::/g) || []).length > 1) return null;
-  const seg = p.split("::");
-  const head = seg[0] ? seg[0].split(":") : [];
-  const tail = seg.length > 1 && seg[1] ? seg[1].split(":") : [];
-  const all = head.concat(tail);
-  if (all.some(x => !/^[0-9a-f]{1,4}$/i.test(x))) return null;
-  const mid = 8 - (head.length + tail.length);
-  if (mid < 0) return null;
-  const out = [...head];
-  if (seg.length > 1) { for (let i = 0; i < mid; i++) out.push("0"); out.push(...tail); }
-  else { for (let i = 0; i < mid; i++) out.push("0"); }
-  return out.map(x => x.padStart(4, "0").toLowerCase());
-}
-function compressIPv6(groups) {
-  const short = groups.map(g => g.replace(/^0+/, "") || "0");
-  let bestStart = -1, bestLen = 0, i = 0;
-  while (i < groups.length) {
-    if (groups[i] === "0000") {
-      let j = i; while (j < groups.length && groups[j] === "0000") j++;
-      const len = j - i;
-      if (len > bestLen && len >= 2) { bestStart = i; bestLen = len; }
-      i = j;
-    } else i++;
-  }
-  if (bestStart !== -1) {
-    const head = short.slice(0, bestStart), tail = short.slice(bestStart + bestLen);
-    if (head.length === 0) return "::" + tail.join(":");
-    return tail.length === 0 ? head.join(":") + "::" : head.join(":") + "::" + tail.join(":");
-  }
-  return short.join(":");
-}
-const row = (label, val) => `<div class="row"><span>${label}</span><div>${val}</div></div>`;
-$("convBtn").onclick = () => {
-  const mac = cleanMacInput($("mac").value);
-  if (!mac) { alert("请输入 MAC 地址"); return; }
-  if (mac.length !== 12) { alert("需要 12 位十六进制字符，当前检测到 " + mac.length + " 位。支持格式：00:1A:2B:3C:4D:5E、00-1A-2B-3C-4D-5E、001A.2B3C.4D5E、001A2B3C4D5E"); return; }
-  const { interfaceId, groups } = convertMacToEUI64(mac);
-  let prefixGroups = DEFAULT_PREFIX_GROUPS;
-  const pv = $("prefix").value.trim();
-  if (pv) {
-    const parsed = expandPrefix(pv);
-    if (!parsed) { alert("前缀格式无效，已使用默认 fe80::"); }
-    else prefixGroups = parsed.slice(0, 4);
-  }
-  const full = compressIPv6([...prefixGroups, ...groups]);
-  $("res").innerHTML = row("接口标识符（EUI-64）", interfaceId) + row("完整 IPv6 地址", full);
-  $("res").style.display = "block";
-};
-$("demoBtn").onclick = () => { $("mac").value = "00:1A:2B:3C:4D:5E"; $("prefix").value = ""; $("res").style.display = "none"; };
-$("copyBtn").onclick = () => {
-  const el = $("res").querySelectorAll(".row div");
-  if (!el.length) return alert("还没有转换结果");
-  navigator.clipboard.writeText(el[el.length - 1].textContent).then(() => alert("✅ 已复制到剪贴板"));
-};
-$("clearBtn").onclick = () => { $("mac").value = ""; $("prefix").value = ""; $("res").style.display = "none"; };
+$("runBtn").onclick = run;
+$("demoBtn").onclick = () => { $("mac").value = "00:1A:2B:3C:4D:5E"; run(); };
+$("mac").addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+$("prefix").addEventListener("input", run);
+$("mac").value = "00:1A:2B:3C:4D:5E";
+run();
 </script>
+<style>
+.v6rows{display:flex;flex-direction:column;gap:8px;max-width:760px;}
+.v6row{border:1px solid #e8e8e8;border-radius:8px;padding:8px 12px;background:#fafafa;}
+.v6lab{font-size:12px;color:#888;margin-bottom:4px;}
+.v6lab b{color:#333;font-size:13px;font-weight:600;}
+.v6val{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.v6val code{font-family:Consolas,Monaco,monospace;font-size:14px;color:#1f6feb;word-break:break-all;}
+.v6cp{flex:0 0 auto;border:none;background:#ff6500;color:#fff;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;}
+html.dark .v6row{background:#22262b;border-color:#333a42;}
+html.dark .v6lab b{color:#e6e6e6;}
+html.dark .v6val code{color:#6cb6ff;}
+</style>
 </body>
 </html>

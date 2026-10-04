@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flex布局在线可视化编辑器 - 词海工具箱</title>
+<meta name="description" content="Flex 布局可视化编辑器：选择主轴方向、对齐方式、换行与间距，实时预览子元素排列效果并复制完整 CSS 代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/flexbox.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="flexbox" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>flex-direction 主轴方向</label>
+        <select id="dir"><option value="row" selected>row（横向）</option><option value="row-reverse">row-reverse（横向反向）</option><option value="column">column（纵向）</option><option value="column-reverse">column-reverse（纵向反向）</option></select>
+      </div>
+      <div class="fitem"><label>justify-content 主轴对齐</label>
+        <select id="justify"><option value="flex-start" selected>flex-start</option><option value="center">center</option><option value="flex-end">flex-end</option><option value="space-between">space-between</option><option value="space-around">space-around</option><option value="space-evenly">space-evenly</option></select>
+      </div>
+      <div class="fitem"><label>align-items 交叉轴对齐</label>
+        <select id="align"><option value="stretch" selected>stretch</option><option value="flex-start">flex-start</option><option value="center">center</option><option value="flex-end">flex-end</option><option value="baseline">baseline</option></select>
+      </div>
+      <div class="fitem"><label>flex-wrap 换行</label>
+        <select id="wrap"><option value="nowrap" selected>nowrap（不换行）</option><option value="wrap">wrap（换行）</option><option value="wrap-reverse">wrap-reverse</option></select>
+      </div>
+      <div class="fitem"><label>gap 间距 <b id="gv">10</b>px</label><input type="range" id="gap" min="0" max="40" value="10"></div>
+      <div class="fitem"><label>align-content（多行时）</label>
+        <select id="content"><option value="normal" selected>normal</option><option value="center">center</option><option value="flex-start">flex-start</option><option value="flex-end">flex-end</option><option value="space-between">space-between</option><option value="space-around">space-around</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div id="prev" class="fx-container"><div class="fx-item">1</div><div class="fx-item">2</div><div class="fx-item">3</div><div class="fx-item">4</div><div class="fx-item">5</div></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:150px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 Flex 布局可视化编辑器介绍：</h4>
+    <ol>
+      <li>Flex 是现代 CSS 最常用的布局方式，通过主轴（justify-content）与交叉轴（align-items）控制子元素排列。</li>
+      <li>切换 flex-direction 会改变主轴方向，其余对齐属性含义随之变化，编辑器会实时反映。</li>
+      <li>gap 用于设置子元素间距，比传统的 margin 写法更简洁。</li>
+      <li>调好效果后复制代码，把容器类名替换成你自己的即可。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+/* 生成 CSS */
+function __xfFlexCss(o) {
+  const lines = ["display: flex;", "flex-direction: " + o.dir + ";", "justify-content: " + o.justify + ";", "align-items: " + o.align + ";", "flex-wrap: " + o.wrap + ";"];
+  if (o.gap !== undefined && o.gap !== "") lines.push("gap: " + o.gap + "px;");
+  if (o.wrap !== "nowrap" && o.content && o.content !== "normal") lines.push("align-content: " + o.content + ";");
+  return ".container {\n  " + lines.join("\n  ") + "\n}";
+}
+window.__xfFlexCss = __xfFlexCss;
+
+const $ = id => document.getElementById(id);
+function run() {
+  const o = { dir: $("dir").value, justify: $("justify").value, align: $("align").value, wrap: $("wrap").value, gap: +$("gap").value, content: $("content").value };
+  $("gv").textContent = o.gap;
+  const p = $("prev");
+  p.style.display = "flex";
+  p.style.flexDirection = o.dir;
+  p.style.justifyContent = o.justify;
+  p.style.alignItems = o.align;
+  p.style.flexWrap = o.wrap;
+  p.style.gap = o.gap + "px";
+  p.style.alignContent = o.content === "normal" ? "" : o.content;
+  $("res").value = __xfFlexCss(o);
+}
+["dir", "justify", "align", "wrap", "gap", "content"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("dir").value = "row"; $("justify").value = "flex-start"; $("align").value = "stretch"; $("wrap").value = "nowrap"; $("gap").value = 10; $("content").value = "normal"; run(); };
+run();
+</script>
+<style>
+.fx-container{background:#f5f6f8;border:1px dashed #d5d8dd;border-radius:8px;padding:14px;min-height:150px;}
+.fx-item{background:#ff6500;color:#fff;border-radius:6px;padding:14px 22px;font-size:14px;font-weight:600;min-width:46px;text-align:center;}
+html.dark .fx-container{background:#1e2227;border-color:#3a424b;}
+</style>
+</body>
+</html>

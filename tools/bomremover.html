@@ -3,22 +3,10 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BOM头批量检测移除工具 - 词海工具箱</title>
+<meta name="description" content="BOM 头检测与移除工具：识别 UTF-8/UTF-16/UTF-32 的字节顺序标记，一键移除文件开头的 BOM，也支持十六进制粘贴检测。">
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.5.9"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.5.9">
-<style>
-.dropzone { border: 2px dashed #ccc; border-radius: 8px; padding: 30px 20px; text-align: center; color: #888; margin-bottom: 12px; transition: border-color .2s; cursor: pointer; }
-.dropzone.on { border-color: #ff6500; color: #ff6500; }
-.dropzone .layui-icon { font-size: 34px; display: block; margin-bottom: 8px; color: #ff6500; }
-.btable { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px; }
-.btable th, .btable td { border: 1px solid #eee; padding: 7px 10px; text-align: left; word-break: break-all; }
-.btable th { background: #fafafa; color: #666; font-weight: 600; }
-.btable td.tag-ok { color: #00b277; font-weight: 600; white-space: nowrap; }
-.btable td.tag-no { color: #999; white-space: nowrap; }
-html.dark .dropzone { border-color: #444; color: #aaa; }
-html.dark .btable th, html.dark .btable td { border-color: #2c2f33; }
-html.dark .btable th { background: #23262a; color: #aaa; }
-</style>
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
 <script>
 var _hmt = _hmt || [];
 (function() {
@@ -28,86 +16,147 @@ var s = document.getElementsByTagName("script")[0];
 s.parentNode.insertBefore(hm, s);
 })();
 </script>
-<meta name="description" content="在线批量 BOM 头检测与移除工具，识别 UTF-8 / UTF-16 LE / UTF-16 BE / UTF-32 BOM，一键移除并下载，浏览器本地处理，文件不上传，解决 BOM 导致的 PHP 报头错误与 JSON 解析失败。">
 <link rel="canonical" href="https://tools.hdemba.cn/tools/bomremover.html">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body data-tool="bomremover" data-cat="dev">
 <div class="main"><div class="center"><div class="tools">
   <div class="tools-cent">
-    <div class="dropzone" id="zone">
-      <i class="layui-icon layui-icon-upload-drag"></i>
-      点击选择一个或多个文本文件，或拖拽到此处（批量支持）
-      <input type="file" id="fileInput" multiple style="display:none;">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>粘贴十六进制字节（可含空格换行）</label>
+        <textarea id="hexin" style="height:90px;" placeholder="EF BB BF 3C 21 44 4F 43 ..."></textarea>
+      </div>
+      <div class="fitem"><label>或上传文件检测</label><input type="file" id="file"></div>
     </div>
-    <div id="tablewrap"></div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-      <button class="fbtn blue" id="dlBtn" style="display:none;">下载全部无 BOM 文件</button>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">检测 BOM</button>
+      <button class="fbtn brown" id="stripBtn">移除 BOM 并输出十六进制</button>
+      <button class="fbtn gray" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">检测结果</strong></div>
+      <div id="res" style="padding:0 2px;"></div>
     </div>
   </div>
   <div class="resttips">
-    <h4>关于BOM头批量检测移除工具介绍：</h4>
-    <p>1、BOM（Byte Order Mark）是放在文本文件开头的一小段不可见字节，用于标记编码与字节序。常见类型：UTF-8 BOM（EF BB BF）、UTF-16 LE（FF FE）、UTF-16 BE（FE FF）、UTF-32 LE（FF FE 00 00）。</p>
-    <p>2、带 BOM 的文件容易引发问题：PHP 输出报头错误、JSON 解析失败、Shell 脚本首行失效、模板引擎输出空白行等。本工具批量检测并一键移除。</p>
-    <p>3、移除仅去掉文件开头的 BOM 字节，其余内容逐字节保留；UTF-8 BOM 的文件移除后内容不变，UTF-16/32 文件移除 BOM 后仍保持原编码内容字节。全部处理在浏览器本地完成。</p>
+    <h4>关于 BOM 头批量检测移除工具介绍：</h4>
+    <ol>
+      <li>BOM（Byte Order Mark）是文件开头的隐藏字节标记，用来标识编码。UTF-8 的 BOM 是 EF BB BF。</li>
+      <li>很多程序（PHP、Shell 脚本、JSON 解析）遇到 BOM 会报错或出现乱码，网页中也可能导致首屏多出空白。</li>
+      <li>本工具可粘贴十六进制字节检测，也可直接上传文件，识别 UTF-8 / UTF-16 BE / UTF-16 LE / UTF-32 的 BOM。</li>
+      <li>点击「移除 BOM」会输出去掉标记后的十六进制，便于对照确认。</li>
+    </ol>
   </div>
 </div></div></div>
-<script src="../assets/tools-data.js?v=1.5.9"></script>
-<script src="../assets/chrome.js?v=1.5.9"></script>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
 <script>
-const $ = id => document.getElementById(id);
 const BOMS = [
-  { name: "UTF-8 BOM", bytes: [0xEF, 0xBB, 0xBF] },
-  { name: "UTF-32 LE BOM", bytes: [0xFF, 0xFE, 0x00, 0x00] },
-  { name: "UTF-16 LE BOM", bytes: [0xFF, 0xFE] },
-  { name: "UTF-16 BE BOM", bytes: [0xFE, 0xFF] }
+  { bytes: [0xEF, 0xBB, 0xBF], enc: "UTF-8", name: "UTF-8 BOM" },
+  { bytes: [0xFE, 0xFF], enc: "UTF-16BE", name: "UTF-16 大端 BOM" },
+  { bytes: [0xFF, 0xFE, 0x00, 0x00], enc: "UTF-32LE", name: "UTF-32 小端 BOM" },
+  { bytes: [0x00, 0x00, 0xFE, 0xFF], enc: "UTF-32BE", name: "UTF-32 大端 BOM" },
+  { bytes: [0xFF, 0xFE], enc: "UTF-16LE", name: "UTF-16 小端 BOM" }
 ];
-function detectBOM(buf) {
+
+/* 十六进制字符串 -> 字节数组 */
+function __xfHexToBytes(s) {
+  const h = String(s || "").replace(/[^0-9a-fA-F]/g, "");
+  if (h.length % 2 !== 0) return { error: "十六进制字符个数为奇数，无法按字节解析" };
+  const out = [];
+  for (let i = 0; i < h.length; i += 2) out.push(parseInt(h.substr(i, 2), 16));
+  return { bytes: out };
+}
+
+/* 检测 BOM */
+function __xfBomDetect(bytes) {
+  if (!bytes || !bytes.length) return { hasBom: false };
   for (const b of BOMS) {
-    if (buf.length >= b.bytes.length && b.bytes.every((v, i) => buf[i] === v)) return b;
-  }
-  return null;
-}
-function fmtSize(n) {
-  if (n < 1024) return n + " B";
-  if (n < 1048576) return (n / 1024).toFixed(1) + " KB";
-  return (n / 1048576).toFixed(2) + " MB";
-}
-let cleaned = []; // {name, blob}
-async function handleFiles(list) {
-  const files = Array.from(list || []);
-  if (!files.length) return;
-  cleaned = [];
-  let html = `<table class="btable"><tr><th>文件名</th><th>大小</th><th>BOM 检测结果</th><th>操作</th></tr>`;
-  for (const f of files) {
-    const buf = new Uint8Array(await f.arrayBuffer());
-    const bom = detectBOM(buf);
-    if (bom) {
-      const clean = new Blob([buf.slice(bom.bytes.length)], { type: "application/octet-stream" });
-      cleaned.push({ name: f.name, blob: clean });
-      html += `<tr><td>${f.name}</td><td>${fmtSize(f.size)}</td><td class="tag-ok">检测到 ${bom.name}，已移除</td><td><a href="${URL.createObjectURL(clean)}" download="${f.name}">下载无BOM版</a></td></tr>`;
-    } else {
-      html += `<tr><td>${f.name}</td><td>${fmtSize(f.size)}</td><td class="tag-no">无 BOM，无需处理</td><td>—</td></tr>`;
+    if (bytes.length >= b.bytes.length && b.bytes.every((v, i) => bytes[i] === v)) {
+      return { hasBom: true, enc: b.enc, name: b.name, sig: b.bytes, len: b.bytes.length };
     }
   }
-  html += `</table>`;
-  $("tablewrap").innerHTML = html;
-  $("dlBtn").style.display = cleaned.length ? "inline-flex" : "none";
+  return { hasBom: false, first: bytes.slice(0, 4).map(x => x.toString(16).padStart(2, "0").toUpperCase()) };
 }
-$("dlBtn").onclick = () => {
-  if (!cleaned.length) return alert("没有需要下载的文件");
-  cleaned.forEach((c, i) => setTimeout(() => {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(c.blob);
-    a.download = c.name;
-    a.click();
-  }, i * 300));
+
+/* 移除 BOM */
+function __xfBomStrip(bytes) {
+  const d = __xfBomDetect(bytes);
+  if (!d.hasBom) return { stripped: false, bytes: bytes.slice() };
+  return { stripped: true, removed: d.sig.length, enc: d.enc, bytes: bytes.slice(d.sig.length) };
+}
+
+function __xfBytesToHex(bytes) {
+  return bytes.map(b => b.toString(16).padStart(2, "0").toUpperCase()).join(" ");
+}
+
+window.__xfHexToBytes = __xfHexToBytes;
+window.__xfBomDetect = __xfBomDetect;
+window.__xfBomStrip = __xfBomStrip;
+window.__xfBytesToHex = __xfBytesToHex;
+
+const $ = id => document.getElementById(id);
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+let curBytes = null;
+
+function render(html, tip) { $("res").innerHTML = html; $("tip").textContent = tip; }
+
+function run() {
+  const p = __xfHexToBytes($("hexin").value);
+  if (p.error) { render('<p style="color:#e54d42;font-size:13px;">' + esc(p.error) + "</p>", "检测失败"); return; }
+  if (!p.bytes.length) { render('<p style="color:#999;font-size:13px;">请输入十六进制字节，或上传文件。</p>', "等待输入"); curBytes = null; return; }
+  curBytes = p.bytes;
+  const d = __xfBomDetect(p.bytes);
+  if (d.hasBom) {
+    render('<div class="bom-hit"><b>检测到 BOM：' + esc(d.name) + '</b><div>编码：' + esc(d.enc) + '</div><div>字节：<code>' + __xfBytesToHex(d.sig) + "</code>（共 " + d.len + " 字节）</div></div>", "检测结果");
+  } else {
+    render('<div class="bom-none">未检测到 BOM。<br><span>开头字节：<code>' + esc(d.first.join(" ")) + "</code></span></div>", "检测结果");
+  }
+}
+
+function strip() {
+  let bytes = curBytes;
+  if (!bytes) {
+    const p = __xfHexToBytes($("hexin").value);
+    if (p.error) { render('<p style="color:#e54d42;font-size:13px;">' + esc(p.error) + "</p>", "处理失败"); return; }
+    bytes = p.bytes;
+  }
+  if (!bytes || !bytes.length) { render('<p style="color:#999;font-size:13px;">请先输入或上传内容。</p>', "等待输入"); return; }
+  const r = __xfBomStrip(bytes);
+  if (!r.stripped) { render('<div class="bom-none">未检测到 BOM，无需移除。</div>', "移除结果"); return; }
+  render('<div class="bom-hit"><b>已移除 ' + esc(r.enc) + ' BOM（' + r.removed + ' 字节）</b>' +
+    '<div class="bom-hex">移除后十六进制：<br><code>' + esc(__xfBytesToHex(r.bytes).slice(0, 400)) + (r.bytes.length * 3 > 400 ? " …" : "") + "</code></div></div>", "移除结果");
+}
+
+$("runBtn").onclick = run;
+$("stripBtn").onclick = strip;
+$("clrBtn").onclick = () => { $("hexin").value = ""; $("file").value = ""; curBytes = null; render('<p style="color:#999;font-size:13px;">请输入十六进制字节，或上传文件。</p>', "等待输入"); };
+$("file").onchange = () => {
+  const f = $("file").files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const bytes = Array.prototype.slice.call(new Uint8Array(reader.result));
+    curBytes = bytes;
+    $("hexin").value = __xfBytesToHex(bytes.slice(0, 32));
+    const d = __xfBomDetect(bytes);
+    if (d.hasBom) render('<div class="bom-hit"><b>文件 ' + esc(f.name) + " 检测到 " + esc(d.name) + '</b><div>编码：' + esc(d.enc) + '</div><div>字节：<code>' + __xfBytesToHex(d.sig) + "</code></div></div>", "文件检测结果");
+    else render('<div class="bom-none">文件 ' + esc(f.name) + " 未检测到 BOM。<br><span>开头字节：<code>" + esc(d.first.join(" ")) + "</code></span></div>", "文件检测结果");
+  };
+  reader.readAsArrayBuffer(f.slice(0, 64));
 };
-$("zone").addEventListener("click", () => $("fileInput").click());
-$("fileInput").addEventListener("change", e => handleFiles(e.target.files));
-["dragover", "dragenter"].forEach(ev => $("zone").addEventListener(ev, e => { e.preventDefault(); $("zone").classList.add("on"); }));
-["dragleave", "drop"].forEach(ev => $("zone").addEventListener(ev, e => { e.preventDefault(); $("zone").classList.remove("on"); }));
-$("zone").addEventListener("drop", e => handleFiles(e.dataTransfer.files));
+$("hexin").addEventListener("input", run);
+render('<p style="color:#999;font-size:13px;">请输入十六进制字节，或上传文件。</p>', "等待输入");
 </script>
+<style>
+.bom-hit{border:1px solid #ffe0c7;background:#fff8f2;border-radius:8px;padding:12px 14px;font-size:13px;color:#333;line-height:1.9;max-width:720px;}
+.bom-hit b{color:#ff6500;}
+.bom-hit code{font-family:Consolas,Monaco,monospace;color:#1f6feb;word-break:break-all;}
+.bom-hex{margin-top:6px;}
+.bom-none{font-size:13px;color:#666;line-height:1.9;}
+.bom-none code{font-family:Consolas,Monaco,monospace;color:#1f6feb;}
+html.dark .bom-hit{background:#2c2620;border-color:#4a3a28;color:#ddd;}
+html.dark .bom-none{color:#aaa;}
+</style>
 </body>
 </html>

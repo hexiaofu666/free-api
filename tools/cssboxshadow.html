@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIV元素阴影效果生成器 - 词海工具箱</title>
+<meta name="description" content="CSS box-shadow 生成器：调节水平/垂直偏移、模糊、扩散、颜色与内阴影，支持多层阴影，实时预览并复制 CSS 代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.6.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssboxshadow.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssboxshadow" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>水平偏移 X <b id="xv">0</b>px</label><input type="range" id="x" min="-50" max="50" value="0"></div>
+      <div class="fitem"><label>垂直偏移 Y <b id="yv">10</b>px</label><input type="range" id="y" min="-50" max="50" value="10"></div>
+      <div class="fitem"><label>模糊半径 <b id="bv">20</b>px</label><input type="range" id="blur" min="0" max="100" value="20"></div>
+      <div class="fitem"><label>扩散半径 <b id="sv">0</b>px</label><input type="range" id="spread" min="-30" max="40" value="0"></div>
+      <div class="fitem"><label>阴影颜色</label><input type="color" id="color" value="#000000"></div>
+      <div class="fitem"><label>不透明度 <b id="av">0.20</b></label><input type="range" id="alpha" min="0" max="100" value="20"></div>
+      <div class="fitem"><label>内阴影 inset</label>
+        <select id="inset"><option value="0" selected>否（外阴影）</option><option value="1">是（内阴影）</option></select>
+      </div>
+      <div class="fitem"><label>卡片背景色</label><input type="color" id="bg" value="#ffffff"></div>
+      <div class="fitem"><label>快速预设</label>
+        <select id="preset">
+          <option value="">自定义</option>
+          <option value="soft">柔和投影</option>
+          <option value="card">卡片浮起</option>
+          <option value="strong">强烈投影</option>
+          <option value="inset">内凹效果</option>
+          <option value="multi">多层自然阴影</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn brown" id="copyBtn">复制 CSS 代码</button>
+      <button class="fbtn gray" id="demoBtn">重置</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>实时预览</strong></div>
+      <div class="cbs-prev"><div id="prev" class="cbs-box">阴影预览</div></div>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong>CSS 代码</strong></div>
+      <textarea id="res" readonly style="height:120px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于 DIV 阴影效果生成器介绍：</h4>
+    <ol>
+      <li>box-shadow 的语法是「水平偏移 垂直偏移 模糊 扩散 颜色」，前面加 inset 表示内阴影。</li>
+      <li>扩散为正值会让阴影变大，负值会让阴影收缩；模糊越大边缘越柔和。</li>
+      <li>真实感较强的阴影通常由多层叠加（不同偏移与透明度）实现，可选用「多层自然阴影」预设。</li>
+      <li>常用于卡片、弹窗、按钮的悬浮层次感设计。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.6.0"></script>
+<script src="../assets/chrome.js?v=1.6.0"></script>
+<script>
+function __xfHexRgb(hex) {
+  const h = String(hex).replace("#", "");
+  const f = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  return [parseInt(f.slice(0, 2), 16), parseInt(f.slice(2, 4), 16), parseInt(f.slice(4, 6), 16)];
+}
+function __xfRgba(hex, a) { return "rgba(" + __xfHexRgb(hex).join(", ") + ", " + a + ")"; }
+
+/* 生成 box-shadow 值 */
+function __xfBoxShadowValue(o) {
+  if (o.preset === "multi") {
+    const c = (a) => __xfRgba(o.color, a);
+    return ["0 1px 2px " + c(0.07), "0 2px 4px " + c(0.07), "0 4px 8px " + c(0.07), "0 8px 16px " + c(0.06)].join(", ");
+  }
+  const inset = o.inset ? "inset " : "";
+  return inset + o.x + "px " + o.y + "px " + o.blur + "px " + o.spread + "px " + __xfRgba(o.color, o.alpha);
+}
+function __xfBoxShadowCss(o) {
+  const lines = ["box-shadow: " + __xfBoxShadowValue(o) + ";"];
+  if (o.bg) lines.push("background: " + o.bg + ";");
+  return ".box {\n  " + lines.join("\n  ") + "\n}";
+}
+window.__xfBoxShadowCss = __xfBoxShadowCss;
+window.__xfBoxShadowValue = __xfBoxShadowValue;
+
+const $ = id => document.getElementById(id);
+const PRESETS = {
+  soft: { x: 0, y: 4, blur: 12, spread: 0, color: "#000000", alpha: 0.1, inset: "0" },
+  card: { x: 0, y: 10, blur: 24, spread: -6, color: "#000000", alpha: 0.18, inset: "0" },
+  strong: { x: 0, y: 18, blur: 40, spread: 0, color: "#000000", alpha: 0.35, inset: "0" },
+  inset: { x: 0, y: 4, blur: 10, spread: 0, color: "#000000", alpha: 0.3, inset: "1" }
+};
+function collect() {
+  return { x: +$("x").value, y: +$("y").value, blur: +$("blur").value, spread: +$("spread").value, color: $("color").value, alpha: (+$("alpha").value / 100).toFixed(2), inset: $("inset").value === "1", bg: $("bg").value, preset: $("preset").value };
+}
+function run() {
+  const o = collect();
+  $("xv").textContent = o.x; $("yv").textContent = o.y; $("bv").textContent = o.blur; $("sv").textContent = o.spread; $("av").textContent = o.alpha;
+  const p = $("prev");
+  p.style.boxShadow = __xfBoxShadowValue(o);
+  p.style.background = o.bg;
+  $("res").value = __xfBoxShadowCss(o);
+}
+["x", "y", "blur", "spread", "color", "alpha", "inset", "bg"].forEach(id => { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+$("preset").addEventListener("change", () => {
+  const p = PRESETS[$("preset").value];
+  if (p) { $("x").value = p.x; $("y").value = p.y; $("blur").value = p.blur; $("spread").value = p.spread; $("color").value = p.color; $("alpha").value = Math.round(p.alpha * 100); $("inset").value = p.inset; }
+  run();
+});
+$("copyBtn").onclick = () => navigator.clipboard.writeText($("res").value).then(() => alert("✅ 已复制 CSS 代码"));
+$("demoBtn").onclick = () => { $("x").value = 0; $("y").value = 10; $("blur").value = 20; $("spread").value = 0; $("color").value = "#000000"; $("alpha").value = 20; $("inset").value = "0"; $("bg").value = "#ffffff"; $("preset").value = ""; run(); };
+run();
+</script>
+<style>
+.cbs-prev{display:flex;justify-content:center;align-items:center;padding:50px 30px;background:#f0f2f5;border-radius:8px;}
+.cbs-box{width:200px;height:110px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#888;font-size:14px;}
+html.dark .cbs-prev{background:#181c21;}
+html.dark .cbs-box{color:#aaa;}
+</style>
+</body>
+</html>

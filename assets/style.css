@@ -247,6 +247,18 @@ ul { list-style: none; }
   font-size: 19px;
   font-style: normal;
 }
+/* 图片图标（外链直达条目，如「成语大全」使用站点 favicon） */
+.moder li a i.imgs.imgico {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+}
+.moder li a i.imgs.imgico img {
+  width: 26px;
+  height: 26px;
+  display: block;
+  object-fit: contain;
+}
 .moder li a div { min-width: 0; }
 .moder li a h3 {
   color: #333;
@@ -552,6 +564,7 @@ html.dark .moder_h2 { color: #d5d9e0; }
 html.dark .moder li a { background: #1f2224; border-color: #2c2f33; box-shadow: 0 2px 7px rgb(0 0 0 / 30%); }
 html.dark .moder li a h3 { color: #d5d9e0; }
 html.dark .moder li a p { color: #7d828c; }
+html.dark .moder li a i.imgs.imgico { background: #2a2d30; border-color: #3a3d41; }
 html.dark .empty-tip { color: #7d828c; }
 html.dark .tools { background: #1f2224; }
 html.dark .tools-info { border-bottom-color: #2c2f33; }

@@ -100,8 +100,10 @@
           <h1 class="moder_h2"><i>●</i>相关工具</h1>
           <ul class="moder">
             ${related.map(t => `
-            <li><a href="${t.id}.html">
-              <i class="imgs layui-icon ${t.ico}" style="background:${t.color}"></i>
+            <li><a href="${t.url || t.id + ".html"}"${t.url ? ' target="_blank" rel="noopener"' : ""}>
+              ${t.img
+                ? `<i class="imgs imgico"><img src="${t.img}" alt="${t.name}" loading="lazy" onerror="var p=this.parentNode;p.className='imgs layui-icon ${t.ico || "layui-icon-app"}';p.style.background='${t.color || "#ff6500"}';p.removeChild(this);"></i>`
+                : `<i class="imgs layui-icon ${t.ico}" style="background:${t.color}"></i>`}
               <div><h3>${t.name}</h3><p>${t.desc}</p></div>
             </a></li>`).join("")}
           </ul>

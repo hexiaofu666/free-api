@@ -1,7 +1,11 @@
 /* 工具清单：新增工具只需在这里加一行
    ico   = layui 图标类名
-   color = 图标块底色 */
+   color = 图标块底色
+   url   = 外链直达地址（有此字段则卡片直接跳转外站，不再指向 tools/<id>.html）
+   img   = 图片图标地址（有此字段则用 <img> 代替 layui 图标字体） */
 const TOOLS = [
+  /* 外链直达：词海集成语大全（无内页，卡片直接跳转 hdemba.cn） */
+  { id: "idiomdict",   name: "成语大全-查词典",  desc: "汉语成语词典，按拼音、部首、字数快速查询",   url: "https://www.hdemba.cn/", img: "https://www.hdemba.cn/favicon.ico", ico: "layui-icon-read", cat: "life", color: "#ff6500" },
   /* 生活工具 */
   { id: "tomato",      name: "番茄时钟",         desc: "在线国际公认高效工作方法",                   ico: "layui-icon-time",         cat: "life",   color: "linear-gradient(45deg,#ffd651,#fc7697)" },
   { id: "countdown",   name: "在线倒计时器",     desc: "自定义时长倒计时，结束提醒",                 ico: "layui-icon-date",         cat: "life",   color: "linear-gradient(45deg,#5b9df9,#7a5cf0)" },

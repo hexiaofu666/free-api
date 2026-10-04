@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.6.0"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.6.0">
+<script src="../assets/theme.js?v=1.6.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.6.1">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -68,13 +68,21 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.6.0"></script>
-<script src="../assets/chrome.js?v=1.6.0"></script>
+<script src="../assets/tools-data.js?v=1.6.1"></script>
+<script src="../assets/chrome.js?v=1.6.1"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.6.1", date: "2026-10-04",
+    items: [
+      ["new", "「生活工具」新增外链直达入口「成语大全-查词典」，排在全部工具第一位，点击直接跳转词海集（www.hdemba.cn），无需内页；卡片图标取自词海集站点 favicon"],
+      ["opt", "首页与内页「相关工具」渲染支持外链直达与图片图标：工具清单新增 url（外链直达地址）与 img（图片图标）两个字段，卡片自动以新窗口打开外站"],
+      ["fix", "首页 meta description 的工具数量口径由「95+」更新为「200+」"],
+    ]
+  },
   {
     ver: "v1.6.0", date: "2026-10-04",
     items: [

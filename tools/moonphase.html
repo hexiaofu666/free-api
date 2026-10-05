@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月相计算器 - 词海工具箱</title>
+<meta name="description" content="月相计算器：输入日期即可查询当日月相、月龄、照明度与下次新月/满月时间，基于朔望月周期推算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/moonphase.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="moonphase" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>查询日期</label><input type="date" id="date"></div>
+      <div class="fitem"><label>快捷</label>
+        <select id="quick">
+          <option value="">-- 选择 --</option>
+          <option value="today">今天</option>
+          <option value="+7">7 天后</option>
+          <option value="+15">15 天后</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查询月相</button>
+      <button class="fbtn blue" id="calendarBtn">看本月月相</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">月相结果</strong></div>
+      <div id="res" style="padding:16px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于月相计算器介绍：</h4>
+    <ol>
+      <li>月相按朔望月周期（29.530588 天）从上一次新月起推算，以 2000-01-06 的新月时刻为基准，按 UTC 当日计算。</li>
+      <li>月龄 0 天为新月、约 14.8 天为满月、29.5 天回到下一次新月；照明度表示月面被照亮部分的比例。</li>
+      <li>「渐盈」表示月亮正在变圆（上半月），「渐亏」表示正在变缺（下半月），与月出月落时间相关。</li>
+      <li>潮汐、钓鱼、夜间拍摄等场景常用到月相：满月前后夜间最亮，新月前后适合拍星空。</li>
+      <li>月相为天文推算值，因月球轨道偏心率影响，实际时刻可能有数小时到半天的偏差。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var SYNODIC = 29.530588853;          // 朔望月长度（天）
+var KNOWN_NEW_MOON = Date.UTC(2000, 0, 6, 12, 0) / 86400000; // 2000-01-06 新月（UTC 当日，与实际朔时刻 18:14 相差约 6 小时）
+var NAMES = ["新月", "娥眉月", "上弦月", "盈凸月", "满月", "亏凸月", "下弦月", "残月"];
+
+function __xfMoonAge(dateStr) {
+  var p = String(dateStr).split("-");
+  var days = Date.UTC(+p[0], +p[1] - 1, +p[2], 12, 0) / 86400000;
+  var age = (days - KNOWN_NEW_MOON) % SYNODIC;
+  if (age < 0) age += SYNODIC;
+  return Math.round(age * 1000) / 1000;
+}
+function __xfMoonPhase(dateStr) {
+  var age = __xfMoonAge(dateStr);
+  var phase = age / SYNODIC;                                  // 0-1
+  var illum = (1 - Math.cos(2 * Math.PI * phase)) / 2;        // 照明度 0-1
+  var idx = Math.floor((phase * 8 + 0.5)) % 8;
+  return {
+    age: Math.round(age * 100) / 100,
+    phase: Math.round(phase * 10000) / 10000,
+    illumination: Math.round(illum * 1000) / 10,
+    name: NAMES[idx],
+    waxing: phase < 0.5
+  };
+}
+/* 找下一次新月或满月（target: 0=新月, 0.5=满月） */
+function __xfNextPhase(dateStr, target) {
+  var age = __xfMoonAge(dateStr), p = age / SYNODIC, diff = target - p;
+  if (diff < 0) diff += 1;
+  var days = diff * SYNODIC;
+  var p2 = String(dateStr).split("-");
+  var d = new Date(+p2[0], +p2[1] - 1, +p2[2]);
+  d.setTime(d.getTime() + Math.round(days) * 86400000);
+  var m = d.getMonth() + 1, dd = d.getDate();
+  return { date: d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (dd < 10 ? "0" + dd : dd), days: Math.round(days * 10) / 10 };
+}
+window.__xfMoonPhase = __xfMoonPhase;
+window.__xfMoonAge = __xfMoonAge;
+window.__xfNextPhase = __xfNextPhase;
+
+var $ = function (id) { return document.getElementById(id); };
+function ymd(d) { var m = d.getMonth() + 1, dd = d.getDate(); return d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (dd < 10 ? "0" + dd : dd); }
+function run() {
+  var ds = $("date").value;
+  var r = __xfMoonPhase(ds);
+  var nm = __xfNextPhase(ds, 0), fm = __xfNextPhase(ds, 0.5);
+  var bar = "";
+  for (var i = 0; i <= 20; i++) bar += (i / 20 <= r.illumination / 100 ? "█" : "░");
+  $("res").innerHTML =
+    "<p>日期：" + ds + "</p>" +
+    "<p>月相：" + r.name + "（" + (r.waxing ? "渐盈" : "渐亏") + "）</p>" +
+    "<p>月龄：" + r.age + " 天 / 朔望月 " + SYNODIC.toFixed(2) + " 天</p>" +
+    "<p>照明度：" + r.illumination + "%</p>" +
+    "<p style='font-family:monospace;color:#5b6abf;'>" + bar + "</p>" +
+    "<hr style='border:0;border-top:1px dashed #eee;margin:10px 0;'>" +
+    "<p>下次新月：" + nm.date + "（" + nm.days + " 天后）</p>" +
+    "<p>下次满月：" + fm.date + "（" + fm.days + " 天后）</p>";
+  $("tip").textContent = "✅ 月相查询完成";
+}
+function calendar() {
+  var ds = $("date").value.split("-"), y = +ds[0], m = +ds[1];
+  var days = new Date(y, m, 0).getDate(), html = "<p style='font-weight:700;'>" + y + " 年 " + m + " 月月相</p>";
+  for (var d = 1; d <= days; d++) {
+    var s = y + "-" + (m < 10 ? "0" + m : m) + "-" + (d < 10 ? "0" + d : d);
+    var r = __xfMoonPhase(s);
+    var icon = r.illumination < 5 ? "●" : (r.illumination > 95 ? "○" : (r.waxing ? "◐" : "◑"));
+    html += "<span style='display:inline-block;width:86px;'>" + d + "日 " + icon + " " + r.illumination + "%</span>";
+  }
+  $("res").innerHTML = html;
+  $("tip").textContent = "本月月相一览";
+}
+$("runBtn").onclick = run;
+$("calendarBtn").onclick = calendar;
+$("quick").onchange = function () {
+  if (!this.value) return;
+  var d = new Date();
+  if (this.value === "+7") d.setTime(d.getTime() + 7 * 86400000);
+  if (this.value === "+15") d.setTime(d.getTime() + 15 * 86400000);
+  $("date").value = ymd(d);
+  run();
+};
+$("date").onchange = run;
+(function () { $("date").value = ymd(new Date()); run(); })();
+</script>
+</body>
+</html>

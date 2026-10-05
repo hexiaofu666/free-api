@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>剪贴板查看器 - 词海工具箱</title>
+<meta name="description" content="剪贴板查看器：读取并查看当前剪贴板内容，统计字符数、行数与字节数，支持一键转大写、去空行与复制回剪贴板。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/clipboardview.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="clipboardview" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>处理方式</label>
+        <select id="op">
+          <option value="none" selected>原样输出</option>
+          <option value="trim">去除首尾空白</option>
+          <option value="dedup">按行去重</option>
+          <option value="upper">转大写</option>
+          <option value="lower">转小写</option>
+          <option value="json">尝试格式化 JSON</option>
+        </select>
+      </div>
+      <div class="fitem"><label>手动输入</label><input type="text" id="manual" placeholder="无法读取剪贴板时，可粘贴到这里分析"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="readBtn">读取剪贴板</button>
+      <button class="fbtn blue" id="procBtn">应用处理</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">剪贴板内容</strong><span id="stat"></span></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+      <p style="margin-top:8px;font-size:12px;color:#999;">出于安全限制，首次读取时浏览器会弹出授权提示，请选择「允许」</p>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于剪贴板查看器介绍：</h4>
+    <ol>
+      <li>出于隐私安全，浏览器读取剪贴板需要用户授权或页面处于前台，被拒绝时本工具会给出替代方案。</li>
+      <li>统计包含字符数、行数、单词数、UTF-8 字节数与汉字个数；一个汉字在 UTF-8 下通常占 3 个字节。</li>
+      <li>文字处理支持去除首尾空白与空行、按行去重、大小写转换、以及一键格式化 JSON。</li>
+      <li>若剪贴板里是一段 JSON，「尝试格式化 JSON」可以直接把它整理成缩进后的易读结构。</li>
+      <li>本页只在你的浏览器内处理文本，不会把剪贴板内容发送到任何服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfClipStats(text) {
+  var t = String(text == null ? "" : text);
+  var lines = t.length ? t.split(/\r\n|\r|\n/) : [];
+  var cjk = (t.match(/[\u4e00-\u9fa5]/g) || []).length;
+  var words = t.trim() ? t.trim().split(/\s+/).length : 0;
+  return {
+    chars: t.length,
+    lines: lines.length,
+    words: words,
+    cjk: cjk,
+    bytes: __xfUtf8Len(t),
+    blankLines: lines.filter(function (x) { return !x.trim(); }).length,
+    preview: t.slice(0, 40).replace(/\n/g, "⏎")
+  };
+}
+function __xfUtf8Len(s) {
+  var n = 0, str = String(s || "");
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    if (c < 0x80) n += 1;
+    else if (c < 0x800) n += 2;
+    else if (c >= 0xd800 && c <= 0xdbff) { n += 4; i++; }
+    else n += 3;
+  }
+  return n;
+}
+/* 文本处理 */
+function __xfProcess(text, op) {
+  var t = String(text == null ? "" : text);
+  if (op === "trim") return t.split(/\r\n|\r|\n/).map(function (x) { return x.trim(); }).filter(function (x) { return x !== ""; }).join("\n");
+  if (op === "dedup") {
+    var seen = {}, out = [];
+    t.split(/\r\n|\r|\n/).forEach(function (x) { if (!seen[x]) { seen[x] = 1; out.push(x); } });
+    return out.join("\n");
+  }
+  if (op === "upper") return t.toUpperCase();
+  if (op === "lower") return t.toLowerCase();
+  if (op === "json") { try { return JSON.stringify(JSON.parse(t), null, 2); } catch (e) { return "❌ 不是合法 JSON：" + e.message; } }
+  return t;
+}
+window.__xfClipStats = __xfClipStats;
+window.__xfUtf8Len = __xfUtf8Len;
+window.__xfProcess = __xfProcess;
+
+var $ = function (id) { return document.getElementById(id); };
+var raw = "";
+function paint() {
+  var out = __xfProcess(raw, $("op").value);
+  $("res").value = out;
+  var s = __xfClipStats(out);
+  $("stat").textContent = s.chars + " 字符 · " + s.lines + " 行 · " + s.bytes + " 字节";
+  $("tip").textContent = "剪贴板内容（" + s.cjk + " 个汉字）";
+}
+function read() {
+  if (typeof navigator === "undefined" || !navigator.clipboard || !navigator.clipboard.readText) {
+    $("tip").textContent = "浏览器不支持自动读取";
+    $("res").value = "当前浏览器不支持自动读取剪贴板。\n\n替代方式：把内容粘贴到上方「手动输入」框，或直接粘贴到下面的文本框中分析。";
+    return;
+  }
+  navigator.clipboard.readText().then(function (t) {
+    raw = t;
+    $("manual").value = "";
+    paint();
+  }).catch(function () {
+    $("tip").textContent = "读取被拒绝";
+    $("res").value = "读取剪贴板被拒绝或剪贴板为空。\n\n请检查浏览器授权（地址栏左侧图标），或改用「手动输入」框。";
+  });
+}
+$("readBtn").onclick = read;
+$("procBtn").onclick = function () { if ($("manual").value) raw = $("manual").value; paint(); };
+$("manual").oninput = function () { raw = this.value; paint(); };
+$("op").onchange = paint;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无内容"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制到剪贴板"); }); };
+raw = "";
+$("res").value = "点击「读取剪贴板」获取当前剪贴板内容，或直接把文本粘贴到上方输入框。";
+paint();
+</script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>太阳方位角高度角计算器 - 词海工具箱</title>
+<meta name="description" content="太阳方位角高度角计算器：输入经纬度与时间，计算太阳高度角、方位角、赤纬与时角，可用于采光遮挡与摄影选时。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/sunangle.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="sunangle" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>纬度</label><input type="number" id="lat" value="39.9042" step="0.0001" placeholder="北纬为正"></div>
+      <div class="fitem"><label>经度</label><input type="number" id="lng" value="116.4074" step="0.0001" placeholder="东经为正"></div>
+      <div class="fitem"><label>日期</label><input type="date" id="date"></div>
+      <div class="fitem"><label>时间(当地)</label><input type="time" id="time" value="12:00" step="60"></div>
+      <div class="fitem"><label>时区</label>
+        <select id="tz">
+          <option value="8" selected>东八区 UTC+8</option>
+          <option value="0">UTC+0</option>
+          <option value="9">UTC+9</option>
+          <option value="-5">UTC-5</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算</button>
+      <button class="fbtn blue" id="allDayBtn">看全天轨迹</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">计算结果</strong></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于太阳方位角高度角计算器介绍：</h4>
+    <ol>
+      <li>太阳高度角指太阳光线与地平面的夹角，90° 表示太阳正当头顶；负值表示太阳在地平线以下（夜间）。</li>
+      <li>太阳方位角以正北为 0° 顺时针计算：90° 为正东、180° 为正南、270° 为正西，用于判断采光方向与遮阳设计。</li>
+      <li>赤纬随时角变化由 Cooper 近似公式给出，全年误差通常在 1° 以内，适合日常采光、摄影选时参考。</li>
+      <li>计算已包含时差方程（真太阳时与平太阳时的差），因此不同经度下正午时刻并不都是 12:00。</li>
+      <li>点击「看全天轨迹」可列出每 2 小时的太阳位置，便于挑选日照时间；冬季高度角低、夏季高度角高。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfRad(d) { return d * Math.PI / 180; }
+function __xfDeg(r) { return r * 180 / Math.PI; }
+function __xfDayOfYear(d) {
+  var start = new Date(d.getFullYear(), 0, 0);
+  return Math.floor((d - start) / 86400000);
+}
+/* 太阳赤纬（度），Cooper 公式 */
+function __xfDeclination(doy) { return 23.45 * Math.sin(__xfRad(360 * (284 + doy) / 365)); }
+/* 时差方程（分钟） */
+function __xfEqTime(doy) {
+  var b = __xfRad(360 * (doy - 81) / 364);
+  return 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+}
+/* 太阳位置：返回高度角、方位角（正北 0°，顺时针） */
+function __xfSunPosition(lat, lng, dateStr, hh, mm, tz) {
+  var p = String(dateStr).split("-");
+  var d = new Date(+p[0], +p[1] - 1, +p[2]);
+  var doy = __xfDayOfYear(d);
+  var dec = __xfDeclination(doy);
+  var eqt = __xfEqTime(doy);
+  var lstm = 15 * (Number(tz) || 0);
+  var timeOffset = eqt + 4 * (Number(lng) - lstm);
+  var trueSolar = (Number(hh) * 60 + Number(mm) + timeOffset) / 60;
+  var ha = (trueSolar - 12) * 15;                       // 时角（度）
+  var latR = __xfRad(Number(lat)), decR = __xfRad(dec), haR = __xfRad(ha);
+  var sinAlt = Math.sin(latR) * Math.sin(decR) + Math.cos(latR) * Math.cos(decR) * Math.cos(haR);
+  var alt = __xfDeg(Math.asin(Math.max(-1, Math.min(1, sinAlt))));
+  var cosAz = (Math.sin(decR) - Math.sin(latR) * sinAlt) / (Math.cos(latR) * Math.cos(__xfRad(alt)));
+  var az = __xfDeg(Math.acos(Math.max(-1, Math.min(1, cosAz))));
+  if (ha > 0) az = 360 - az;                            // 下午方位转向西侧
+  return {
+    altitude: Math.round(alt * 100) / 100,
+    azimuth: Math.round(az * 100) / 100,
+    declination: Math.round(dec * 100) / 100,
+    hourAngle: Math.round(ha * 100) / 100,
+    zenith: Math.round((90 - alt) * 100) / 100
+  };
+}
+/* 正午太阳高度角（理论值） */
+function __xfNoonAltitude(lat, dateStr) {
+  var p = String(dateStr).split("-");
+  var doy = __xfDayOfYear(new Date(+p[0], +p[1] - 1, +p[2]));
+  var dec = __xfDeclination(doy);
+  return Math.round((90 - Math.abs(Number(lat) - dec)) * 100) / 100;
+}
+window.__xfSunPosition = __xfSunPosition;
+window.__xfDeclination = __xfDeclination;
+window.__xfNoonAltitude = __xfNoonAltitude;
+
+var $ = function (id) { return document.getElementById(id); };
+function getInput() {
+  var t = ($("time").value || "12:00").split(":");
+  return { lat: $("lat").value, lng: $("lng").value, date: $("date").value, hh: +t[0], mm: +t[1], tz: $("tz").value };
+}
+function run() {
+  var i = getInput();
+  var r = __xfSunPosition(i.lat, i.lng, i.date, i.hh, i.mm, i.tz);
+  var state = r.altitude > 0 ? "太阳在地平线上（白天）" : "太阳在地平线下（夜间）";
+  $("res").value = [
+    "地点：北纬 " + i.lat + "°，东经 " + i.lng + "°",
+    "时间：" + i.date + " " + $("time").value + "（UTC+" + i.tz + "）",
+    "",
+    "太阳高度角：" + r.altitude + "°",
+    "太阳方位角：" + r.azimuth + "°（正北 0°，顺时针）",
+    "天顶角：" + r.zenith + "°",
+    "太阳赤纬：" + r.declination + "°",
+    "时角：" + r.hourAngle + "°",
+    "",
+    "状态：" + state
+  ].join("\n");
+  $("tip").textContent = "✅ 计算完成";
+}
+function allDay() {
+  var i = getInput(), lines = ["全天太阳轨迹（每 2 小时，当地时）：", ""];
+  for (var h = 0; h < 24; h += 2) {
+    var r = __xfSunPosition(i.lat, i.lng, i.date, h, 0, i.tz);
+    lines.push((h < 10 ? "0" + h : h) + ":00  高度角 " + r.altitude + "°  方位角 " + r.azimuth + "°");
+  }
+  $("res").value = lines.join("\n");
+  $("tip").textContent = "全天轨迹（高度角为负表示在地平线下）";
+}
+$("runBtn").onclick = run;
+$("allDayBtn").onclick = allDay;
+(function () {
+  var d = new Date(), m = d.getMonth() + 1, dd = d.getDate();
+  $("date").value = d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (dd < 10 ? "0" + dd : dd);
+  run();
+})();
+</script>
+</body>
+</html>

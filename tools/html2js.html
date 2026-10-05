@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML转JS代码 - 词海工具箱</title>
+<meta name="description" content="HTML 转 JS 代码工具：把 HTML 片段转成 document.write 或 innerHTML 赋值形式的 JS 字符串，自动转义引号与换行。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/html2js.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="html2js" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输出形式</label>
+        <select id="mode">
+          <option value="write" selected>document.write(...)</option>
+          <option value="inner">element.innerHTML = ...</option>
+          <option value="var">var html = ...</option>
+          <option value="jquery">jQuery $(sel).html(...)</option>
+        </select>
+      </div>
+      <div class="fitem"><label>字符串引号</label>
+        <select id="quote"><option value="double" selected>双引号</option><option value="single">单引号</option></select>
+      </div>
+      <div class="fitem"><label>压缩空白</label>
+        <select id="trim"><option value="yes" selected>是</option><option value="no">否（保留格式）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成 JS 代码</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">HTML 代码</div>
+      <textarea id="src" style="min-height:140px;"><div class="card">
+  <h3>词海工具箱</h3>
+  <p>简单实用的免费在线工具</p>
+</div></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成的 JS 代码</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTML转JS代码介绍：</h4>
+    <ol>
+      <li>HTML 里的双引号、换行与制表符会被自动转义，因此生成的 JS 字符串可直接放进 script 标签中运行。</li>
+      <li>document.write 形式适合在页面加载时输出静态内容；innerHTML 形式适合动态更新某个容器的内容。</li>
+      <li>压缩空白会把多行 HTML 合成一行，减少字符串里的 \\n，但要注意 div 与 span 之间的空格可能影响排版。</li>
+      <li>选择单引号时，HTML 属性建议用双引号书写，可以减少转义字符的数量，让代码更易读。</li>
+      <li>本工具只做字符串包装，不会对 HTML 做任何安全过滤，请勿用于拼接用户输入的内容（存在 XSS 风险）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfEscJsString(s, quote) {
+  var out = String(s).replace(/\\/g, "\\\\");
+  if (quote === "single") out = out.replace(/'/g, "\\'").replace(/\n/g, "\\n").replace(/\r/g, "");
+  else out = out.replace(/"/g, '\\"').replace(/\n/g, "\\n").replace(/\r/g, "");
+  return out.replace(/\t/g, "\\t");
+}
+function __xfHtml2Js(html, mode, quote, trim) {
+  var h = String(html);
+  if (trim === "yes") h = h.replace(/\r\n/g, "\n").split("\n").map(function (l) { return l.trim(); }).filter(Boolean).join("");
+  var q = quote === "single" ? "'" : "\"";
+  var esc = __xfEscJsString(h, quote);
+  var s = q + esc + q;
+  if (mode === "write") return "document.write(" + s + ");";
+  if (mode === "inner") return "document.getElementById(\"app\").innerHTML = " + s + ";";
+  if (mode === "jquery") return "$(\"#app\").html(" + s + ");";
+  return "var html = " + s + ";";
+}
+function __xfJs2Html(js) {
+  var m = String(js).match(/(?:document\.write\(|innerHTML\s*=|html\s*=|html\()\s*(["'])([\s\S]*?)\1\s*\)?\s*;?/);
+  if (!m) return null;
+  var q = m[1], body = m[2];
+  body = body.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+  body = q === "'" ? body.replace(/\\'/g, "'") : body.replace(/\\"/g, "\"");
+  return body.replace(/\\\\/g, "\\");
+}
+window.__xfHtml2Js = __xfHtml2Js;
+window.__xfJs2Html = __xfJs2Html;
+window.__xfEscJsString = __xfEscJsString;
+
+var $ = function (id) { return document.getElementById(id); };
+var MODE_NAME = { write: "document.write", inner: "innerHTML 赋值", var: "var html 变量", jquery: "jQuery .html()" };
+function gen() {
+  var out = __xfHtml2Js($("src").value, $("mode").value, $("quote").value, $("trim").value);
+  $("res").value = out;
+  $("state").textContent = out.length + " 字符";
+  $("tip").textContent = "✅ 已生成 " + (MODE_NAME[$("mode").value] || $("mode").value) + " 形式";
+  return out;
+}
+$("runBtn").onclick = gen;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+["mode", "quote", "trim"].forEach(function (id) { $(id).addEventListener("change", gen); });
+gen();
+</script>
+</body>
+</html>

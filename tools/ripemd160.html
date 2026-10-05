@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIPEMD160哈希 - 词海工具箱</title>
+<meta name="description" content="RIPEMD160哈希加密工具：纯前端计算 RIPEMD-160 摘要，常用于比特币地址与老式校验场景，支持大小写输出。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ripemd160.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ripemd160" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输出大小写</label>
+        <select id="cs"><option value="lower" selected>小写</option><option value="upper">大写</option></select>
+      </div>
+      <div class="fitem"><label>字符编码</label>
+        <select id="enc"><option value="utf8" selected>UTF-8</option><option value="latin">Latin-1（单字节）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算哈希</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">输入内容</div>
+      <textarea id="src" style="min-height:120px;">abc</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">RIPEMD-160 摘要</strong></div>
+      <textarea id="res" readonly style="height:90px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于RIPEMD160哈希介绍：</h4>
+    <ol>
+      <li>RIPEMD-160 输出固定 160 位（20 字节 / 40 个十六进制字符），与输入长度无关。</li>
+      <li>比特币地址生成中的 HASH160 就是「SHA-256 再 RIPEMD-160」，因此该算法在区块链领域仍有使用。</li>
+      <li>RIPEMD-160 属哈希算法，不可逆：无法从摘要反推原文，只能用于校验与比对。</li>
+      <li>相同输入永远得到相同摘要；输入只要有一个字节不同，摘要就会完全不同（雪崩效应）。</li>
+      <li>如需更高安全性建议使用 SHA-256 等更新的算法，RIPEMD-160 主要面向兼容性场景。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var RL = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,7,4,13,1,10,6,15,3,12,0,9,5,2,14,11,8,3,10,14,4,9,15,8,1,2,7,0,6,13,11,5,12,1,9,11,10,0,8,12,4,13,3,7,15,14,5,6,2,4,0,5,9,7,12,2,10,14,1,3,8,11,6,15,13];
+var RR = [5,14,7,0,9,2,11,4,13,6,15,8,1,10,3,12,6,11,3,7,0,13,5,10,14,15,8,12,4,9,1,2,15,5,1,3,7,14,6,9,11,8,12,2,10,0,4,13,8,6,4,1,3,11,15,0,5,12,2,13,9,7,10,14,12,15,10,4,1,5,8,7,6,2,13,14,0,3,9,11];
+var SL = [11,14,15,12,5,8,7,9,11,13,14,15,6,7,9,8,7,6,8,13,11,9,7,15,7,12,15,9,11,7,13,12,11,13,6,7,14,9,13,15,14,8,13,6,5,12,7,5,11,12,14,15,14,15,9,8,9,14,5,6,8,6,5,12,9,15,5,11,6,8,13,12,5,12,13,14,11,8,5,6];
+var SR = [8,9,9,11,13,15,15,5,7,7,8,11,14,14,12,6,9,13,15,7,12,8,9,11,7,7,12,7,6,15,13,11,9,7,15,11,8,6,6,14,12,13,5,14,13,13,7,5,15,5,8,11,14,14,6,14,6,9,12,9,12,5,15,8,8,5,12,9,12,5,14,6,8,13,6,5,15,13,11,11];
+var KL = [0,0x5a827999,0x6ed9eba1,0x8f1bbcdc,0xa953fd4e];
+var KR = [0x50a28be6,0x5c4dd124,0x6d703ef3,0x7a6d76e9,0];
+function __xfRol(x, n) { return ((x << n) | (x >>> (32 - n))) >>> 0; }
+function __xfRf(j, x, y, z) {
+  if (j < 16) return (x ^ y ^ z) >>> 0;
+  if (j < 32) return ((x & y) | (~x & z)) >>> 0;
+  if (j < 48) return ((x | ~y) ^ z) >>> 0;
+  if (j < 64) return ((x & z) | (y & ~z)) >>> 0;
+  return (x ^ (y | ~z)) >>> 0;
+}
+function __xfRipemd160(bytes) {
+  var msg = bytes.slice();
+  var len = msg.length;
+  msg.push(0x80);
+  while (msg.length % 64 !== 56) msg.push(0);
+  var bits = len * 8;
+  for (var i = 0; i < 8; i++) msg.push(Number((BigInt(bits) >> BigInt(8 * i)) & 255n));
+  var h0 = 0x67452301, h1 = 0xefcdab89, h2 = 0x98badcfe, h3 = 0x10325476, h4 = 0xc3d2e1f0;
+  for (var off = 0; off < msg.length; off += 64) {
+    var X = [];
+    for (var k = 0; k < 16; k++) X[k] = (msg[off + 4 * k] | (msg[off + 4 * k + 1] << 8) | (msg[off + 4 * k + 2] << 16) | (msg[off + 4 * k + 3] << 24)) >>> 0;
+    var al = h0, bl = h1, cl = h2, dl = h3, el = h4;
+    var ar = h0, br = h1, cr = h2, dr = h3, er = h4;
+    for (var j = 0; j < 80; j++) {
+      var t = (__xfRol((al + __xfRf(j, bl, cl, dl) + X[RL[j]] + KL[(j / 16) | 0]) >>> 0, SL[j]) + el) >>> 0;
+      al = el; el = dl; dl = __xfRol(cl, 10); cl = bl; bl = t;
+      var t2 = (__xfRol((ar + __xfRf(79 - j, br, cr, dr) + X[RR[j]] + KR[(j / 16) | 0]) >>> 0, SR[j]) + er) >>> 0;
+      ar = er; er = dr; dr = __xfRol(cr, 10); cr = br; br = t2;
+    }
+    var tt = (h1 + cl + dr) >>> 0;
+    h1 = (h2 + dl + er) >>> 0;
+    h2 = (h3 + el + ar) >>> 0;
+    h3 = (h4 + al + br) >>> 0;
+    h4 = (h0 + bl + cr) >>> 0;
+    h0 = tt;
+  }
+  var out = [];
+  [h0, h1, h2, h3, h4].forEach(function (w) {
+    for (var i = 0; i < 4; i++) out.push((w >>> (8 * i)) & 255);
+  });
+  return out;
+}
+function __xfRipemd160Hex(text, enc) {
+  var bytes = enc === "latin"
+    ? Array.prototype.map.call(String(text), function (c) { return c.charCodeAt(0) & 255; })
+    : __xfStrBytes(String(text));
+  return __xfRipemd160(bytes).map(function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+}
+function __xfStrBytes(str) {
+  var b = [];
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    if (c < 128) b.push(c);
+    else if (c < 2048) b.push(192 | (c >> 6), 128 | (c & 63));
+    else b.push(224 | (c >> 12), 128 | ((c >> 6) & 63), 128 | (c & 63));
+  }
+  return b;
+}
+window.__xfRipemd160 = __xfRipemd160;
+window.__xfRipemd160Hex = __xfRipemd160Hex;
+
+var $ = function (id) { return document.getElementById(id); };
+function run() {
+  var h = __xfRipemd160Hex($("src").value, $("enc").value);
+  if ($("cs").value === "upper") h = h.toUpperCase();
+  $("res").value = h;
+  $("tip").textContent = "✅ RIPEMD-160 摘要（160 位 / 40 个十六进制字符）";
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+["cs", "enc"].forEach(function (id) { $(id).addEventListener("change", run); });
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字批量补零 - 词海工具箱</title>
+<meta name="description" content="把清单中的数字批量补齐位数，可自定义补位字符与前缀，常用于序号对齐、生成固定长度编号与导入数据预处理。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/padzeros.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="padzeros" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>目标位数</label><input type="number" id="w" value="3" min="1"></div>
+      <div class="fitem"><label>补位字符</label><input type="text" id="ch" value="0" maxlength="1"></div>
+      <div class="fitem"><label>统一前缀</label><input type="text" id="pf" value="" placeholder="如 NO-"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">批量补零</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">每行一个数字</div>
+      <textarea id="src" style="min-height:170px;">1
+12
+123
+7</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">处理结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:170px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于数字批量补零介绍：</h4>
+    <ol>
+      <li>补位字符可以是 0、空格或下划线，默认用 0 补足到目标位数。</li>
+      <li>已经达到或超过目标位数的数字不会被截断，保持原样输出。</li>
+      <li>统一前缀适合生成带业务字样的编号，例如把 1 变成 NO-001。</li>
+      <li>负数会保留负号在补位之前，-7 补到 3 位得到 -007。</li>
+      <li>空行会被保留为空行，不会额外补位，方便与原清单对照。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfPadZeros(text, width, ch, prefix) {
+  width = Math.max(1, parseInt(width, 10) || 2);
+  ch = ch === undefined || ch === "" ? "0" : ch;
+  prefix = prefix || "";
+  var lines = String(text).replace(/\r\n?/g, "\n").split("\n");
+  return lines.map(function (l) {
+    var t = l.trim();
+    if (t === "") return "";
+    var neg = t.charAt(0) === "-";
+    var body = neg ? t.slice(1) : t;
+    while (body.length < width) body = ch + body;
+    return prefix + (neg ? "-" : "") + body;
+  }).join("\n");
+}
+function __xfPadStat(text, width) {
+  var lines = String(text).replace(/\r\n?/g, "\n").split("\n").filter(function (l) { return l.trim() !== ""; });
+  var padded = 0, max = 0;
+  lines.forEach(function (l) {
+    var t = l.trim(); if (t.length < width) padded++;
+    if (t.length > max) max = t.length;
+  });
+  return { rows: lines.length, padded: padded, maxLen: max };
+}
+window.__xfPadZeros = __xfPadZeros;
+window.__xfPadStat = __xfPadStat;
+function run() {
+  var w = parseInt($("w").value, 10) || 3;
+  var out = __xfPadZeros($("src").value, w, $("ch").value || "0", $("pf").value || "");
+  var st = __xfPadStat($("src").value, w);
+  $("res").value = out;
+  $("state").textContent = st.rows + " 行 / 补位 " + st.padded + " 行";
+  $("tip").textContent = "✅ 补零完成";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中文数字转换 - 词海工具箱</title>
+<meta name="description" content="中文数字与阿拉伯数字互相转换，支持十、百、千、万、亿等数量级写法，可用于票据核对与文案数字化。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cn2num.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cn2num" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>转换方向</label>
+        <select id="dir"><option value="c2n" selected>中文 → 数字</option><option value="n2c">数字 → 中文</option></select>
+      </div>
+      <div class="fitem"><label>数字输出千分位</label>
+        <select id="th"><option value="no" selected>否</option><option value="yes">是</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始转换</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">每行一条，可批量转换</div>
+      <textarea id="src" style="min-height:140px;">一百二十三
+一万零三
+两千零二十
+十</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转换结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:140px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于中文数字转换介绍：</h4>
+    <ol>
+      <li>支持简体与繁体大写数字混写，例如壹佰贰拾三元也能正确识别为 123。</li>
+      <li>十、百、千为节内单位，万、亿为节级单位，可处理到万亿级别的大数。</li>
+      <li>数字转中文时，一千零五这类中间有零的情况会自动补零，末尾零会被省略。</li>
+      <li>数字转中文的十位数按口语习惯输出，例如 10 输出为十而不是一十。</li>
+      <li>勾选千分位后，阿拉伯数字结果会每三位插入一个逗号，便于阅读长数字。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var CN_DIGITS = { "零": 0, "〇": 0, "一": 1, "壹": 1, "二": 2, "两": 2, "贰": 2, "三": 3, "叁": 3, "四": 4, "肆": 4, "五": 5, "伍": 5, "六": 6, "陆": 6, "七": 7, "柒": 7, "八": 8, "捌": 8, "九": 9, "玖": 9 };
+var CN_UNITS = { "十": 10, "拾": 10, "百": 100, "佰": 100, "千": 1000, "仟": 1000 };
+var CN_BIG = { "万": 10000, "亿": 100000000 };
+function __xfCn2Num(cn) {
+  var s = String(cn).trim();
+  if (!s) return NaN;
+  var neg = /^负/.test(s); if (neg) s = s.slice(1);
+  var total = 0, section = 0, num = 0;
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charAt(i);
+    if (CN_DIGITS.hasOwnProperty(c)) { num = CN_DIGITS[c]; }
+    else if (CN_UNITS.hasOwnProperty(c)) { section += (num || 1) * CN_UNITS[c]; num = 0; }
+    else if (CN_BIG.hasOwnProperty(c)) { total += (section + num) * CN_BIG[c]; section = 0; num = 0; }
+    else if (/[0-9]/.test(c)) { num = num * 10 + parseInt(c, 10); }
+    else return NaN;
+  }
+  var v = total + section + num;
+  return neg ? -v : v;
+}
+function __xfNum2Cn(n) {
+  var num = Math.floor(Math.abs(Number(n)));
+  if (!isFinite(num)) return "";
+  var D = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+  var U = ["", "十", "百", "千"];
+  var B = ["", "万", "亿", "万亿"];
+  var sign = Number(n) < 0 ? "负" : "";
+  if (num === 0) return sign + "零";
+  var str = String(num), segs = [];
+  for (var i = str.length; i > 0; i -= 4) segs.unshift(str.slice(Math.max(0, i - 4), i));
+  var result = "";
+  segs.forEach(function (seg, si) {
+    var sv = parseInt(seg, 10), s = String(sv), part = "", z = false;
+    for (var k = 0; k < s.length; k++) {
+      var d = parseInt(s.charAt(k), 10), pos = s.length - 1 - k;
+      if (d === 0) { z = true; }
+      else { if (z && part) part += "零"; z = false; part += D[d] + U[pos]; }
+    }
+    var unit = B[segs.length - 1 - si];
+    if (sv === 0) { if (result && !/零$/.test(result)) result += "零"; }
+    else { if (result && sv < 1000 && !/零$/.test(result)) result += "零"; result += part + unit; }
+  });
+  result = result.replace(/零+$/, "") || "零";
+  return sign + result.replace(/^一十/, "十");
+}
+function __xfThousand(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+window.__xfCn2Num = __xfCn2Num;
+window.__xfNum2Cn = __xfNum2Cn;
+window.__xfThousand = __xfThousand;
+function run() {
+  var dir = $("dir").value, th = $("th").value === "yes";
+  var lines = String($("src").value).replace(/\r\n?/g, "\n").split("\n").filter(function (l) { return l.trim() !== ""; });
+  var out = lines.map(function (l) {
+    var v = dir === "c2n" ? __xfCn2Num(l) : __xfNum2Cn(l);
+    if (typeof v === "number") return isNaN(v) ? "无法识别：" + l : (th ? __xfThousand(v) : String(v));
+    return v;
+  });
+  $("res").value = out.join("\n");
+  $("state").textContent = lines.length + " 条";
+  $("tip").textContent = "✅ 转换完成";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

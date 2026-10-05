@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML表格转JSON - 词海工具箱</title>
+<meta name="description" content="HTML 表格转 JSON 工具：把网页上的 table 表格解析成 JSON 数组，支持表头识别、首行合并与 CSV 导出。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/table2json.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="table2json" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>首行表头</label>
+        <select id="head"><option value="yes" selected>是（首行为字段名）</option><option value="no">否（字段名 c1、c2…）</option></select>
+      </div>
+      <div class="fitem"><label>输出格式</label>
+        <select id="fmt"><option value="objects" selected>对象数组</option><option value="array">二维数组</option><option value="csv">CSV 文本</option></select>
+      </div>
+      <div class="fitem"><label>去空白</label>
+        <select id="trim"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换</button>
+      <button class="fbtn blue" id="statBtn">表格统计</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">HTML 表格代码</div>
+      <textarea id="src" style="min-height:150px;"><table>
+  <tr><th>工具</th><th>分类</th><th>页数</th></tr>
+  <tr><td>词海工具箱</td><td>综合</td><td>205</td></tr>
+  <tr><td>成语大全</td><td>词典</td><td>30895</td></tr>
+</table></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转换结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:210px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTML表格转JSON介绍：</h4>
+    <ol>
+      <li>从网页复制表格时先按 F12 或在页面上右键「检查」，把 <table> 结构的源码粘贴进来，比复制可见文本更准确。</li>
+      <li>「首行表头」开启时会用第一行作为 JSON 字段名；关闭时字段名使用 c1、c2、c3。</li>
+      <li>列数不一致的行会自动补空字符串，避免生成的对象字段缺失。</li>
+      <li>CSV 输出会对含逗号、引号或换行的单元格自动加引号并转义，可直接用 Excel 打开。</li>
+      <li>单元格内的标签会被自动剥离（如 <b>价格</b> → 价格），并还原 &amp; 等实体字符。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfClean(s, trim) {
+  var t = String(s).replace(/<[^>]+>/g, "")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
+  if (trim !== "no") t = t.replace(/\s+/g, " ").trim();
+  return t;
+}
+/* 解析 HTML 表格 → 二维数组 */
+function __xfParseTable(html) {
+  var tables = String(html).match(/<table[\s\S]*?<\/table>/gi) || [];
+  if (!tables.length) return { ok: false, error: "未找到 <table> 标签" };
+  var t = tables[0];
+  var rows = [], trs = t.match(/<tr[\s\S]*?<\/tr>/gi) || [];
+  trs.forEach(function (tr) {
+    var cells = tr.match(/<(td|th)[\s\S]*?<\/\1>/gi) || [];
+    if (!cells.length) return;
+    rows.push(cells.map(function (c) {
+      return { text: __xfClean(c, "yes"), isHead: /^<th/i.test(c), span: (c.match(/colspan=["']?(\d+)/i) || [, "1"])[1] };
+    }));
+  });
+  return { ok: true, rows: rows, count: tables.length };
+}
+function __xfTableToJson(html, hasHead, fmt, trim) {
+  var r = __xfParseTable(html);
+  if (!r.ok) return { ok: false, error: r.error };
+  var rows = r.rows.map(function (row) { return row.map(function (c) { return trim === "no" ? c.text : __xfClean(c.text, "yes"); }); });
+  if (!rows.length) return { ok: false, error: "表格中没有数据行" };
+  var width = Math.max.apply(null, rows.map(function (x) { return x.length; }));
+  rows = rows.map(function (x) { while (x.length < width) x.push(""); return x; });
+  if (hasHead === "no") {
+    if (fmt === "csv") return { ok: true, out: rows.map(function (x) { return x.map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(","); }).join("\n"), cols: width, rows: rows.length };
+    if (fmt === "array") return { ok: true, out: JSON.stringify(rows, null, 2), cols: width, rows: rows.length };
+    var objs0 = rows.map(function (x) { var o = {}; x.forEach(function (c, i) { o["c" + (i + 1)] = c; }); return o; });
+    return { ok: true, out: JSON.stringify(objs0, null, 2), cols: width, rows: rows.length };
+  }
+  var head = rows[0], body = rows.slice(1);
+  if (fmt === "csv") return { ok: true, out: [head].concat(body).map(function (x) { return x.map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(","); }).join("\n"), cols: width, rows: rows.length };
+  if (fmt === "array") return { ok: true, out: JSON.stringify(body, null, 2), cols: width, rows: body.length };
+  var objs = body.map(function (x) { var o = {}; head.forEach(function (h, i) { o[h || ("c" + (i + 1))] = x[i] === undefined ? "" : x[i]; }); return o; });
+  return { ok: true, out: JSON.stringify(objs, null, 2), cols: width, rows: body.length };
+}
+window.__xfParseTable = __xfParseTable;
+window.__xfTableToJson = __xfTableToJson;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var r = __xfTableToJson($("src").value, $("head").value, $("fmt").value, $("trim").value);
+  if (!r.ok) { $("res").value = "❌ " + r.error; $("tip").textContent = "❌ 转换失败"; $("state").textContent = ""; return; }
+  $("res").value = r.out;
+  $("state").textContent = r.rows + " 行 × " + r.cols + " 列";
+  $("tip").textContent = "✅ 转换完成";
+};
+$("statBtn").onclick = function () {
+  var r = __xfParseTable($("src").value);
+  if (!r.ok) { $("res").value = "❌ " + r.error; return; }
+  var head = r.rows[0] || [];
+  $("res").value = "表格数量：" + r.count + "\n数据行数：" + r.rows.length + "\n列数：" + head.length + "\n\n首行内容：\n" + head.map(function (c) { return "  · " + c.text + "（" + (c.isHead ? "th 表头" : "td 单元格") + "）"; }).join("\n");
+  $("state").textContent = r.rows.length + " 行";
+  $("tip").textContent = "表格统计";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

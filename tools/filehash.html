@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文件哈希校验工具 - 词海工具箱</title>
+<meta name="description" content="文件哈希校验工具：在线计算文本或文件的 SHA-1/SHA-256/SHA-384/SHA-512 摘要，支持与官方校验值比对，本地运算不上传。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/filehash.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="filehash" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>算法</label>
+        <select id="alg">
+          <option value="SHA-256" selected>SHA-256</option>
+          <option value="SHA-512">SHA-512</option>
+          <option value="SHA-384">SHA-384</option>
+          <option value="SHA-1">SHA-1</option>
+          <option value="ALL">全部一起算</option>
+        </select>
+      </div>
+      <div class="fitem"><label>选择文件</label><input type="file" id="file"></div>
+      <div class="fitem"><label>官方校验值</label><input type="text" id="expect" placeholder="粘贴官方给出的哈希值以自动比对"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="textBtn">计算文本哈希</button>
+      <button class="fbtn blue" id="fileBtn">计算文件哈希</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">文本内容（选文件时可忽略）</div>
+      <textarea id="src" style="min-height:80px;">词海工具箱</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">哈希结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文件哈希校验工具介绍：</h4>
+    <ol>
+      <li>哈希摘要用于校验文件是否完整、是否被篡改：下载软件后把摘要与官方公布的值对比即可确认。</li>
+      <li>SHA-256 是目前最常用的校验算法（64 位十六进制）；SHA-1 已不再安全，仅用于兼容旧系统。</li>
+      <li>MD5 不在计算列表中（浏览器原生不支持），如需 MD5 请使用站内的「MD5加密」工具。</li>
+      <li>大文件计算需要读取整个文件到内存，超过数百 MB 时可能较慢或失败，属浏览器能力限制。</li>
+      <li>所有运算都在本地浏览器完成，文件不会被上传，可放心校验敏感文件。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var ALGS = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
+function __xfHex(buf) {
+  return Array.prototype.map.call(new Uint8Array(buf), function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+}
+async function __xfHashBuf(buf, alg) {
+  var d = await crypto.subtle.digest(alg, buf);
+  return __xfHex(d);
+}
+async function __xfHashText(text, alg) {
+  return __xfHashBuf(new TextEncoder().encode(text), alg);
+}
+async function __xfHashAllText(text) {
+  var enc = new TextEncoder().encode(text), out = {};
+  for (var i = 0; i < ALGS.length; i++) out[ALGS[i]] = await __xfHashBuf(enc, ALGS[i]);
+  return out;
+}
+/* 校验值比对：忽略大小写与空白 */
+function __xfCompareHash(a, b) {
+  var x = String(a || "").trim().toLowerCase().replace(/\s+/g, "");
+  var y = String(b || "").trim().toLowerCase().replace(/\s+/g, "");
+  if (!x || !y) return null;
+  return x === y;
+}
+/* 根据哈希长度推断算法 */
+function __xfGuessAlg(hash) {
+  var len = String(hash || "").trim().replace(/\s+/g, "").length;
+  return { 40: "SHA-1", 64: "SHA-256", 96: "SHA-384", 128: "SHA-512", 32: "MD5" }[len] || ("未知（" + len + " 位十六进制）");
+}
+window.__xfHashText = __xfHashText;
+window.__xfHashAllText = __xfHashAllText;
+window.__xfCompareHash = __xfCompareHash;
+window.__xfGuessAlg = __xfGuessAlg;
+
+var $ = function (id) { return document.getElementById(id); };
+function output(rows, title) {
+  var exp = $("expect").value.trim();
+  var lines = rows.map(function (r) { return r[0] + "：\n" + r[1]; });
+  if (exp) {
+    lines.push("");
+    lines.push("—— 校验比对 ——");
+    var any = false;
+    rows.forEach(function (r) {
+      var ok = __xfCompareHash(r[1], exp);
+      if (ok !== null) { any = true; lines.push(r[0] + "：" + (ok ? "✅ 一致" : "❌ 不一致")); }
+    });
+    if (!any) lines.push("官方值长度 " + exp.replace(/\s+/g, "").length + " 位，推断算法为 " + __xfGuessAlg(exp));
+  }
+  $("res").value = lines.join("\n\n");
+  $("tip").textContent = title;
+}
+$("textBtn").onclick = function () {
+  var t = $("src").value, alg = $("alg").value;
+  $("state").textContent = "计算中…";
+  if (alg === "ALL") {
+    __xfHashAllText(t).then(function (o) {
+      output(ALGS.map(function (a) { return [a, o[a]]; }), "✅ 文本哈希（" + new TextEncoder().encode(t).length + " 字节）");
+      $("state").textContent = "";
+    }).catch(function (e) { $("res").value = "计算失败：" + e.message; $("state").textContent = ""; });
+  } else {
+    __xfHashText(t, alg).then(function (h) {
+      output([[alg, h]], "✅ 文本哈希（" + new TextEncoder().encode(t).length + " 字节）");
+      $("state").textContent = "";
+    }).catch(function (e) { $("res").value = "计算失败：" + e.message; $("state").textContent = ""; });
+  }
+};
+$("fileBtn").onclick = function () {
+  var f = $("file").files && $("file").files[0];
+  if (!f) return alert("请先选择一个文件");
+  var alg = $("alg").value;
+  $("state").textContent = "读取中…";
+  var fr = new FileReader();
+  fr.onload = function () {
+    var buf = fr.result;
+    var jobs = alg === "ALL" ? ALGS.map(function (a) { return __xfHashBuf(buf, a).then(function (h) { return [a, h]; }); }) : [__xfHashBuf(buf, alg).then(function (h) { return [alg, h]; })];
+    Promise.all(jobs).then(function (rows) {
+      output(rows, "✅ 文件哈希：" + f.name + "（" + (f.size / 1024).toFixed(1) + " KB）");
+      $("state").textContent = "";
+    }).catch(function (e) { $("res").value = "计算失败：" + e.message; $("state").textContent = ""; });
+  };
+  fr.onerror = function () { $("res").value = "读取文件失败"; $("state").textContent = ""; };
+  fr.readAsArrayBuffer(f);
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("alg").onchange = function () { if ($("src").value) $("textBtn").click(); };
+$("textBtn").click();
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AES加密解密 - 词海工具箱</title>
+<meta name="description" content="AES加密解密工具：基于浏览器 Web Crypto 实现 AES-CBC / AES-GCM 加解密，支持 128/192/256 位密钥，输出 Base64。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/aes.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="aes" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>操作</label>
+        <select id="op"><option value="enc" selected>加密</option><option value="dec">解密</option></select>
+      </div>
+      <div class="fitem"><label>模式</label>
+        <select id="mode"><option value="CBC" selected>AES-CBC（带随机 IV）</option><option value="GCM">AES-GCM（带认证）</option></select>
+      </div>
+      <div class="fitem"><label>密钥位数</label>
+        <select id="bits"><option value="256" selected>256 位</option><option value="128">128 位</option></select>
+      </div>
+      <div class="fitem"><label>密钥/口令</label><input type="text" id="key" value="wordhai-2026" placeholder="任意文本，将用 SHA-256 派生密钥"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始处理</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">输入内容</div>
+      <textarea id="src" style="min-height:120px;">Hello AES 词海工具箱</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">处理结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:150px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于AES加密解密介绍：</h4>
+    <ol>
+      <li>密钥由你输入的口令经 SHA-256 派生（取前 16 或 32 字节），这样任意长度的口令都可以使用。</li>
+      <li>CBC 模式的随机 IV 会以「Base64(IV).Base64(密文)」的形式拼在结果里，解密时请把完整字符串一起粘贴回来。</li>
+      <li>GCM 模式自带完整性认证：如果密文或 IV 被篡改，解密会直接失败并报错，比 CBC 更适合传输场景。</li>
+      <li>同样的明文每次加密结果都不同（因为 IV 随机），这是 CBC/GCM 的正常特性，不要据此判断加密失败。</li>
+      <li>解密必须与加密使用相同的模式、密钥位数与口令，三者任何一个不同都会解密失败。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfB64(bytes) { return btoa(String.fromCharCode.apply(null, new Uint8Array(bytes))); }
+function __xfUnb64(s) { var bin = atob(String(s).trim().replace(/\s+/g, "")); var u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+async function __xfAesKey(pass, bits) {
+  var raw = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(pass)));
+  return crypto.subtle.importKey("raw", raw.slice(0, bits / 8), { name: "AES-" + $mode() }, false, ["encrypt", "decrypt"]);
+}
+var __xfAesMode = "CBC";
+function $mode() { return __xfAesMode; }
+async function __xfAesEncrypt(text, pass, mode, bits) {
+  __xfAesMode = mode || "CBC";
+  var key = await __xfAesKey(pass, bits || 256);
+  var iv = crypto.getRandomValues(new Uint8Array(__xfAesMode === "GCM" ? 12 : 16));
+  var alg = __xfAesMode === "GCM" ? { name: "AES-GCM", iv: iv } : { name: "AES-CBC", iv: iv };
+  var buf = await crypto.subtle.encrypt(alg, key, new TextEncoder().encode(text));
+  return __xfB64(iv) + "." + __xfB64(buf);
+}
+async function __xfAesDecrypt(payload, pass, mode, bits) {
+  __xfAesMode = mode || "CBC";
+  var parts = String(payload).trim().split(".");
+  if (parts.length !== 2) throw new Error("密文格式不正确，应为 IV.密文");
+  var iv = __xfUnb64(parts[0]);
+  var key = await __xfAesKey(pass, bits || 256);
+  var alg = __xfAesMode === "GCM" ? { name: "AES-GCM", iv: iv } : { name: "AES-CBC", iv: iv };
+  var buf = await crypto.subtle.decrypt(alg, key, __xfUnb64(parts[1]));
+  return new TextDecoder().decode(buf);
+}
+window.__xfAesEncrypt = __xfAesEncrypt;
+window.__xfAesDecrypt = __xfAesDecrypt;
+
+var $ = function (id) { return document.getElementById(id); };
+function run() {
+  var enc = $("op").value === "enc";
+  $("state").textContent = "处理中…";
+  var p = enc
+    ? __xfAesEncrypt($("src").value, $("key").value, $("mode").value, +$("bits").value)
+    : __xfAesDecrypt($("src").value, $("key").value, $("mode").value, +$("bits").value);
+  p.then(function (out) {
+    $("res").value = out;
+    $("tip").textContent = "✅ AES-" + $("mode").value + " " + (enc ? "加密完成" : "解密完成");
+    $("state").textContent = "";
+  }).catch(function (e) {
+    $("res").value = "处理失败：" + e.message;
+    $("tip").textContent = "❌ 失败";
+    $("state").textContent = "";
+  });
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("op").onchange = function () { if ($("res").value) run(); };
+run();
+</script>
+</body>
+</html>

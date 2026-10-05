@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本传统色查询 - 词海工具箱</title>
+<meta name="description" content="收录常见日本传统色名与对应色值，支持按名称或色值搜索，点击即可复制十六进制色码用于设计与前端配色。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/colornihon.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="colornihon" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" value="" placeholder="输入色名或色值，如 桜 或 5b"></div>
+      <div class="fitem"><label>每行显示</label><input type="number" id="col" value="4" min="1" max="8"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查询</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">色卡</strong><span id="state"></span></div>
+      <div id="sw" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0;"></div>
+      <textarea id="res" readonly style="height:170px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于日本传统色查询介绍：</h4>
+    <ol>
+      <li>搜索框同时匹配色名与色值，输入桜可以找到桜色与桜鼠，输入 5b 可以按色码定位。</li>
+      <li>色卡区域按所选列数排布，每个色块上标注色名，方便整体对比明度与冷暖。</li>
+      <li>日本传统色多取自植物与织物，整体明度偏低、饱和度克制，适合做和风页面。</li>
+      <li>复制结果是一行一色的文本，可直接粘进设计文档或配色表格中留档。</li>
+      <li>实际印刷与屏幕显示会有色差，正式交付前建议用专业色卡再做一次比对。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var NIHON_COLORS = {
+  "桜色": "#fef4f4", "小豆色": "#96514d", "茜色": "#b94047", "朱色": "#eb6101", "橙色": "#ee7800",
+  "山吹色": "#f8b500", "若草色": "#c3d825", "萌黄": "#aacf53", "常磐色": "#007b43", "青竹色": "#7ebeab",
+  "浅葱色": "#00a3af", "縹色": "#2a6a92", "藍色": "#165e83", "群青色": "#4c6cb3", "瑠璃色": "#1e50a2",
+  "江戸紫": "#745399", "菫色": "#7058a3", "藤色": "#bbbcde", "桜鼠": "#e9dfe5", "灰桜": "#e8d3d1",
+  "銀鼠": "#afafb0", "鼠色": "#949495", "墨色": "#595857", "漆黒": "#0d0015", "白色": "#ffffff",
+  "生成り": "#fbfaf5", "象牙色": "#f8f4e6", "胡桃色": "#a86f4c", "琥珀色": "#bf783a", "山吹茶": "#c89932",
+  "抹茶色": "#c5c56a", "若竹色": "#68be8d", "水色": "#bce2e8", "空色": "#a0d8ef", "藤紫": "#8a5baf",
+  "深緋": "#c9171e", "紅梅": "#f2a0a1", "桃色": "#f6bfbc", "海老茶": "#773c30", "利休鼠": "#888e7e"
+};
+function __xfNihonList(kw) {
+  var k = String(kw || "").trim().toLowerCase();
+  return Object.keys(NIHON_COLORS).filter(function (n) {
+    if (!k) return true;
+    return n.toLowerCase().indexOf(k) >= 0 || NIHON_COLORS[n].indexOf(k) >= 0;
+  }).map(function (n) { return { name: n, hex: NIHON_COLORS[n] }; });
+}
+function __xfNihonColor(name) {
+  var n = String(name).trim();
+  return NIHON_COLORS.hasOwnProperty(n) ? { name: n, hex: NIHON_COLORS[n] } : null;
+}
+window.__xfNihonList = __xfNihonList;
+window.__xfNihonColor = __xfNihonColor;
+window.NIHON_COLORS = NIHON_COLORS;
+function run() {
+  var list = __xfNihonList($("kw").value);
+  var sw = $("sw");
+  sw.style.gridTemplateColumns = "repeat(" + (parseInt($("col").value, 10) || 4) + ",1fr)";
+  sw.innerHTML = "";
+  list.forEach(function (c) {
+    var d = document.createElement("div");
+    d.style.cssText = "background:" + c.hex + ";height:38px;border-radius:4px;display:flex;align-items:flex-end;justify-content:center;font-size:11px;color:#fff;text-shadow:0 0 2px #000;";
+    d.textContent = c.name;
+    sw.appendChild(d);
+  });
+  $("res").value = list.map(function (c) { return c.name + "  " + c.hex; }).join("\n");
+  $("state").textContent = list.length + " 个色";
+  $("tip").textContent = "✅ 共 " + Object.keys(NIHON_COLORS).length + " 个传统色";
+  return list;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

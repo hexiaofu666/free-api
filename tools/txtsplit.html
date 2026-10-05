@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本按行拆分 - 词海工具箱</title>
+<meta name="description" content="把大段文本按每 N 行拆分成多段，并为每段自动加分隔标记，方便分批发布、分片处理或做成多条任务。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/txtsplit.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="txtsplit" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>每段行数</label><input type="number" id="n" value="5" min="1"></div>
+      <div class="fitem"><label>过滤空行</label>
+        <select id="skip"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+      <div class="fitem"><label>段间分隔线</label>
+        <select id="dv"><option value="yes" selected>显示</option><option value="no">不显示</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始拆分</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">原始文本（每行一条）</div>
+      <textarea id="src" style="min-height:180px;">第1条
+第2条
+第3条
+第4条
+第5条
+第6条
+第7条</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">拆分结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:260px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本按行拆分介绍：</h4>
+    <ol>
+      <li>每段行数设为 1 时，等价于把过滤后的每一行单独成段，便于逐条处理。</li>
+      <li>段间分隔线会标注段号与该段行数，导出后也能快速定位属于第几段。</li>
+      <li>选「过滤空行」可避免空行占用段位，让每段的实际内容行数保持均匀。</li>
+      <li>拆分只按换行符处理，不会截断行内内容，长行仍完整保留在某一段中。</li>
+      <li>适合把采集到的关键词清单按每 100 行拆成一批，分批提交给其他工具处理。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSplitLines(text, n, keepEmpty) {
+  n = Math.max(1, parseInt(n, 10) || 1);
+  var lines = String(text).replace(/\r\n?/g, "\n").split("\n");
+  if (!keepEmpty) lines = lines.filter(function (l) { return l.trim() !== ""; });
+  var out = [], idx = 1;
+  for (var i = 0; i < lines.length; i += n) {
+    var chunk = lines.slice(i, i + n);
+    out.push({ no: idx, lines: chunk, text: chunk.join("\n") });
+    idx++;
+  }
+  return out;
+}
+function __xfSplitCount(len, n) { n = Math.max(1, parseInt(n, 10) || 1); return Math.ceil(len / n); }
+function __xfSplitRender(text, n, keepEmpty, divider) {
+  var groups = __xfSplitLines(text, n, keepEmpty);
+  return groups.map(function (g) {
+    return divider ? "===== 第 " + g.no + " 段（" + g.lines.length + " 行）=====\n" + g.text : g.text;
+  }).join("\n\n");
+}
+window.__xfSplitLines = __xfSplitLines;
+window.__xfSplitCount = __xfSplitCount;
+window.__xfSplitRender = __xfSplitRender;
+function run() {
+  var n = parseInt($("n").value, 10) || 1, keep = $("skip").value === "no";
+  var groups = __xfSplitLines($("src").value, n, keep);
+  $("res").value = __xfSplitRender($("src").value, n, keep, $("dv").value === "yes");
+  $("state").textContent = groups.length + " 段";
+  $("tip").textContent = "✅ 已拆分为 " + groups.length + " 段";
+  return groups;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML与UBB互转 - 词海工具箱</title>
+<meta name="description" content="HTML 与 UBB 互转工具：在 HTML 标签与论坛 UBB 代码之间双向转换，支持加粗、链接、图片、引用、代码块等常用格式。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/html2ubb.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="html2ubb" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>转换方向</label>
+        <select id="dir"><option value="h2u" selected>HTML → UBB</option><option value="u2h">UBB → HTML</option></select>
+      </div>
+      <div class="fitem"><label>换行处理</label>
+        <select id="nl"><option value="keep" selected>保留原始换行</option><option value="br">换行转为 [br]</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">输入内容</div>
+      <textarea id="src" style="min-height:150px;"><p><strong>词海工具箱</strong>提供 <em>免费在线工具</em>。</p>
+<p>访问 <a href="https://tools.hdemba.cn">工具箱首页</a></p>
+<blockquote>简单实用的在线工具集</blockquote>
+<ul><li>时间日期</li><li>文本处理</li></ul></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转换结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTML与UBB互转介绍：</h4>
+    <ol>
+      <li>UBB 是论坛常用的轻量标记语言，用 [b]、[url]、[img] 等方括号标签代替 HTML 尖括号，可防止注入。</li>
+      <li>支持的 HTML 标签包括 strong/b、em/i、u、s/del、a、img、blockquote、code/pre、ul/ol/li 与 h1-h6。</li>
+      <li>UBB 转为 HTML 时，链接会自动补上 target=_blank 与 rel=noopener，避免被劫持 window.opener。</li>
+      <li>论坛通常不允许直接粘贴 HTML，先用本工具转成 UBB 再发帖，可以保留加粗、链接与图片效果。</li>
+      <li>不同论坛的 UBB 方言略有差别（如 [flash]、[media]），本工具覆盖最通用的标准标签。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfHtml2Ubb(html, nl) {
+  var t = String(html);
+  t = t.replace(/<br\s*\/?>/gi, "[br]");
+  t = t.replace(/<(strong|b)>(.*?)<\/\1>/gis, "[b]$2[/b]");
+  t = t.replace(/<(em|i)>(.*?)<\/\1>/gis, "[i]$2[/i]");
+  t = t.replace(/<u>(.*?)<\/u>/gis, "[u]$1[/u]");
+  t = t.replace(/<s>(.*?)<\/s>/gis, "[s]$1[/s]");
+  t = t.replace(/<del>(.*?)<\/del>/gis, "[s]$1[/s]");
+  t = t.replace(/<code>(.*?)<\/code>/gis, "[code]$1[/code]");
+  t = t.replace(/<pre>(.*?)<\/pre>/gis, "[code]$1[/code]");
+  t = t.replace(/<blockquote>(.*?)<\/blockquote>/gis, "[quote]$1[/quote]");
+  t = t.replace(/<h([1-6])>(.*?)<\/h\1>/gis, "[size=" + "]".replace("]", "") + "$2[/size]");
+  t = t.replace(/<a[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gis, "[url=$1]$2[/url]");
+  t = t.replace(/<img[^>]*src=["']([^"']+)["'][^>]*>/gi, "[img]$1[/img]");
+  t = t.replace(/<li>(.*?)<\/li>/gis, "[]$1[/li]").replace(/\[\]\$1\[\/li\]/g, "[*]$1");
+  t = t.replace(/\[\]([\s\S]*?)\[\/li\]/g, "[*]$1");
+  t = t.replace(/<ul>|<\/ul>|<ol>|<\/ol>/gi, "");
+  t = t.replace(/<\/p>|<p[^>]*>/gi, nl === "br" ? "[br]" : "\n");
+  t = t.replace(/<[^>]+>/g, "");
+  return t.replace(/\n{3,}/g, "\n\n").trim();
+}
+function __xfUbb2Html(ubb) {
+  var t = String(ubb);
+  t = t.replace(/\[b\]([\s\S]*?)\[\/b\]/gi, "<strong>$1</strong>");
+  t = t.replace(/\[i\]([\s\S]*?)\[\/i\]/gi, "<em>$1</em>");
+  t = t.replace(/\[u\]([\s\S]*?)\[\/u\]/gi, "<u>$1</u>");
+  t = t.replace(/\[s\]([\s\S]*?)\[\/s\]/gi, "<del>$1</del>");
+  t = t.replace(/\[code\]([\s\S]*?)\[\/code\]/gi, "<pre><code>$1</code></pre>");
+  t = t.replace(/\[quote\]([\s\S]*?)\[\/quote\]/gi, "<blockquote>$1</blockquote>");
+  t = t.replace(/\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener">$2</a>');
+  t = t.replace(/\[url\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  t = t.replace(/\[img\]([\s\S]*?)\[\/img\]/gi, '<img src="$1" alt="">');
+  t = t.replace(/\[size=([^\]]+)\]([\s\S]*?)\[\/size\]/gi, "<h3>$2</h3>");
+  t = t.replace(/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/gi, '<span style="color:$1">$2</span>');
+  t = t.replace(/\[br\]|<br\s*\/?>/gi, "<br>");
+  t = t.replace(/\[\*\]([^\n\[]*)/g, "<li>$1</li>");
+  t = t.replace(/(\s*<li>[\s\S]*?<\/li>\s*)+/g, function (m) { return "<ul>" + m + "</ul>"; });
+  return t.split("\n").map(function (l) { return l.trim(); }).filter(Boolean).join("\n");
+}
+function __xfUbbList(ubb) {
+  return (String(ubb).match(/\[\/?[a-z]+[^\]]*\]/gi) || []).map(function (s) { return s.toLowerCase(); });
+}
+window.__xfHtml2Ubb = __xfHtml2Ubb;
+window.__xfUbb2Html = __xfUbb2Html;
+window.__xfUbbList = __xfUbbList;
+
+var $ = function (id) { return document.getElementById(id); };
+function run() {
+  var src = $("src").value, out;
+  if ($("dir").value === "h2u") {
+    out = __xfHtml2Ubb(src, $("nl").value);
+    $("tip").textContent = "✅ 已转为 UBB 代码";
+  } else {
+    out = __xfUbb2Html(src);
+    $("tip").textContent = "✅ 已转为 HTML 代码";
+  }
+  $("res").value = out;
+  var n = (out.match(/\[/g) || []).length;
+  $("state").textContent = out.length + " 字符" + ($("dir").value === "h2u" ? "（" + n + " 个 UBB 标记）" : "");
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("dir").onchange = run;
+run();
+</script>
+</body>
+</html>

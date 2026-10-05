@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL转Java实体类 - 词海工具箱</title>
+<meta name="description" content="SQL转Java实体类生成器：解析 MySQL 建表语句，生成带字段注释、Getter/Setter 与类型映射的 Java 实体类代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/sql2java.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="sql2java" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>类名</label><input type="text" id="cls" value="User" placeholder="如 User"></div>
+      <div class="fitem"><label>包名</label><input type="text" id="pkg" value="com.example.entity"></div>
+      <div class="fitem"><label>风格</label>
+        <select id="style"><option value="lombok" selected>Lombok @Data</option><option value="getset">完整 Getter/Setter</option><option value="field">仅字段</option></select>
+      </div>
+      <div class="fitem"><label>实现序列化</label>
+        <select id="ser"><option value="yes" selected>是（implements Serializable）</option><option value="no">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成实体类</button>
+      <button class="fbtn gray" id="parseBtn">查看字段解析</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">MySQL 建表语句</div>
+      <textarea id="src" style="min-height:190px;">CREATE TABLE `sys_user` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_name` varchar(50) NOT NULL COMMENT '用户名',
+  `age` int(11) DEFAULT NULL COMMENT '年龄',
+  `balance` decimal(10,2) DEFAULT '0.00' COMMENT '账户余额',
+  `is_vip` tinyint(1) DEFAULT '0' COMMENT '是否会员',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `remark` text COMMENT '备注'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:260px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于SQL转Java实体类介绍：</h4>
+    <ol>
+      <li>支持 MySQL 建表语句中的 bigint/int/tinyint/varchar/char/text/decimal/double/float/datetime/date/timestamp/blob/json 等常见类型映射。</li>
+      <li>字段名会自动转为小驼峰属性名（user_name → userName），并保留 COMMENT 作为字段注释。</li>
+      <li>Lombok 模式只生成 @Data 注解与字段，代码最简洁；完整模式会生成 Getter/Setter，适合不引入 Lombok 的项目。</li>
+      <li>主键、非空与 AUTO_INCREMENT 会被识别并在「查看字段解析」中标注，便于核对映射是否正确。</li>
+      <li>生成结果可直接复制进 IDE，注意包名与类名需与项目已有结构保持一致。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var TYPE_MAP = [
+  [/^bigint/i, "Long"], [/^int/i, "Integer"], [/^smallint/i, "Integer"], [/^tinyint/i, "Integer"],
+  [/^mediumint/i, "Integer"], [/^bit/i, "Boolean"], [/^bool/i, "Boolean"],
+  [/^varchar/i, "String"], [/^char/i, "String"], [/^text/i, "String"], [/^longtext/i, "String"],
+  [/^mediumtext/i, "String"], [/^tinytext/i, "String"], [/^json/i, "String"], [/^enum/i, "String"], [/^set/i, "String"],
+  [/^decimal/i, "BigDecimal"], [/^numeric/i, "BigDecimal"], [/^double/i, "Double"], [/^float/i, "Float"],
+  [/^date/i, "Date"], [/^datetime/i, "Date"], [/^timestamp/i, "Date"], [/^time/i, "Date"], [/^year/i, "Integer"],
+  [/^blob/i, "byte[]"], [/^longblob/i, "byte[]"], [/^binary/i, "byte[]"], [/^varbinary/i, "byte[]"]
+];
+function __xfSqlTypeToJava(sqlType) {
+  var t = String(sqlType).trim();
+  for (var i = 0; i < TYPE_MAP.length; i++) if (TYPE_MAP[i][0].test(t)) return TYPE_MAP[i][1];
+  return "String";
+}
+/* 下划线转小驼峰；is_ 开头保留语义 */
+function __xfCamel(name) {
+  var parts = String(name).replace(/^_+|_+$/g, "").split("_");
+  return parts.map(function (p, i) { return i === 0 ? p.toLowerCase() : p.charAt(0).toUpperCase() + p.slice(1).toLowerCase(); }).join("");
+}
+function __xfPascal(name) {
+  var c = __xfCamel(name);
+  return c.charAt(0).toUpperCase() + c.slice(1);
+}
+/* 按顶层逗号切分字段定义（跳过括号内与引号内的逗号） */
+function __xfSplitFields(body) {
+  var out = [], cur = "", depth = 0, quote = null;
+  for (var i = 0; i < body.length; i++) {
+    var c = body[i];
+    if (quote) { cur += c; if (c === quote && body[i - 1] !== "\\") quote = null; continue; }
+    if (c === "'" || c === '"' || c === "\u0060") { quote = c; cur += c; continue; }
+    if (c === "(") depth++;
+    if (c === ")") depth--;
+    if (c === "," && depth === 0) { out.push(cur); cur = ""; continue; }
+    cur += c;
+  }
+  if (cur.trim()) out.push(cur);
+  return out.map(function (s) { return s.trim(); }).filter(Boolean);
+}
+/* 解析 CREATE TABLE 字段 */
+function __xfParseSql(sql) {
+  var m = String(sql).match(/create\s+table[^(]*\(([\s\S]*)\)\s*[^)]*$/i);
+  if (!m) return { ok: false, error: "未找到 CREATE TABLE 语句主体" };
+  var body = m[1];
+  var lines = __xfSplitFields(body);
+  var fields = [];
+  lines.forEach(function (l) {
+    if (/^(primary\s+key|unique\s+key|key\s|index\s|constraint|foreign\s+key|fulltext|spatial)/i.test(l)) return;
+    var fm = l.match(/^[`"\[]?([\w]+)[`"\]]?\s+([a-zA-Z]+)(\s*\([^)]*\))?/);
+    if (!fm) return;
+    var cm = l.match(/comment\s+'([^']*)'/i);
+    fields.push({
+      column: fm[1],
+      type: (fm[2] + (fm[3] || "")).trim(),
+      java: __xfSqlTypeToJava(fm[2]),
+      prop: __xfCamel(fm[1]),
+      comment: cm ? cm[1] : "",
+      notNull: /not\s+null/i.test(l),
+      autoInc: /auto_increment/i.test(l),
+      isPrimary: /primary\s+key/i.test(l)
+    });
+  });
+  var tm = String(sql).match(/\)\s*[^;]*comment\s*=\s*'([^']*)'/i);
+  return { ok: true, table: tm ? tm[1] : "", fields: fields };
+}
+function __xfGenJava(sql, cls, pkg, style, serial) {
+  var r = __xfParseSql(sql);
+  if (!r.ok) return "❌ " + r.error;
+  var className = cls || "Entity";
+  var L = [];
+  if (pkg) L.push("package " + pkg + ";\n");
+  var imports = [];
+  if (serial === "yes") imports.push("java.io.Serializable");
+  if (style === "lombok") imports.push("lombok.Data");
+  if (r.fields.some(function (f) { return f.java === "BigDecimal"; })) imports.push("java.math.BigDecimal");
+  if (r.fields.some(function (f) { return f.java === "Date"; })) imports.push("java.util.Date");
+  if (imports.length) L.push(imports.map(function (i) { return "import " + i + ";"; }).join("\n") + "\n");
+  L.push("/**");
+  L.push(" * " + (r.table || className) + " 实体类");
+  L.push(" * 由词海工具箱 SQL 转 Java 实体类生成");
+  L.push(" */");
+  if (style === "lombok") L.push("@Data");
+  L.push("public class " + className + (serial === "yes" ? " implements Serializable" : "") + " {");
+  if (serial === "yes") L.push("\n    private static final long serialVersionUID = 1L;\n");
+  L.push("    private static final long serialVersionUID_PLACEHOLDER = 0L;".replace(/^.*PLACEHOLDER.*\n?/, ""));
+  r.fields.forEach(function (f) {
+    L.push("    /** " + (f.comment || f.column) + "（" + f.type + "） */");
+    L.push("    private " + f.java + " " + f.prop + ";");
+  });
+  if (style === "getset") {
+    r.fields.forEach(function (f) {
+      var P = f.prop.charAt(0).toUpperCase() + f.prop.slice(1);
+      L.push("");
+      L.push("    public " + f.java + " get" + P + "() {");
+      L.push("        return " + f.prop + ";");
+      L.push("    }");
+      L.push("");
+      L.push("    public void set" + P + "(" + f.java + " " + f.prop + ") {");
+      L.push("        this." + f.prop + " = " + f.prop + ";");
+      L.push("    }");
+    });
+  }
+  L.push("}");
+  return L.filter(function (x) { return x !== null && x !== undefined; }).join("\n").replace(/\n{3,}/g, "\n\n");
+}
+window.__xfParseSql = __xfParseSql;
+window.__xfGenJava = __xfGenJava;
+window.__xfCamel = __xfCamel;
+window.__xfSqlTypeToJava = __xfSqlTypeToJava;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var out = __xfGenJava($("src").value, $("cls").value.trim(), $("pkg").value.trim(), $("style").value, $("ser").value);
+  $("res").value = out;
+  var r = __xfParseSql($("src").value);
+  $("state").textContent = r.ok ? r.fields.length + " 个字段" : "解析失败";
+  $("tip").textContent = "✅ 已生成 " + ($("style").value === "lombok" ? "Lombok" : ($("style").value === "getset" ? "完整 Getter/Setter" : "纯字段")) + " 实体类";
+};
+$("parseBtn").onclick = function () {
+  var r = __xfParseSql($("src").value);
+  if (!r.ok) { $("res").value = "❌ " + r.error; return; }
+  $("res").value = "表注释：" + (r.table || "—") + "\n共 " + r.fields.length + " 个字段：\n\n" +
+    r.fields.map(function (f) { return f.column + "  " + f.type + "  →  " + f.java + " " + f.prop + (f.comment ? "  // " + f.comment : "") + (f.isPrimary ? "  [主键]" : ""); }).join("\n");
+  $("state").textContent = r.fields.length + " 个字段";
+  $("tip").textContent = "字段解析结果";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

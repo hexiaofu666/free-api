@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今天吃什么 - 词海工具箱</title>
+<meta name="description" content="选择困难时帮你随机挑一道菜，内置常见中餐与小吃菜单并支持自定义，可一次抽取多道并排除已吃过的选项。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/whattoeat.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="whattoeat" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>抽取数量</label><input type="number" id="n" value="1" min="1" max="20"></div>
+      <div class="fitem"><label>排除项（逗号分隔）</label><input type="text" id="ex" value="" placeholder="如 火锅,烧烤"></div>
+      <div class="fitem"><label>自定义菜单（每行一个，留空用默认）</label>
+        <textarea id="custom" style="min-height:80px;"></textarea>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">抽一个</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">推荐结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于今天吃什么介绍：</h4>
+    <ol>
+      <li>默认菜单收录了五十道常见中餐与小食，覆盖面食、米饭、火锅与西式快餐。</li>
+      <li>抽取多道菜时不会重复，相当于从菜单里不放回地依次抽取。</li>
+      <li>排除项适合避开最近已经吃过的菜品，多个排除项用逗号分隔即可。</li>
+      <li>自定义菜单会完全替换默认菜单，每行或每个逗号视为一道菜。</li>
+      <li>结果只是随机建议，口味与预算还需要自己把关。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var FOODS = ["兰州拉面","黄焖鸡米饭","沙县小吃","重庆小面","麻辣烫","盖浇饭","煲仔饭","饺子","包子","煎饼果子","肉夹馍","鸡蛋灌饼","火锅","烤肉","串串香","烤鱼","酸菜鱼","水煮肉片","麻婆豆腐","宫保鸡丁","鱼香肉丝","番茄炒蛋","青椒肉丝","回锅肉","红烧肉","糖醋里脊","炸酱面","油泼面","biangbiang 面","刀削面","米线","螺蛳粉","肠粉","小笼包","生煎","锅贴","炒饭","炒面","炒河粉","寿司","咖喱饭","汉堡","披萨","炸鸡","沙拉","三明治","意面","牛排","粥","包子粥套餐"];
+function __xfFoodList(custom) {
+  var t = String(custom || "").trim();
+  if (!t) return FOODS.slice();
+  return t.replace(/\r\n?/g, "\n").split(/[\n,，、]/).map(function (s) { return s.trim(); }).filter(Boolean);
+}
+function __xfWhatToEat(n, exclude, custom, rnd) {
+  rnd = rnd || Math.random;
+  var count = Math.max(1, parseInt(n, 10) || 1);
+  var ex = String(exclude || "").split(/[,，、]/).map(function (s) { return s.trim(); }).filter(Boolean);
+  var pool = __xfFoodList(custom).filter(function (f) { return ex.indexOf(f) < 0; });
+  var out = [], copy = pool.slice();
+  for (var i = 0; i < count && copy.length; i++) {
+    var k = Math.min(copy.length - 1, Math.floor(rnd() * copy.length));
+    out.push(copy[k]);
+    copy.splice(k, 1);
+  }
+  return out;
+}
+window.__xfFoodList = __xfFoodList;
+window.__xfWhatToEat = __xfWhatToEat;
+window.FOODS = FOODS;
+function run() {
+  var list = __xfWhatToEat($("n").value, $("ex").value, $("custom").value);
+  if (!list.length) { $("res").value = "没有可选的菜品，请减少排除项或补充自定义菜单。"; $("tip").textContent = "⚠️ 无可用选项"; return []; }
+  $("res").value = ["今日推荐：", ""].concat(list.map(function (f, i) { return (i + 1) + ". " + f; })).join("\n");
+  $("state").textContent = list.length + " 道菜";
+  $("tip").textContent = "✅ 就吃 " + list[0] + " 吧";
+  return list;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

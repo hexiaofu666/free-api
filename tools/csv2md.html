@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSV转Markdown表格 - 词海工具箱</title>
+<meta name="description" content="把 CSV 或制表符分隔的数据转换成 Markdown 表格语法，自动对齐列数并处理竖线转义，方便写文档与博客。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/csv2md.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="csv2md" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>字段分隔符</label><input type="text" id="dl" value="," maxlength="1"></div>
+      <div class="fitem"><label>对齐方式</label>
+        <select id="al"><option value="left" selected>左对齐</option><option value="center">居中</option><option value="right">右对齐</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成表格</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">CSV 数据</div>
+      <textarea id="src" style="min-height:150px;">名称,分类,说明
+词海工具箱,免费工具,即开即用
+番茄时钟,效率工具,专注计时</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">Markdown 表格</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:170px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于CSV转Markdown表格介绍：</h4>
+    <ol>
+      <li>首行默认作为表头，第二行会自动生成与表头列数一致的分隔行。</li>
+      <li>列数不一致时以最长的一行为准补齐，缺少的单元用空内容占位，保证表格结构正确。</li>
+      <li>单元格内的竖线会被转义，避免破坏 Markdown 表格的列边界。</li>
+      <li>分隔行可切换为左对齐、居中或右对齐，用于控制生成表格的排版效果。</li>
+      <li>生成结果可直接粘贴到博客园、语雀、Typora 等 Markdown 编辑器中渲染。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfParseCsv(text, delim) {
+  delim = delim || ",";
+  var s = String(text).replace(/\r\n?/g, "\n");
+  var rows = [], row = [], cur = "", inQ = false, i = 0;
+  while (i < s.length) {
+    var c = s.charAt(i);
+    if (inQ) {
+      if (c === '"') { if (s.charAt(i + 1) === '"') { cur += '"'; i += 2; continue; } inQ = false; i++; continue; }
+      cur += c; i++; continue;
+    }
+    if (c === '"') { inQ = true; i++; continue; }
+    if (c === delim) { row.push(cur); cur = ""; i++; continue; }
+    if (c === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; i++; continue; }
+    cur += c; i++;
+  }
+  if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+function __xfCsv2Md(text, delim, align) {
+  var rows = __xfParseCsv(text, delim || ",").filter(function (r) { return r.length && !(r.length === 1 && r[0].trim() === ""); });
+  if (!rows.length) return "";
+  var cols = 0;
+  rows.forEach(function (r) { if (r.length > cols) cols = r.length; });
+  var sep = align === "center" ? ":---:" : align === "right" ? "---:" : ":---";
+  function line(r) {
+    var o = [];
+    for (var i = 0; i < cols; i++) o.push(String(r[i] === undefined ? "" : r[i]).replace(/\|/g, "\\|"));
+    return "| " + o.join(" | ") + " |";
+  }
+  var out = [line(rows[0])];
+  var s = [];
+  for (var k = 0; k < cols; k++) s.push(sep);
+  out.push("| " + s.join(" | ") + " |");
+  rows.slice(1).forEach(function (r) { out.push(line(r)); });
+  return out.join("\n");
+}
+function __xfMdRowCount(md) { return String(md).split("\n").filter(function (l) { return l.trim() !== ""; }).length; }
+window.__xfParseCsv = __xfParseCsv;
+window.__xfCsv2Md = __xfCsv2Md;
+window.__xfMdRowCount = __xfMdRowCount;
+function run() {
+  var out = __xfCsv2Md($("src").value, $("dl").value || ",", $("al").value);
+  $("res").value = out;
+  $("state").textContent = __xfMdRowCount(out) + " 行表格";
+  $("tip").textContent = "✅ 已生成 Markdown 表格";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

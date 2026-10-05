@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026年放假安排 - 词海工具箱</title>
+<meta name="description" content="2026年放假安排查询：元旦、春节、清明、劳动节、端午、中秋、国庆放假调休日期与调休上班日，含假期倒计时。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jiaqi2026.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jiaqi2026" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>查询日期</label><input type="date" id="qdate"></div>
+      <div class="fitem"><label>快捷</label>
+        <select id="quick">
+          <option value="">-- 选择节日 --</option>
+          <option value="2026-01-01">元旦</option>
+          <option value="2026-02-15">春节</option>
+          <option value="2026-04-04">清明节</option>
+          <option value="2026-05-01">劳动节</option>
+          <option value="2026-06-19">端午节</option>
+          <option value="2026-09-25">中秋节</option>
+          <option value="2026-10-01">国庆节</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查询</button>
+      <button class="fbtn brown" id="todayBtn">看今天</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">2026 年放假安排</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于2026年放假安排介绍：</h4>
+    <ol>
+      <li>数据依据国务院办公厅《关于 2026 年部分节假日安排的通知》（国办发明电〔2025〕7 号）。</li>
+      <li>2026 年元旦 1 月 1 日至 3 日放假共 3 天，1 月 4 日（周日）上班。</li>
+      <li>春节 2 月 15 日至 23 日放假共 9 天，2 月 14 日、2 月 28 日两个周六调休上班，拼出连续 9 天长假。</li>
+      <li>清明节 4 月 4 日至 6 日、端午节 6 月 19 日至 21 日、中秋节 9 月 25 日至 27 日均不调休，直接连休 3 天。</li>
+      <li>劳动节 5 月 1 日至 5 日放假 5 天（5 月 9 日周六上班）；国庆节 10 月 1 日至 7 日放假 7 天（9 月 20 日、10 月 10 日上班）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var HOLIDAYS = [
+  { name: "元旦",   start: "2026-01-01", end: "2026-01-03", days: 3, work: ["2026-01-04"] },
+  { name: "春节",   start: "2026-02-15", end: "2026-02-23", days: 9, work: ["2026-02-14", "2026-02-28"] },
+  { name: "清明节", start: "2026-04-04", end: "2026-04-06", days: 3, work: [] },
+  { name: "劳动节", start: "2026-05-01", end: "2026-05-05", days: 5, work: ["2026-05-09"] },
+  { name: "端午节", start: "2026-06-19", end: "2026-06-21", days: 3, work: [] },
+  { name: "中秋节", start: "2026-09-25", end: "2026-09-27", days: 3, work: [] },
+  { name: "国庆节", start: "2026-10-01", end: "2026-10-07", days: 7, work: ["2026-09-20", "2026-10-10"] }
+];
+var WORKDAYS = [];
+HOLIDAYS.forEach(function (h) { h.work.forEach(function (d) { WORKDAYS.push(d); }); });
+
+function __xfYmd(s) { var p = String(s).split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function __xfFmt(d) {
+  var m = d.getMonth() + 1, dd = d.getDate();
+  return d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (dd < 10 ? "0" + dd : dd);
+}
+function __xfDayDiff(a, b) { return Math.round((__xfYmd(b) - __xfYmd(a)) / 86400000); }
+
+/* 查询某天是否在假期/调休中 */
+function __xfHolidayInfo(dateStr) {
+  var d = __xfYmd(dateStr), out = { date: __xfFmt(d), holiday: null, workday: false, weekday: d.getDay() };
+  for (var i = 0; i < HOLIDAYS.length; i++) {
+    var h = HOLIDAYS[i];
+    if (__xfYmd(dateStr) >= __xfYmd(h.start) && __xfYmd(dateStr) <= __xfYmd(h.end)) {
+      out.holiday = h;
+      out.dayIndex = __xfDayDiff(h.start, dateStr) + 1;
+      break;
+    }
+  }
+  out.workday = WORKDAYS.indexOf(__xfFmt(d)) >= 0;
+  return out;
+}
+/* 找下一个假期（含当天正在放假的情况） */
+function __xfNextHoliday(fromStr) {
+  for (var i = 0; i < HOLIDAYS.length; i++) {
+    if (__xfYmd(HOLIDAYS[i].end) >= __xfYmd(fromStr)) {
+      return { holiday: HOLIDAYS[i], daysLeft: Math.max(0, __xfDayDiff(fromStr, HOLIDAYS[i].start)), ongoing: __xfYmd(fromStr) >= __xfYmd(HOLIDAYS[i].start) };
+    }
+  }
+  return null;
+}
+function __xfHolidayList() { return HOLIDAYS; }
+window.__xfHolidayInfo = __xfHolidayInfo;
+window.__xfNextHoliday = __xfNextHoliday;
+window.__xfHolidayList = __xfHolidayList;
+
+var $ = function (id) { return document.getElementById(id); };
+var WD = ["日", "一", "二", "三", "四", "五", "六"];
+function row(dt) {
+  var i = __xfHolidayInfo(dt);
+  var w = "周" + WD[i.weekday];
+  var tag = i.holiday ? '<b style="color:#e74c3c;">放假第 ' + i.dayIndex + ' 天</b>' : (i.workday ? '<b style="color:#2196F3;">调休上班</b>' : "正常工作日");
+  return dt + "（" + w + "）：" + tag;
+}
+function run() {
+  var d = $("qdate").value || "2026-10-05";
+  var info = __xfHolidayInfo(d), next = __xfNextHoliday(d);
+  var html = "<p style=\"margin-bottom:6px;\">" + row(d) + "</p>";
+  if (info.holiday) {
+    html += "<p style=\"margin-bottom:6px;\">假期区间：" + info.holiday.name + " " + info.holiday.start + " ~ " + info.holiday.end + "，共 " + info.holiday.days + " 天</p>";
+  }
+  if (next && next.daysLeft > 0) {
+    html += "<p style=\"margin-bottom:6px;\">距离下一个假期（" + next.holiday.name + "）还有 <b style=\"color:#e74c3c;\">" + next.daysLeft + "</b> 天</p>";
+  }
+  html += '<hr style="border:0;border-top:1px dashed #eee;margin:8px 0;">';
+  HOLIDAYS.forEach(function (h) {
+    html += "<p style='margin-bottom:4px;'>" + h.name + "：" + h.start + " ~ " + h.end + "（共 " + h.days + " 天）" + (h.work.length ? "，调休上班 " + h.work.join("、") : "") + "</p>";
+  });
+  $("res").innerHTML = html;
+  $("tip").textContent = "2026 年放假安排（国办发明电〔2025〕7 号）";
+}
+$("runBtn").onclick = run;
+$("todayBtn").onclick = function () {
+  var d = new Date();
+  $("qdate").value = __xfFmt(d);
+  run();
+};
+$("quick").onchange = function () { if (this.value) { $("qdate").value = this.value; run(); } };
+$("qdate").onchange = run;
+(function () { var d = new Date(); $("qdate").value = __xfFmt(d); run(); })();
+</script>
+</body>
+</html>

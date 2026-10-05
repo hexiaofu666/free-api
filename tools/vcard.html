@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VCF通讯录生成器 - 词海工具箱</title>
+<meta name="description" content="VCF 通讯录生成器：把姓名、电话、邮箱等信息批量生成 vCard(.vcf) 文件，可一次导入手机或邮箱通讯录。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/vcard.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="vcard" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>姓名</label><input type="text" id="name" value="张三" placeholder="必填"></div>
+      <div class="fitem"><label>手机</label><input type="text" id="tel" value="13800138000"></div>
+      <div class="fitem"><label>邮箱</label><input type="text" id="email" value="zhangsan@example.com"></div>
+      <div class="fitem"><label>公司</label><input type="text" id="org" value="词海科技"></div>
+      <div class="fitem"><label>职位</label><input type="text" id="title" value="工程师"></div>
+      <div class="fitem"><label>备注</label><input type="text" id="note" placeholder="可留空"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="addBtn">＋ 添加联系人</button>
+      <button class="fbtn blue" id="genBtn">生成 VCF</button>
+      <button class="fbtn brown" id="downBtn">下载 .vcf</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">联系人列表 / VCF 内容</strong><span id="state">0 位联系人</span></div>
+      <textarea id="res" readonly style="height:230px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于VCF通讯录生成器介绍：</h4>
+    <ol>
+      <li>vCard 3.0 是通用的通讯录格式，iOS、Android、Outlook、Gmail 都能导入 .vcf 文件。</li>
+      <li>生成的字段包含姓名(N/FN)、公司职位(ORG/TITLE)、手机(TEL)、邮箱(EMAIL)、备注(NOTE)与更新时间(REV)。</li>
+      <li>文本中的逗号、分号、反斜杠会被自动转义，避免导入时字段错乱。</li>
+      <li>可以连续添加多位联系人，最后一次性下载，适合批量导入客户或同事名单。</li>
+      <li>下载的文件是纯文本，用记事本打开即可查看与手动修改。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var list = [];
+/* vCard 转义：反斜杠、逗号、分号、换行 */
+function __xfVcardEsc(s) {
+  return String(s == null ? "" : s)
+    .replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+}
+function __xfVcard(c, uid) {
+  var L = ["BEGIN:VCARD", "VERSION:3.0"];
+  L.push("N:" + __xfVcardEsc(c.name) + ";;;;");
+  L.push("FN:" + __xfVcardEsc(c.name));
+  if (c.org) L.push("ORG:" + __xfVcardEsc(c.org) + (c.title ? ";" + __xfVcardEsc(c.title) : ""));
+  if (c.title && !c.org) L.push("TITLE:" + __xfVcardEsc(c.title));
+  if (c.tel) L.push("TEL;TYPE=CELL:" + __xfVcardEsc(c.tel));
+  if (c.email) L.push("EMAIL;TYPE=INTERNET:" + __xfVcardEsc(c.email));
+  if (c.note) L.push("NOTE:" + __xfVcardEsc(c.note));
+  L.push("REV:" + new Date().toISOString().replace(/\.\d+Z$/, "Z"));
+  if (uid) L.push("UID:" + uid);
+  L.push("END:VCARD");
+  return L.join("\r\n");
+}
+function __xfVcf(cards) { return cards.join("\r\n") + "\r\n"; }
+function __xfValidTel(t) { return /^[\d\-+ ()]{5,20}$/.test(String(t || "").trim()); }
+function __xfValidMail(m) { return !m || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(m).trim()); }
+window.__xfVcard = __xfVcard;
+window.__xfVcf = __xfVcf;
+window.__xfVcardEsc = __xfVcardEsc;
+window.__xfValidTel = __xfValidTel;
+window.__xfValidMail = __xfValidMail;
+
+var $ = function (id) { return document.getElementById(id); };
+function paint() {
+  $("state").textContent = list.length + " 位联系人";
+  if (!list.length) { $("res").value = "尚未添加联系人。\n\n填写上方表单后点「添加联系人」，可连续添加多位，最后点「生成 VCF」预览或直接下载。"; return; }
+  $("res").value = __xfVcf(list.map(function (c, i) { return __xfVcard(c, "wordhai-" + (i + 1)); }));
+}
+$("addBtn").onclick = function () {
+  var name = $("name").value.trim();
+  if (!name) return alert("请填写姓名");
+  if (!__xfValidTel($("tel").value)) return alert("手机号格式不正确");
+  if (!__xfValidMail($("email").value)) return alert("邮箱格式不正确");
+  list.push({ name: name, tel: $("tel").value.trim(), email: $("email").value.trim(), org: $("org").value.trim(), title: $("title").value.trim(), note: $("note").value.trim() });
+  paint();
+  $("name").value = ""; $("tel").value = ""; $("email").value = ""; $("note").value = "";
+  $("tip").textContent = "✅ 已添加：" + name;
+};
+$("genBtn").onclick = function () { paint(); $("tip").textContent = list.length ? "✅ 已生成 " + list.length + " 张名片" : "请先添加联系人"; };
+$("downBtn").onclick = function () {
+  if (!list.length) return alert("请先添加联系人");
+  var blob = new Blob([__xfVcf(list.map(function (c, i) { return __xfVcard(c, "wordhai-" + (i + 1)); }))], { type: "text/vcard;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "contacts.vcf";
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+};
+$("copyBtn") && ($("copyBtn").onclick = function () { navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); });
+paint();
+</script>
+</body>
+</html>

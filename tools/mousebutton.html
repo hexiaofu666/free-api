@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鼠标按键检测 - 词海工具箱</title>
+<meta name="description" content="鼠标按键检测：在线检测鼠标左键、中键、右键与侧键是否正常，实时显示按键编码与按下次序，排查鼠标故障。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/mousebutton.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="mousebutton" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>按键编码</label><input type="text" id="code" readonly placeholder="点击鼠标任意按键"></div>
+      <div class="fitem"><label>状态位掩码</label><input type="text" id="mask" readonly placeholder="buttons 值"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="clearBtn">清空记录</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">检测区（把鼠标放进下方方框内点击）</strong></div>
+      <div id="pad" style="height:180px;border:2px dashed #cfd8dc;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#90a4ae;font-size:14px;user-select:none;cursor:crosshair;">在框内按下鼠标任意按键</div>
+      <textarea id="log" readonly style="height:130px;margin-top:10px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于鼠标按键检测介绍：</h4>
+    <ol>
+      <li>把鼠标指针移到虚线框内按下按键，页面会实时显示按键名称、编码（button）与状态位掩码（buttons）。</li>
+      <li>标准编码：0 左键、1 中键（滚轮按下）、2 右键；多数鼠标的侧键为 3（后退）和 4（前进）。</li>
+      <li>位掩码是「当前同时按下的按键」的二进制组合：1 左、2 右、4 中、8 后退、16 前进，可以据此判断同时按键是否正常。</li>
+      <li>右键菜单已被拦截，方便连续测试右键；如果某个按键完全无响应，通常是驱动或硬件故障。</li>
+      <li>滚轮上下滚动属于 wheel 事件而非按键，如需测试滚轮请使用「鼠标滚轮测试」工具。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var NAMES = { 0: "左键", 1: "中键（滚轮）", 2: "右键", 3: "后退键（侧键）", 4: "前进键（侧键）" };
+function __xfMouseName(button) {
+  var b = Number(button);
+  return NAMES[b] !== undefined ? NAMES[b] : "未知按键（编码 " + b + "）";
+}
+/* buttons 位掩码：1=左 2=右 4=中 8=后退 16=前进 */
+function __xfButtonsMask(buttons) {
+  var v = Number(buttons) || 0, out = [];
+  if (v & 1) out.push("左键");
+  if (v & 2) out.push("右键");
+  if (v & 4) out.push("中键");
+  if (v & 8) out.push("后退键");
+  if (v & 16) out.push("前进键");
+  return out;
+}
+function __xfMaskValue(names) {
+  var map = { "左键": 1, "右键": 2, "中键": 4, "后退键": 8, "前进键": 16 }, v = 0;
+  (names || []).forEach(function (n) { v |= (map[n] || 0); });
+  return v;
+}
+window.__xfMouseName = __xfMouseName;
+window.__xfButtonsMask = __xfButtonsMask;
+window.__xfMaskValue = __xfMaskValue;
+
+var $ = function (id) { return document.getElementById(id); };
+var records = [];
+function log(txt, color) {
+  records.unshift(txt);
+  if (records.length > 40) records.pop();
+  $("log").value = records.join("\n");
+  $("tip").textContent = color || "检测中…";
+}
+var pad = $("pad");
+pad.addEventListener("mousedown", function (e) {
+  e.preventDefault();
+  $("code").value = e.button + " → " + __xfMouseName(e.button);
+  var active = __xfButtonsMask(e.buttons);
+  $("mask").value = e.buttons + "（" + (active.join(" + ") || "无") + "）";
+  log("按下 " + __xfMouseName(e.button) + "　编码=" + e.button + "　buttons=" + e.buttons);
+});
+pad.addEventListener("mouseup", function (e) { log("松开 " + __xfMouseName(e.button) + "　编码=" + e.button); });
+pad.addEventListener("contextmenu", function (e) { e.preventDefault(); log("右键菜单已拦截（属于正常检测行为）"); });
+pad.addEventListener("auxclick", function (e) { log("中键/侧键点击触发 auxclick：编码 " + e.button); });
+document.addEventListener("mousemove", function (e) {
+  if (e.buttons) { $("mask").value = e.buttons + "（" + (__xfButtonsMask(e.buttons).join(" + ") || "无") + "）"; }
+});
+$("clearBtn").onclick = function () { records = []; $("log").value = ""; $("code").value = ""; $("mask").value = ""; $("tip").textContent = "已清空"; };
+$("log").value = "";
+$("tip").textContent = "检测区（把鼠标放进下方方框内点击）";
+</script>
+</body>
+</html>

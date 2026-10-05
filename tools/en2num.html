@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英文数字转阿拉伯数字 - 词海工具箱</title>
+<meta name="description" content="英文数字转阿拉伯数字工具：把 one hundred twenty-three 这类英文数词还原成 123，支持千分位、小数点与百万级数字。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/en2num.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="en2num" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输出样式</label>
+        <select id="style"><option value="plain" selected>纯数字</option><option value="comma">千分位逗号</option></select>
+      </div>
+      <div class="fitem"><label>识别连字符</label>
+        <select id="hy"><option value="yes" selected>是（twenty-one）</option><option value="no">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">英文数字</div>
+      <textarea id="src" style="min-height:100px;">one hundred twenty-three</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转换结果</strong></div>
+      <textarea id="res" readonly style="height:120px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于英文数字转阿拉伯数字介绍：</h4>
+    <ol>
+      <li>支持 one ~ nineteen 的基数词、twenty ~ ninety 的整十词、hundred / thousand / million / billion / trillion 的量级词。</li>
+      <li>「and」会被自动忽略，因此英式写法 two thousand and five 与美式写法 two thousand five 都能正确识别。</li>
+      <li>小数点用 point 表示，例如 three point one four 会转成 3.14。</li>
+      <li>连字符写法 twenty-one 与空格写法 twenty one 均可识别，页面里的「识别连字符」选项只影响提示文案。</li>
+      <li>同时提供反向读法（数字转英文单词），可用于校对英文金额或地址中的数字写法。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var ONES = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19 };
+var TENS = { twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+var SCALES = { hundred: 100, thousand: 1000, million: 1000000, billion: 1000000000, trillion: 1000000000000 };
+
+/* 英文数词 → 数字；无法识别返回 null */
+function __xfEn2Num(text) {
+  var s = String(text || "").toLowerCase().trim();
+  if (!s) return null;
+  if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
+  s = s.replace(/ and /g, " ").replace(/-/g, " ").replace(/,/g, " ").replace(/\s+/g, " ");
+  var words = s.split(" ");
+  var total = 0, current = 0, point = false;
+  var dec = "";
+  for (var i = 0; i < words.length; i++) {
+    var w = words[i];
+    if (w === "point") { point = true; continue; }
+    if (point) {
+      if (ONES[w] === undefined) return null;
+      dec += ONES[w];
+      continue;
+    }
+    if (ONES[w] !== undefined) { current += ONES[w]; continue; }
+    if (TENS[w] !== undefined) { current += TENS[w]; continue; }
+    if (w === "hundred") { current = (current || 1) * 100; continue; }
+    if (SCALES[w] !== undefined) {
+      if (w === "hundred") continue;
+      total += (current || 1) * SCALES[w];
+      current = 0;
+      continue;
+    }
+    return null;
+  }
+  var val = total + current;
+  if (point) val = Number(String(val) + "." + (dec || "0"));
+  return val;
+}
+function __xfAddCommas(n) {
+  var s = String(n), sign = "";
+  if (s[0] === "-") { sign = "-"; s = s.slice(1); }
+  var parts = s.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return sign + parts.join(".");
+}
+function __xfNum2EnWords(n) {
+  var ONES2 = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+  var TENS2 = ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+  var SC = [[1000000000000,"trillion"],[1000000000,"billion"],[1000000,"million"],[1000,"thousand"],[100,"hundred"]];
+  var num = Math.floor(Math.abs(Number(n)));
+  if (num === 0) return "zero";
+  var out = [];
+  for (var i = 0; i < SC.length; i++) {
+    var v = SC[i][0];
+    if (num >= v) {
+      var c = Math.floor(num / v);
+      num %= v;
+      out.push(__xfNum2EnWords(c) + " " + SC[i][1]);
+    }
+  }
+  if (num >= 20) {
+    var t = Math.floor(num / 10);
+    out.push(TENS2[t]);
+    num %= 10;
+    if (num) out.push(ONES2[num]);
+  } else if (num > 0) out.push(ONES2[num]);
+  return out.join(" ").replace(/\s+/g, " ").trim();
+}
+window.__xfEn2Num = __xfEn2Num;
+window.__xfAddCommas = __xfAddCommas;
+window.__xfNum2EnWords = __xfNum2EnWords;
+
+var $ = function (id) { return document.getElementById(id); };
+function run() {
+  var v = __xfEn2Num($("src").value);
+  if (v === null) {
+    $("res").value = "❌ 无法识别为英文数字。\n\n支持范围：zero ~ trillion，以及 point 表示的小数（如 three point one four）。";
+    $("tip").textContent = "❌ 识别失败";
+    return;
+  }
+  var out = $("style").value === "comma" ? __xfAddCommas(v) : String(v);
+  $("res").value = out + "\n\n（反向读法：" + __xfNum2EnWords(v) + "）";
+  $("tip").textContent = "✅ 转换结果：" + (typeof v === "number" ? v.toLocaleString() : v);
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = function () {
+  var demos = ["one hundred twenty-three", "two thousand and five", "one million two hundred thousand", "three point one four", "nine hundred ninety-nine billion"];
+  $("src").value = demos[Math.floor(Math.random() * demos.length)];
+  run();
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value.split("\n")[0]).then(function () { alert("✅ 已复制"); }); };
+["style", "hy"].forEach(function (id) { $(id).addEventListener("change", run); });
+run();
+</script>
+</body>
+</html>

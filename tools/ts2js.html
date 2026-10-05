@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeScript转JavaScript - 词海工具箱</title>
+<meta name="description" content="TypeScript 转 JavaScript 工具：去掉类型注解、接口、类型别名与 as 断言，输出可直接运行的 ES 代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ts2js.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ts2js" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>处理项</label>
+        <select id="opt">
+          <option value="all" selected>全部（类型+接口+断言）</option>
+          <option value="type">仅类型注解</option>
+          <option value="iface">仅接口与类型别名</option>
+          <option value="assert">仅 as 断言与非空断言</option>
+        </select>
+      </div>
+      <div class="fitem"><label>枚举处理</label>
+        <select id="en"><option value="obj" selected>转为普通对象</option><option value="keep">保留 enum（不处理）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换为 JS</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">TypeScript 代码</div>
+      <textarea id="src" style="min-height:180px;">interface User {
+  id: number;
+  name: string;
+}
+
+type ID = string | number;
+
+enum Color { Red = 1, Green = 2 }
+
+const id: ID = "abc" as ID;
+let count: number = 0;
+function greet(name: string, times?: number): string {
+  return "Hello " + name!;
+}</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">JavaScript 代码</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于TypeScript转JavaScript介绍：</h4>
+    <ol>
+      <li>移除的类型信息包括：变量与参数类型注解、函数返回类型、interface、type 别名、as 断言、非空断言 ! 与调用处的泛型参数。</li>
+      <li>处理时会跳过字符串与注释，因此字符串里的「: number」不会被误删。</li>
+      <li>enum 默认转成普通对象（带初始值计算），也可选择保留 enum 交给真正的 TypeScript 编译器处理。</li>
+      <li>本工具是轻量正则+状态机实现，复杂的条件类型、装饰器与命名空间建议使用 tsc 或 esbuild 编译。</li>
+      <li>转换后的代码是标准 ES 语法，可直接在浏览器或 Node.js 中运行。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var TS_TYPES = ["string","number","boolean","any","void","null","undefined","never","object","unknown","symbol","bigint"];
+/* 判断是否像 TypeScript 类型：内置类型 或 大写开头的自定义类型 */
+function __xfLooksLikeType(t) {
+  var s = String(t).trim();
+  if (!s) return false;
+  var first = s.replace(/^\?/, "").split(/[<\[|]/)[0].trim();
+  if (!first) return false;
+  if (TS_TYPES.indexOf(first) >= 0) return true;
+  return /^[A-Z]/.test(first);
+}
+/* 从 i 处尝试匹配一段类型表达式；匹配成功且后面紧跟分隔符则返回结束位置 */
+function __xfTypeAt(s, i) {
+  var re = /^\s*([A-Za-z_$][\w$.]*(?:\s*<[^<>]*(?:<[^<>]*>[^<>]*)*>)?(?:\[\])*(?:\s*\|\s*[A-Za-z_$][\w$.]*(?:\s*<[^<>]*>)?(?:\[\])*)*)(?=\s*[=;,){\n]|$)/;
+  var m = re.exec(s.slice(i));
+  if (!m) return -1;
+  if (!__xfLooksLikeType(m[1])) return -1;
+  return i + m[0].length;
+}
+/* 去掉类型注解（保护字符串与注释；三元表达式中的冒号不会被误删）*/
+function __xfStripTypes(code) {
+  var s = String(code), out = "", i = 0, state = "code";
+  while (i < s.length) {
+    var c = s[i], c2 = s[i + 1];
+    if (state === "code") {
+      if (c === "\"" || c === "'" || c === "\u0060") { state = c; out += c; i++; continue; }
+      if (c === "/" && c2 === "/") { state = "line"; out += c + c2; i += 2; continue; }
+      if (c === "/" && c2 === "*") { state = "block"; out += c + c2; i += 2; continue; }
+      if (c === ":") {
+        var prev = out.replace(/\s+$/, "").slice(-1);
+        var optional = prev === "?";
+        var before = optional ? out.replace(/\s+$/, "").slice(-2, -1) : prev;
+        if (/[\w$\]\)]/.test(before)) {
+          var end = __xfTypeAt(s, i + 1);
+          if (end > 0) {
+            if (optional) out = out.replace(/\s*\?\s*$/, "");
+            i = end;
+            continue;
+          }
+        }
+      }
+      out += c; i++; continue;
+    }
+    if (state === "line") { out += c; if (c === "\n") state = "code"; i++; continue; }
+    if (state === "block") { out += c; if (c === "*" && c2 === "/") { out += c2; i += 2; state = "code"; continue; } i++; continue; }
+    if (c === "\\") { out += c + (s[i + 1] || ""); i += 2; continue; }
+    if (c === state) state = "code";
+    out += c; i++;
+  }
+  return out;
+}
+function __xfStripInterfaces(code) {
+  var s = String(code);
+  s = s.replace(/^[ \t]*export\s+interface\s+[\w$]+[\s\S]*?\}[ \t]*$/gm, "");
+  s = s.replace(/^[ \t]*interface\s+[\w$]+[\s\S]*?\}[ \t]*$/gm, "");
+  s = s.replace(/^[ \t]*export\s+type\s+[\w$]+\s*=[^;]+;[ \t]*$/gm, "");
+  s = s.replace(/^[ \t]*type\s+[\w$]+\s*=[^;]+;[ \t]*$/gm, "");
+  return s.replace(/\n{3,}/g, "\n\n");
+}
+function __xfStripAsserts(code) {
+  var s = String(code);
+  s = s.replace(/\s+as\s+const\b/g, "");
+  s = s.replace(/\s+as\s+[A-Za-z_$][\w$<>\[\]|., ]*/g, "");
+  s = s.replace(/([\w$\]\)])([!])(?=[.;,)\]])/g, "$1");
+  s = s.replace(/<([A-Za-z_$][\w$]*(?:\s*,\s*[A-Za-z_$][\w$]*)*)>(?=\s*\()/g, "");
+  return s;
+}
+function __xfEnumToObj(code) {
+  return String(code).replace(/enum\s+([\w$]+)\s*\{([\s\S]*?)\}/g, function (m, name, body) {
+    var pairs = body.split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+    var auto = 0, list = [];
+    pairs.forEach(function (p) {
+      var mm = p.split("=");
+      var k = mm[0].trim().replace(/['"]/g, "");
+      var v = mm[1] !== undefined ? mm[1].trim() : String(auto);
+      var num = parseInt(v, 10);
+      auto = isNaN(num) ? auto + 1 : num + 1;
+      list.push("  " + k + ": " + v);
+    });
+    return "const " + name + " = {\n" + list.join(",\n") + "\n};";
+  });
+}
+function __xfTs2Js(code, opt, enMode) {
+  var out = String(code);
+  if (opt === "all" || opt === "iface") out = __xfStripInterfaces(out);
+  if (opt === "all" || opt === "assert") out = __xfStripAsserts(out);
+  if (opt === "all" || opt === "type") out = __xfStripTypes(out);
+  if (enMode === "obj" && opt === "all") out = __xfEnumToObj(out);
+  return out.replace(/\n{3,}/g, "\n\n").replace(/^\s+$/gm, "").replace(/\n+$/, "");
+}
+window.__xfTs2Js = __xfTs2Js;
+window.__xfStripTypes = __xfStripTypes;
+window.__xfStripInterfaces = __xfStripInterfaces;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var out = __xfTs2Js($("src").value, $("opt").value, $("en").value);
+  $("res").value = out;
+  $("state").textContent = "原 " + $("src").value.length + " → " + out.length + " 字符";
+  $("tip").textContent = "✅ 已转换为 JavaScript";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

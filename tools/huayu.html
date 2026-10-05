@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>花语大全 - 词海工具箱</title>
+<meta name="description" content="花语大全：收录常见鲜花的寓意与花语，支持按名称或寓意关键词搜索，送花前先查清楚含义。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/huayu.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="huayu" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="输入花名或寓意关键词，如：玫瑰、爱情、友谊"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">搜索</button>
+      <button class="fbtn gray" id="allBtn">全部花语</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">花语列表</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:1.9;font-size:13px;max-height:420px;overflow:auto;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于花语大全介绍：</h4>
+    <ol>
+      <li>共收录 40 种常见鲜花的花语与寓意，支持按花名、寓意、说明三个字段模糊搜索。</li>
+      <li>花语有地域与文化差异：例如黄玫瑰在西方多表示友谊与道歉，在中国部分语境中表示失恋。</li>
+      <li>送花时可结合场合挑选：表白用红玫瑰、感恩用康乃馨、祝事业用向日葵、婚礼用百合与铃兰。</li>
+      <li>白色花朵（白菊、白玫瑰）在部分场合用于祭奠，送人前建议先了解当地习俗。</li>
+      <li>本表为常见花语整理，仅供参考，实际含义还会因朵数、配色与赠花场景而变化。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var FLOWERS = [
+  ["玫瑰", "爱情、热恋、勇敢的爱", "红玫瑰代表热烈爱情，白玫瑰代表纯洁，黄玫瑰在部分文化中表示失恋或道歉"],
+  ["百合", "百年好合、纯洁高雅", "婚礼常用花，寓意顺利、心想事成，白色百合最经典"],
+  ["郁金香", "爱的表白、名誉", "红色表热爱，紫色表忠贞，黄色表开朗，是荷兰国花"],
+  ["康乃馨", "母爱、温馨的祝福", "母亲节代表花，红色祝健康，粉色表感恩，白色表怀念"],
+  ["向日葵", "沉默的爱、忠诚、阳光", "寓意追逐光明、积极向上，适合送朋友与运开之人"],
+  ["满天星", "真心喜欢、纯洁的爱", "常作配花，寓意甘当配角、默默守护"],
+  ["勿忘我", "永恒的记忆、不要忘记我", "适合送远行的人，表达深情与牵挂"],
+  ["薰衣草", "等待爱情、沉静的心", "紫色花海象征浪漫与安宁，也有助眠香氛用途"],
+  ["风信子", "重生的爱、喜悦", "蓝风信子表恒心，紫表忧郁，白表恬适"],
+  ["鸢尾花", "优雅的心、使命", "法国国花，寓意光明与自由"],
+  ["铃兰", "幸福归来、纯洁", "常出现在婚礼捧花中，寓意幸福降临"],
+  ["栀子花", "永恒的爱、一生守候", "夏季校园离别花，寓意青春与思念"],
+  ["山茶花", "理想的爱、谦让", "凋谢时花瓣一片片落下，被视为谨慎与谦逊"],
+  ["茉莉花", "你是我的、亲切", "香气清雅，寓意忠贞与质朴"],
+  ["牡丹", "富贵、圆满", "被称为花中之王，象征繁荣与吉祥"],
+  ["梅花", "坚韧、傲骨", "凌寒独自开，象征不屈与高洁，中国十大名花之首"],
+  ["兰花", "高洁、君子之交", "寓意淡泊与贤德，与梅竹菊合称四君子"],
+  ["菊花", "高洁、长寿", "重阳赏菊寓意延年，白色菊花在部分场合用于追思"],
+  ["荷花", "清白、坚贞", "出淤泥而不染，象征高洁品格与纯洁爱情"],
+  ["桂花", "收获、吉祥", "中秋时节盛开，寓意团圆与功名（桂冠）"],
+  ["水仙", "自恋、吉祥", "春节常见年花，寓意万事如意"],
+  ["杜鹃", "永远属于你、节制", "山野之花，寓意热烈与思乡"],
+  ["紫罗兰", "永恒的美、质朴", "寓意谦逊与贞洁，花语偏含蓄"],
+  ["雏菊", "天真、和平、希望", "常用来表达暗恋与纯真的心意"],
+  ["蒲公英", "自由、无法停留的爱", "随风飘散，寓意勇敢追寻与洒脱"],
+  ["木棉花", "珍惜身边人、英雄", "又称英雄花，象征热烈与坚韧"],
+  ["樱花", "生命、纯洁、短暂的美好", "花期极短，寓意珍惜当下"],
+  ["桃花", "爱情的俘虏、好运", "常用来形容桃花运与美好姻缘"],
+  ["杏花", "少女的慕情、疑惑", "春日早开，寓意含蓄的情感"],
+  ["石榴花", "成熟的美丽、多子多福", "寓意人丁兴旺、生活红火"],
+  ["昙花", "刹那的美丽、一瞬间的永恒", "夜间开放数小时即谢，寓意珍惜瞬间"],
+  ["夹竹桃", "注意安全、咒骂", "全株有毒，花语带警示意味，不宜送人"],
+  ["紫藤", "沉迷的爱、醉人的恋情", "垂挂花序浪漫，寓意深深依恋"],
+  ["桔梗", "永恒不变的爱、无望的爱", "花语带忧伤，寓意执着守候"],
+  ["鸢尾", "好消息、想念你", "寓意信使与期盼"],
+  ["石斛兰", "父亲之花、坚毅", "常作为父亲节赠花，寓意刚强与慈爱"],
+  ["蝴蝶兰", "幸福向你飞来", "高档年花，寓意仕途顺畅与幸福"],
+  ["天堂鸟", "自由、潇洒", "又称鹤望兰，寓意无拘无束与思念"],
+  ["波斯菊", "少女的纯情", "轻盈摇曳，寓意自由与快乐"],
+  ["风铃草", "感谢、创造力", "钟形花，寓意温柔与感恩"]
+];
+function __xfFlowerList() { return FLOWERS.map(function (f) { return { name: f[0], mean: f[1], note: f[2] }; }); }
+function __xfFlowerSearch(kw) {
+  var k = String(kw || "").trim().toLowerCase();
+  var all = __xfFlowerList();
+  if (!k) return all;
+  return all.filter(function (f) {
+    return f.name.toLowerCase().indexOf(k) >= 0 || f.mean.toLowerCase().indexOf(k) >= 0 || f.note.toLowerCase().indexOf(k) >= 0;
+  });
+}
+window.__xfFlowerList = __xfFlowerList;
+window.__xfFlowerSearch = __xfFlowerSearch;
+
+var $ = function (id) { return document.getElementById(id); };
+function paint(list, title) {
+  if (!list.length) { $("res").innerHTML = "<p style='color:#999;'>没有找到相关花语，换个关键词试试</p>"; $("tip").textContent = "无结果"; return; }
+  $("res").innerHTML = list.map(function (f) {
+    return "<p style='margin-bottom:8px;'><b style='color:#e91e63;'>" + f.name + "</b>：<span style='color:#666;'>" + f.mean + "</span><br><span style='color:#999;font-size:12px;'>" + f.note + "</span></p>";
+  }).join("");
+  $("tip").textContent = title;
+}
+$("runBtn").onclick = function () { paint(__xfFlowerSearch($("kw").value), "搜索结果（共 " + __xfFlowerSearch($("kw").value).length + " 条）"); };
+$("allBtn").onclick = function () { $("kw").value = ""; paint(__xfFlowerList(), "全部花语（共 " + FLOWERS.length + " 种）"); };
+$("kw").addEventListener("keydown", function (e) { if (e.key === "Enter") $("runBtn").click(); });
+$("kw").addEventListener("input", function () { paint(__xfFlowerSearch(this.value), "搜索中…"); });
+paint(__xfFlowerList(), "全部花语（共 " + FLOWERS.length + " 种）");
+</script>
+</body>
+</html>

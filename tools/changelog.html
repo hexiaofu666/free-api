@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.6.1"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.6.1">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -68,13 +68,26 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.6.1"></script>
-<script src="../assets/chrome.js?v=1.6.1"></script>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.7.0", date: "2026-10-05",
+    items: [
+      ["new", "一次性新增 100 款工具（工具总数 205 → 305），是建站以来单次扩充规模最大的一次。生活工具新增 27 款：2026年放假安排、指南针方向、空调功率换算、太阳位置与正午高度角、月相查询、花语大全、环境音效播放、屏幕色温调光、屏幕参数检测、待办任务管理、鼠标按键检测、鼠标回报率测试、鼠标点击间隔分析、鼠标滚轮检测、屏幕刷新率测试、屏幕色彩测试、触摸屏检测、屏幕常亮、剪贴板查看、系统字体检测、证件照尺寸计算、国际电话区号、世界各国首都、抛硬币、掷骰子、彩虹屁生成器、今天吃什么"],
+      ["new", "新增 41 款编程开发工具。加密哈希类 10 款：RC4、DES/3DES、AES（CBC/GCM）、RSA（OAEP）、RIPEMD-160、Keccak/SHA-3、JWT 解析、零宽字符隐写、邮箱防爬混淆、文件哈希校验；编码转换类 10 款：Gzip 压缩解压、数字转英文读法、JS 混淆与压缩、字符串转义还原、多进制转换、URL 批量处理、vCard 名片、多语言 Hello World、Chrome 启动参数；代码格式化类 10 款：XML/Java/PHP 格式化、HTML 清理、HTML 转 JS/字符串/UBB、SQL 转 Java 实体、表格转 JSON、HTML 示例预览；数据转换类 10 款：JSON 转 Java/C#/PHP 数组、PHP 序列化与反序列化、JS 与 TypeScript 互转、HTML 链接提取、Sitemap 链接提取、在线 API 测试"],
+      ["new", "新增 13 款效率办公工具：文本字符频率统计、文本多行合并、文本按行拆分、数字批量补零、移除 Emoji 表情、中文分词符插入、Markdown 转纯文本、HTML 转 Markdown、Lorem 占位文本生成、文本批量加行号、特殊符号大全、纸张尺寸对照表、Emoji 表情大全"],
+      ["new", "新增 12 款站长与前端工具：MIME 类型查询、LESS/SCSS 转 CSS、JavaScript 压缩、CSV 转 SQL 语句、CSV 转 Markdown 表格、键盘按键码查询、SVG 转 CSS 背景、批量打开网址、CSS 裁剪路径生成器、虚线边框生成器、CSS 3D 翻转卡片生成器、CSS 液态形状生成器"],
+      ["new", "新增 7 款颜色与数学工具：多色混合计算、配色方案生成器（互补/邻近/三角/四角）、日本传统色查询、中国传统色查询、色盲模拟预览（红绿色盲/蓝黄色盲/全色盲）、像素尺寸换算、中文数字转换、化学元素查询（收录 118 种元素）"],
+      ["opt", "分类规模：编程开发 88 → 129 款、生活工具 33 → 60 款、站长工具 34 → 45 款、效率办公 10 → 23 款、图片颜色 30 → 35 款、数学工具 11 → 14 款，合计 305 款"],
+      ["opt", "本批新页面上线前统一通过结构自检：页面骨架、UTF-8 编码、视口设置、标题与描述标签、canonical 唯一性、统计代码唯一性、图标存在性与资源版本引用全部合规"],
+      ["opt", "全站资源版本号由 v1.6.1 统一升级至 v1.7.0（共 1223 处引用），访问过的旧缓存会自动失效更新"],
+    ]
+  },
   {
     ver: "v1.6.0", date: "2026-10-04",
     items: [

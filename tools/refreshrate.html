@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕刷新率检测 - 词海工具箱</title>
+<meta name="description" content="屏幕刷新率检测：用 requestAnimationFrame 实测显示器当前刷新率，支持 60/90/120/144/165Hz 识别与帧率稳定性分析。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/refreshrate.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="refreshrate" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>测试时长(秒)</label><input type="number" id="dur" value="3" min="1" max="15"></div>
+      <div class="fitem"><label>判定容差(Hz)</label><input type="number" id="tol" value="6" min="1" max="30"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="startBtn">开始检测</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">检测结果</strong><span id="live">-- FPS</span></div>
+      <div id="bar" style="height:70px;border:1px solid #eee;border-radius:4px;display:flex;align-items:flex-end;gap:2px;padding:6px;overflow:hidden;"></div>
+      <textarea id="res" readonly style="height:170px;margin-top:10px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于屏幕刷新率检测介绍：</h4>
+    <ol>
+      <li>原理：用 requestAnimationFrame 记录每一帧的时间戳，取相邻间隔的中位数换算成刷新率（1000 ÷ 间隔毫秒）。</li>
+      <li>60 Hz 的帧间隔约 16.67 ms、120 Hz 约 8.33 ms、144 Hz 约 6.94 ms、165 Hz 约 6.06 ms。</li>
+      <li>实测值受浏览器节流与页面负载影响：若标签页处于后台，浏览器会大幅降低帧率，请在当前标签页前台运行。</li>
+      <li>笔记本未插电源时系统可能自动降频、切换刷新率（例如 120Hz 降到 60Hz），测试时可插上电源对比。</li>
+      <li>帧间隔波动（jitter）越小说明画面越稳定；波动很大通常意味着后台有其他程序占用 GPU。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var STD = [30, 50, 60, 75, 90, 100, 120, 144, 165, 180, 240, 360];
+/* 由帧时间戳计算 FPS 统计 */
+function __xfFrameStats(times) {
+  var t = (times || []).slice().sort(function (a, b) { return a - b; });
+  if (t.length < 3) return null;
+  var d = [];
+  for (var i = 1; i < t.length; i++) d.push(t[i] - t[i - 1]);
+  d.sort(function (a, b) { return a - b; });
+  var med = d[Math.floor(d.length / 2)];
+  var sum = d.reduce(function (a, b) { return a + b; }, 0);
+  var avg = sum / d.length;
+  return {
+    frames: t.length,
+    fps: Math.round(1000 / med * 10) / 10,
+    avgFps: Math.round(1000 / avg * 10) / 10,
+    medianInterval: Math.round(med * 1000) / 1000,
+    jitter: Math.round((d[d.length - 1] - d[0]) * 1000) / 1000
+  };
+}
+/* 最接近的标准刷新率档位 */
+function __xfMatchRate(fps, tol) {
+  var f = Number(fps) || 0, t = Number(tol) || 6, best = null;
+  STD.forEach(function (s) { if (Math.abs(f - s) <= t && (best === null || Math.abs(f - s) < Math.abs(f - best))) best = s; });
+  return best;
+}
+window.__xfFrameStats = __xfFrameStats;
+window.__xfMatchRate = __xfMatchRate;
+
+var $ = function (id) { return document.getElementById(id); };
+var times = [], running = false, bars = [];
+function frame(t) {
+  if (!running) return;
+  times.push(t);
+  if (times.length > 1) {
+    var fps = Math.round(1000 / (t - times[times.length - 2]));
+    $("live").textContent = fps + " FPS";
+    bars.push(Math.min(100, fps));
+    if (bars.length > 60) bars.shift();
+    $("bar").innerHTML = bars.map(function (b) {
+      var c = b >= 100 ? "#06b672" : (b >= 50 ? "#fbc02d" : "#e74c3c");
+      return "<span style='flex:1;height:" + Math.max(4, b) + "%;background:" + c + ";border-radius:2px;'></span>";
+    }).join("");
+  }
+  requestAnimationFrame(frame);
+}
+$("startBtn").onclick = function () {
+  if (running) return;
+  times = []; bars = []; running = true;
+  $("tip").textContent = "检测中…";
+  requestAnimationFrame(frame);
+  var dur = Math.max(1, Math.min(15, parseFloat($("dur").value) || 3));
+  setTimeout(function () {
+    running = false;
+    var s = __xfFrameStats(times);
+    if (!s) { $("res").value = "采样数据不足，请重试。"; return; }
+    var match = __xfMatchRate(s.fps, $("tol").value);
+    $("res").value = [
+      "采样帧数：" + s.frames,
+      "实测刷新率：" + s.fps + " Hz（中位间隔 " + s.medianInterval + " ms）",
+      "平均帧率：" + s.avgFps + " FPS",
+      "帧间隔波动：" + s.jitter + " ms",
+      "档位判定：" + (match ? match + " Hz" : "未匹配到常见档位"),
+      "",
+      "说明：实测值受浏览器渲染节流、页面负载与其他程序影响，一般允许 ±" + $("tol").value + " Hz 误差。",
+      match === 60 ? "60 Hz 为最常见的办公显示器刷新率；若显示器标称更高，请检查系统显示设置。" : "若与显示器标称值不符，请在系统显示设置中确认刷新率已调到最高档。"
+    ].join("\n");
+    $("tip").textContent = "✅ 检测完成：" + s.fps + " Hz";
+  }, dur * 1000);
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("res").value = "点击「开始检测」，页面会连续请求动画帧并统计实际刷新率。\n\n刷新率越高，画面越流畅：办公 60Hz、电竞 144Hz、专业 240Hz。";
+$("tip").textContent = "检测结果";
+</script>
+</body>
+</html>

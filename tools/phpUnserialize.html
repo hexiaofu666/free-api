@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHP反序列化转换 - 词海工具箱</title>
+<meta name="description" content="PHP 反序列化工具：把 PHP serialize 字符串解析成 JSON，支持数组、对象、嵌套结构与字符串长度校验。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/phpUnserialize.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="phpUnserialize" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输出格式</label>
+        <select id="fmt"><option value="pretty" selected>格式化 JSON</option><option value="compact">压缩 JSON</option><option value="tree">层级清单</option></select>
+      </div>
+      <div class="fitem"><label>对象处理</label>
+        <select id="obj"><option value="obj" selected>保留为对象</option><option value="arr">转为数组</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">反序列化</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">PHP 序列化字符串</div>
+      <textarea id="src" style="min-height:150px;">a:4:{s:4:"name";s:15:"词海工具箱";s:5:"count";i:205;s:4:"tags";a:2:{i:0;s:6:"工具";i:1;s:3:"SEO";}s:3:"vip";b:1;}</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">反序列化结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于PHP反序列化转换介绍：</h4>
+    <ol>
+      <li>支持解析 PHP 的 N（null）、b（布尔）、i（整数）、d（浮点）、s（字符串）、a（数组）、O（对象）七种类型标记。</li>
+      <li>字符串长度按 UTF-8 字节数校验，若内容被截断或长度不符会明确提示出错位置。</li>
+      <li>索引连续的数组会还原成 JSON 数组，键名不连续的关联数组还原为 JSON 对象。</li>
+      <li>「层级清单」模式用缩进展示结构，适合快速查看大数组的字段分布。</li>
+      <li>PHP 序列化数据常用于缓存（如 Redis）与队列消息，调试时可用本工具直接查看内容。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfUnserialize(str) {
+  var s = String(str).trim(), pos = 0;
+  function fail(msg) { throw new Error(msg + "（位置 " + pos + "）"); }
+  function byteStr(len) {
+    if (s[pos] !== '"') fail("期望字符串起始引号");
+    pos++;
+    var out = "", bytes = 0, start = pos;
+    while (bytes < len) {
+      if (pos >= s.length) fail("字符串未结束");
+      var c = s.charCodeAt(pos);
+      var need = c < 0x80 ? 1 : (c < 0x800 ? 2 : (c >= 0xd800 && c <= 0xdbff ? 4 : 3));
+      out += s[pos];
+      if (c >= 0xd800 && c <= 0xdbff) { out += s[pos + 1] || ""; pos += 2; } else pos++;
+      bytes += need;
+    }
+    if (s[pos] !== '"') fail("期望字符串结束引号");
+    pos++;
+    return out;
+  }
+  function parse() {
+    var t = s[pos];
+    if (t === "N") { pos += 2; return null; }
+    if (t === "b") { pos += 2; var v = s[pos] === "1"; pos += 2; return v; }
+    if (t === "i") { pos += 2; var e = s.indexOf(";", pos); var n = parseInt(s.slice(pos, e), 10); pos = e + 1; return n; }
+    if (t === "d") { pos += 2; var e2 = s.indexOf(";", pos); var d = parseFloat(s.slice(pos, e2)); pos = e2 + 1; return d; }
+    if (t === "s") {
+      pos += 2;
+      var col = s.indexOf(":", pos);
+      var len = parseInt(s.slice(pos, col), 10);
+      pos = col + 1;
+      var str = byteStr(len);
+      if (s[pos] !== ";") fail("字符串结尾缺少分号");
+      pos++;
+      return str;
+    }
+    if (t === "a" || t === "O") {
+      var isObj = t === "O";
+      pos += 2;
+      var c1 = s.indexOf(":", pos);
+      var count;
+      if (isObj) {
+        var nameLen = parseInt(s.slice(pos, c1), 10);
+        pos = c1 + 1;
+        byteStr(nameLen);
+        if (s[pos] !== ":") fail("对象结构错误");
+        pos++;
+        c1 = s.indexOf(":", pos);
+      }
+      count = parseInt(s.slice(pos, c1), 10);
+      pos = c1 + 1;
+      if (s[pos] !== "{") fail("期望 {");
+      pos++;
+      var map = {}, arr = [], useArr = true;
+      for (var i = 0; i < count; i++) {
+        var k = parse(), v = parse();
+        map[k] = v;
+        if (k !== i) useArr = false;
+        arr.push(v);
+      }
+      if (s[pos] !== "}") fail("期望 }");
+      pos++;
+      return useArr && !isObj ? arr : map;
+    }
+    fail("无法识别的类型标记「" + t + "」");
+  }
+  try {
+    var val = parse();
+    if (pos < s.length && s.slice(pos).trim()) return { ok: false, error: "解析结束后仍有剩余内容：" + s.slice(pos, pos + 20) };
+    return { ok: true, value: val };
+  } catch (e) { return { ok: false, error: e.message }; }
+}
+function __xfTree(v, depth) {
+  var pad = new Array((depth || 0) + 1).join("  ");
+  if (v === null) return pad + "null";
+  if (Array.isArray(v)) return pad + "[数组 " + v.length + "]\n" + v.map(function (x) { return __xfTree(x, (depth || 0) + 1); }).join("\n");
+  if (typeof v === "object") {
+    return Object.keys(v).map(function (k) {
+      var x = v[k];
+      if (x !== null && typeof x === "object") return pad + k + ":\n" + __xfTree(x, (depth || 0) + 1);
+      return pad + k + " = " + JSON.stringify(x);
+    }).join("\n");
+  }
+  return pad + JSON.stringify(v);
+}
+window.__xfUnserialize = __xfUnserialize;
+window.__xfTree = __xfTree;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var r = __xfUnserialize($("src").value);
+  if (!r.ok) { $("res").value = "❌ 解析失败：" + r.error; $("tip").textContent = "❌ 解析失败"; $("state").textContent = ""; return; }
+  var v = r.value;
+  if ($("obj").value === "arr" && v && typeof v === "object" && !Array.isArray(v)) v = Object.keys(v).map(function (k) { return v[k]; });
+  var out;
+  if ($("fmt").value === "tree") out = __xfTree(v, 0);
+  else if ($("fmt").value === "compact") out = JSON.stringify(v);
+  else out = JSON.stringify(v, null, 2);
+  $("res").value = out;
+  $("state").textContent = out.length + " 字符";
+  $("tip").textContent = "✅ 反序列化成功";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSA加密解密 - 词海工具箱</title>
+<meta name="description" content="RSA加密解密工具：在线生成 RSA 密钥对并进行 OAEP 加解密，支持 1024/2048 位，密钥可导出为 PEM 格式。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/rsa.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="rsa" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>密钥长度</label>
+        <select id="bits"><option value="1024">1024 位（快速）</option><option value="2048" selected>2048 位（推荐）</option></select>
+      </div>
+      <div class="fitem"><label>哈希算法</label>
+        <select id="hash"><option value="SHA-256" selected>SHA-256</option><option value="SHA-1">SHA-1</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="genBtn">生成密钥对</button>
+      <button class="fbtn blue" id="encBtn">用公钥加密</button>
+      <button class="fbtn brown" id="decBtn">用私钥解密</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">RSA 密钥与结果</strong><span id="state">未生成</span></div>
+      <textarea id="res" readonly style="height:180px;"></textarea>
+      <div class="vsetup" style="margin-top:10px;border-radius:3px;">
+        <div class="fitem"><label>公钥PEM</label><input type="text" id="pub" placeholder="点击「生成密钥对」后自动填入"></div>
+        <div class="fitem"><label>私钥PEM</label><input type="text" id="pri" placeholder="（演示用，请勿用于生产密钥）"></div>
+        <div class="fitem"><label>明文</label><input type="text" id="plain" value="词海工具箱 RSA 测试"></div>
+        <div class="fitem"><label>密文Base64</label><input type="text" id="cipher" placeholder="加密结果会填入这里"></div>
+      </div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于RSA加密解密介绍：</h4>
+    <ol>
+      <li>RSA 是非对称加密：公钥可以公开用于加密，私钥必须保密用于解密；私钥泄露则加密形同虚设。</li>
+      <li>本工具使用 RSA-OAEP 填充（比已废弃的 PKCS#1 v1.5 更安全），哈希可选 SHA-256 与 SHA-1。</li>
+      <li>RSA 只能加密很短的数据：2048 位 + SHA-256 时单次上限为 190 字节，长文本请改用「对称加密 + 用 RSA 传密钥」的方式。</li>
+      <li>生成的密钥在浏览器本地产生，刷新页面即消失；如需长期使用请自行复制 PEM 并妥善保管私钥。</li>
+      <li>1024 位密钥已不满足现代安全要求，仅用于兼容测试；实际使用建议 2048 位及以上。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfAb2b64(buf) { return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))); }
+function __xfB642ab(b64) {
+  var bin = atob(String(b64).trim().replace(/\s+/g, ""));
+  var u = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u.buffer;
+}
+function __xfPem(b64, label) {
+  var lines = String(b64).replace(/\s+/g, "").match(/.{1,64}/g) || [];
+  return "-----BEGIN " + label + "-----\n" + lines.join("\n") + "\n-----END " + label + "-----";
+}
+function __xfPemBody(pem) { return String(pem).replace(/-----[^-]+-----/g, "").replace(/\s+/g, ""); }
+async function __xfRsaGen(bits, hash) {
+  var kp = await crypto.subtle.generateKey(
+    { name: "RSA-OAEP", modulusLength: bits || 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: hash || "SHA-256" },
+    true, ["encrypt", "decrypt"]);
+  var spki = await crypto.subtle.exportKey("spki", kp.publicKey);
+  var pkcs8 = await crypto.subtle.exportKey("pkcs8", kp.privateKey);
+  return { pub: __xfPem(__xfAb2b64(spki), "PUBLIC KEY"), pri: __xfPem(__xfAb2b64(pkcs8), "PRIVATE KEY") };
+}
+async function __xfRsaEncrypt(text, pubPem, hash) {
+  var key = await crypto.subtle.importKey("spki", __xfB642ab(__xfPemBody(pubPem)), { name: "RSA-OAEP", hash: hash || "SHA-256" }, false, ["encrypt"]);
+  var buf = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, key, new TextEncoder().encode(text));
+  return __xfAb2b64(buf);
+}
+async function __xfRsaDecrypt(b64, priPem, hash) {
+  var key = await crypto.subtle.importKey("pkcs8", __xfB642ab(__xfPemBody(priPem)), { name: "RSA-OAEP", hash: hash || "SHA-256" }, false, ["decrypt"]);
+  var buf = await crypto.subtle.decrypt({ name: "RSA-OAEP" }, key, __xfB642ab(b64));
+  return new TextDecoder().decode(buf);
+}
+/* RSA-OAEP 单次可加密的最大明文字节数 = 模长字节 - 2*哈希长度 - 2 */
+function __xfRsaMaxBytes(bits, hashLen) {
+  return Math.floor((Number(bits) || 2048) / 8) - 2 * (Number(hashLen) || 32) - 2;
+}
+window.__xfRsaGen = __xfRsaGen;
+window.__xfRsaEncrypt = __xfRsaEncrypt;
+window.__xfRsaDecrypt = __xfRsaDecrypt;
+window.__xfRsaMaxBytes = __xfRsaMaxBytes;
+window.__xfPem = __xfPem;
+window.__xfPemBody = __xfPemBody;
+
+var $ = function (id) { return document.getElementById(id); };
+function show(lines) { $("res").value = lines.join("\n"); }
+$("genBtn").onclick = function () {
+  $("state").textContent = "生成中…";
+  __xfRsaGen(+$("bits").value, $("hash").value).then(function (k) {
+    $("pub").value = k.pub.replace(/\n/g, " ");
+    $("pri").value = k.pri.replace(/\n/g, " ");
+    $("state").textContent = "已生成 " + $("bits").value + " 位";
+    show(["✅ 已生成 RSA-" + $("bits").value + " 密钥对（" + $("hash").value + "）。",
+      "公钥长度：" + k.pub.length + " 字符",
+      "",
+      "—— 公钥 PEM ——", k.pub,
+      "",
+      "—— 私钥 PEM ——", k.pri,
+      "",
+      "单次可加密明文上限：" + __xfRsaMaxBytes(+$("bits").value, $("hash").value === "SHA-256" ? 32 : 20) + " 字节"]);
+  }).catch(function (e) { $("state").textContent = "失败"; show(["生成失败：" + e.message]); });
+};
+$("encBtn").onclick = function () {
+  if (!$("pub").value) return alert("请先生成密钥对");
+  __xfRsaEncrypt($("plain").value, $("pub").value, $("hash").value).then(function (c) {
+    $("cipher").value = c;
+    show(["✅ 公钥加密完成", "", "明文：" + $("plain").value, "密文 Base64：", c]);
+  }).catch(function (e) { show(["加密失败：" + e.message, "（明文过长时会失败，请缩短内容）"]); });
+};
+$("decBtn").onclick = function () {
+  if (!$("pri").value) return alert("请先生成密钥对");
+  if (!$("cipher").value) return alert("请先加密得到密文");
+  __xfRsaDecrypt($("cipher").value, $("pri").value, $("hash").value).then(function (t) {
+    show(["✅ 私钥解密完成", "", "解密结果：" + t, "", "—— 与明文一致：" + (t === $("plain").value ? "是 ✅" : "否 ❌")]);
+  }).catch(function (e) { show(["解密失败：" + e.message]); });
+};
+show(["RSA-OAEP 非对称加密：用公钥加密、私钥解密。",
+  "",
+  "步骤：1) 点击「生成密钥对」；2) 输入明文后点「用公钥加密」；3) 点「用私钥解密」验证。",
+  "",
+  "提示：密钥在本地浏览器生成，刷新页面即丢失，不会上传服务器。"]);
+$("state").textContent = "未生成";
+</script>
+</body>
+</html>

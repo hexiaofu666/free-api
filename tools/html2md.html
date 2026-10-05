@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML转Markdown - 词海工具箱</title>
+<meta name="description" content="把 HTML 片段转换成 Markdown 语法，支持标题、加粗、斜体、链接、图片、列表、代码与引用，方便迁移到博客与文档站。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/html2md.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="html2md" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>链接形式</label>
+        <select id="lk"><option value="inline" selected>行内链接</option><option value="ref">引用式链接</option></select>
+      </div>
+      <div class="fitem"><label>保留空行</label>
+        <select id="bl"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">HTML 源码</div>
+      <textarea id="src" style="min-height:180px;"><h2>词海工具箱</h2>
+<p>这是<strong>免费</strong>的<em>在线</em>工具站。</p>
+<ul><li>无需登录</li><li>即开即用</li></ul>
+<p><a href="https://tools.hdemba.cn">立即体验</a></p></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">Markdown 结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTML转Markdown介绍：</h4>
+    <ol>
+      <li>h1 到 h6 会转换成对应数量的井号，标题层级保持原文档结构。</li>
+      <li>加粗与斜体分别转换为双星号与单星号，链接转换为方括号加圆括号的形式。</li>
+      <li>图片标签会优先读取 alt 作为替代文字，没有 alt 时生成空的图片语法。</li>
+      <li>列表项统一转换为减号缩进，连续列表会自动分行输出。</li>
+      <li>转换结果适合直接粘贴到博客园、CSDN 等支持 Markdown 的编辑器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfHtml2Md(html, opts) {
+  opts = opts || {};
+  var s = String(html);
+  s = s.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "");
+  s = s.replace(/<br\s*\/?>/gi, "\n");
+  s = s.replace(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi, function (m, n, t) {
+    return "\n" + new Array(parseInt(n, 10) + 1).join("#") + " " + String(t).trim() + "\n";
+  });
+  s = s.replace(/<(strong|b)[^>]*>([\s\S]*?)<\/\1>/gi, "**$2**");
+  s = s.replace(/<(em|i)[^>]*>([\s\S]*?)<\/\1>/gi, "*$2*");
+  s = s.replace(/<a[^>]*href=["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi, "[$2]($1)");
+  s = s.replace(/<img[^>]*alt=["']([^"']*)["'][^>]*src=["']([^"']*)["'][^>]*>/gi, "![$1]($2)");
+  s = s.replace(/<img[^>]*src=["']([^"']*)["'][^>]*>/gi, "![]($1)");
+  s = s.replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, "`$1`");
+  s = s.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, "- $1\n");
+  s = s.replace(/<h[1-6][^>]*>/gi, "").replace(/<\/(ul|ol)>/gi, "\n");
+  s = s.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, "$1\n\n");
+  s = s.replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi, function (m, t) { return t.trim().split("\n").map(function (l) { return "> " + l; }).join("\n") + "\n"; });
+  s = s.replace(/<[^>]+>/g, "");
+  s = s.replace(/[ \t]+\n/g, "\n");
+  if (opts.keepBlank === false) s = s.replace(/\n{3,}/g, "\n\n");
+  else s = s.replace(/\n{4,}/g, "\n\n\n");
+  return s.replace(/^\s+|\s+$/g, "");
+}
+window.__xfHtml2Md = __xfHtml2Md;
+function run() {
+  var out = __xfHtml2Md($("src").value, { keepBlank: $("bl").value === "yes" });
+  $("res").value = out;
+  $("state").textContent = out.length + " 字符";
+  $("tip").textContent = "✅ 转换完成";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>移除Emoji表情 - 词海工具箱</title>
+<meta name="description" content="一键清除文本中的 Emoji 表情与特殊符号，保留中文、字母和标点，适合净化摘要、标题与数据库入库前的文本清洗。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/rmemoji.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="rmemoji" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>保留箭头符号</label>
+        <select id="keep"><option value="no" selected>否</option><option value="yes">是</option></select>
+      </div>
+      <div class="fitem"><label>顺带去首尾空白</label>
+        <select id="trim"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">清除表情</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">含表情的文本</div>
+      <textarea id="src" style="min-height:150px;">今天的工具真好用😀，效率提升 200%🎉！</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">清洗结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:120px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于移除Emoji表情介绍：</h4>
+    <ol>
+      <li>Emoji 多以双字节代理对形式存在，本工具会整对移除，不会留下乱码残片。</li>
+      <li>除表情外还会清除零宽连接符、变体选择符等不可见字符，这类字符常导致入库报错。</li>
+      <li>勾选「保留箭头符号」时，← → 等箭头会保留，适合处理流程说明类文本。</li>
+      <li>清除后会压缩连续空格并可选去除首尾空白，让文本更整洁。</li>
+      <li>若只想检查数量而不清理，看提示里的移除个数的统计即可。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfStripEmoji(text, keepSymbol) {
+  var s = String(text);
+  s = s.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, "");
+  s = s.replace(/[\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D\u20E3\u2122\u2139]/g, "");
+  if (!keepSymbol) s = s.replace(/[\u2190-\u21FF\u2300-\u23FF]/g, "");
+  return s;
+}
+function __xfCountEmoji(text) {
+  var m = String(text).match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF\u2B00-\u2BFF]/g);
+  return m ? m.length : 0;
+}
+function __xfCleanText(text, keepSymbol, trim) {
+  var s = __xfStripEmoji(text, keepSymbol);
+  s = s.replace(/[ \t]{2,}/g, " ");
+  if (trim !== false) s = s.trim();
+  return s;
+}
+window.__xfStripEmoji = __xfStripEmoji;
+window.__xfCountEmoji = __xfCountEmoji;
+window.__xfCleanText = __xfCleanText;
+function run() {
+  var n = __xfCountEmoji($("src").value);
+  var out = __xfCleanText($("src").value, $("keep").value === "yes", $("trim").value === "yes");
+  $("res").value = out;
+  $("state").textContent = "移除 " + n + " 个表情";
+  $("tip").textContent = n ? "✅ 已移除 " + n + " 个表情" : "ℹ️ 未发现表情";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

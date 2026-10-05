@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>虚线边框生成器 - 词海工具箱</title>
+<meta name="description" content="在线生成虚线边框样式代码，可设置边框粗细、虚线长度、间隔与颜色，并给出可直接复用的完整 CSS 片段。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/dashedborder.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="dashedborder" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>边框粗细 px</label><input type="number" id="w" value="2" min="1" max="20"></div>
+      <div class="fitem"><label>虚线长度 px</label><input type="number" id="dl" value="8" min="1" max="80"></div>
+      <div class="fitem"><label>间隔 px</label><input type="number" id="gp" value="6" min="0" max="80"></div>
+      <div class="fitem"><label>颜色</label><input type="text" id="c" value="#ff6500"></div>
+      <div class="fitem"><label>圆角 px</label><input type="number" id="rd" value="6" min="0" max="60"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成样式</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">CSS 代码</strong><span id="state"></span></div>
+      <div style="padding:10px 0;text-align:center;"><div id="pv" style="display:inline-block;width:150px;height:70px;line-height:70px;">虚线预览</div></div>
+      <textarea id="res" readonly style="height:150px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于虚线边框生成器介绍：</h4>
+    <ol>
+      <li>浏览器原生 dashed 样式的虚线节奏由浏览器决定，无法精确控制段长与间隔。</li>
+      <li>需要精确控制虚线节奏时改用渐变方案，通过重复线性渐变模拟出规整的虚线。</li>
+      <li>渐变方案使用两条交叉的渐变分别绘制上下与左右边框，逻辑上独立于元素尺寸。</li>
+      <li>圆角与渐变虚线同时使用时，圆角处可能出现细微重叠，可适当减小圆角值。</li>
+      <li>生成代码以类名 dashed-box 输出，可自行替换为项目中的实际类名。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfDashedCss(opts) {
+  opts = opts || {};
+  var w = Number(opts.width) || 2, dl = Number(opts.dash) || 8, gp = Number(opts.gap === undefined ? 6 : opts.gap), color = opts.color || "#ff6500", rd = Number(opts.radius) || 0;
+  var style = (opts.mode === "border") ? "border" : "gradient";
+  var lines = ["." + (opts.cls || "dashed-box") + " {"];
+  if (style === "border") {
+    lines.push("  border: " + w + "px dashed " + color + ";");
+  } else {
+    lines.push("  background-image: repeating-linear-gradient(90deg, " + color + " 0 " + dl + "px, transparent " + dl + "px " + (dl + gp) + "px),");
+    lines.push("                    repeating-linear-gradient(0deg, " + color + " 0 " + dl + "px, transparent " + dl + "px " + (dl + gp) + "px);");
+    lines.push("  background-size: 100% " + w + "px, " + w + "px 100%;");
+    lines.push("  background-position: 0 0, 0 0;");
+    lines.push("  background-repeat: no-repeat;");
+  }
+  if (rd) lines.push("  border-radius: " + rd + "px;");
+  lines.push("}");
+  return lines.join("\n");
+}
+function __xfDashPreview(opts) {
+  opts = opts || {};
+  var w = Number(opts.width) || 2, dl = Number(opts.dash) || 8, gp = Number(opts.gap === undefined ? 6 : opts.gap), color = opts.color || "#ff6500";
+  return "border: " + w + "px dashed " + color + "; border-radius: " + (Number(opts.radius) || 0) + "px;";
+}
+window.__xfDashedCss = __xfDashedCss;
+window.__xfDashPreview = __xfDashPreview;
+function run() {
+  var opts = { width: $("w").value, dash: $("dl").value, gap: $("gp").value, color: $("c").value, radius: $("rd").value, cls: "dashed-box" };
+  var css = __xfDashedCss(opts);
+  $("res").value = css;
+  $("pv").style.cssText += ";" + __xfDashPreview(opts);
+  $("state").textContent = $("w").value + "px / " + $("dl").value + "px";
+  $("tip").textContent = "✅ 已生成虚线边框";
+  return css;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON转PHP数组 - 词海工具箱</title>
+<meta name="description" content="JSON 转 PHP 数组工具：把 JSON 转换成 PHP 数组代码，支持短数组 [] 与 array() 两种写法、中文原样输出。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/json2phparr.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="json2phparr" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数组语法</label>
+        <select id="syntax"><option value="short" selected>短数组 [ ]</option><option value="long">array( )</option></select>
+      </div>
+      <div class="fitem"><label>缩进</label>
+        <select id="indent"><option value="4" selected>4 个空格</option><option value="2">2 个空格</option><option value="tab">Tab</option></select>
+      </div>
+      <div class="fitem"><label>中文转义</label>
+        <select id="cn"><option value="no" selected>不转义（中文原样）</option><option value="yes">转义为 Unicode</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成 PHP 数组</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">JSON 内容</div>
+      <textarea id="src" style="min-height:160px;">{
+  "site": "词海工具箱",
+  "tools": 205,
+  "online": true,
+  "list": ["时间戳", "JSON格式化"],
+  "meta": { "author": "贺小富" }
+}</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">PHP 数组代码</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JSON转PHP数组介绍：</h4>
+    <ol>
+      <li>PHP 数组有两种写法：短数组 []（PHP 5.4+，推荐）与 array()（兼容更老版本），本工具都支持。</li>
+      <li>JSON 对象会转成关联数组（'key' => value），JSON 数组转成索引数组（直接列出值）。</li>
+      <li>字符串中的单引号、反斜杠与 $ 符号会被正确转义，避免 PHP 解析出错。</li>
+      <li>如果项目要求全 ASCII 输出，可开启「转义为 Unicode」（\u{} 语法），此时文件里不会出现汉字。</li>
+      <li>生成的代码可直接粘贴到 PHP 文件中作为配置数组使用，也可配合 json_encode 反向输出 JSON。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfPhpArray(json, syntax, indent, cnEscape) {
+  var data;
+  try { data = typeof json === "string" ? JSON.parse(json) : json; }
+  catch (e) { return { ok: false, error: "JSON 解析失败：" + e.message }; }
+  var ind = indent === "tab" ? "\t" : new Array((parseInt(indent, 10) || 4) + 1).join(" ");
+  var open = syntax === "long" ? "array(" : "[";
+  var close = syntax === "long" ? ")" : "]";
+  function isList(a) { if (!Array.isArray(a)) return false; for (var i = 0; i < a.length; i++) if (!(i in a)) return false; return true; }
+  function escStr(s) {
+    var t = String(s).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t").replace(/\$/g, "\\$");
+    if (cnEscape === "yes") t = t.replace(/[\u4e00-\u9fa5]/g, function (c) { return "\\u{" + c.charCodeAt(0).toString(16) + "}"; });
+    return "'" + t + "'";
+  }
+  function val(v, depth) {
+    var pad = new Array(depth + 1).join(ind);
+    if (v === null || v === undefined) return "null";
+    if (typeof v === "boolean") return v ? "true" : "false";
+    if (typeof v === "number") return String(v);
+    if (typeof v === "string") return escStr(v);
+    if (Array.isArray(v)) {
+      if (!v.length) return open + close;
+      var items = v.map(function (x) { return pad + ind + (isList(v) ? "" : "") + val(x, depth + 1) + ","; });
+      return (isList(v) ? open + "\n" + items.join("\n") + "\n" + pad + close
+        : open + "\n" + v.map(function (x, i) { return pad + ind + i + " => " + val(x, depth + 1) + ","; }).join("\n") + "\n" + pad + close);
+    }
+    var keys = Object.keys(v);
+    if (!keys.length) return open + close;
+    return open + "\n" + keys.map(function (k) { return pad + ind + escStr(k) + " => " + val(v[k], depth + 1) + ","; }).join("\n") + "\n" + pad + close;
+  }
+  return { ok: true, code: val(data, 0) };
+}
+window.__xfPhpArray = __xfPhpArray;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var r = __xfPhpArray($("src").value, $("syntax").value, $("indent").value, $("cn").value);
+  if (!r.ok) { $("res").value = "❌ " + r.error; $("tip").textContent = "❌ 生成失败"; $("state").textContent = ""; return; }
+  $("res").value = "<?php\n$data = " + r.code + ";\n\n// 也可直接返回：\n// return " + (r.code.length > 60 ? "上述数组" : r.code) + ";";
+  $("state").textContent = r.code.split("\n").length + " 行";
+  $("tip").textContent = "✅ 已生成 PHP 数组代码";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

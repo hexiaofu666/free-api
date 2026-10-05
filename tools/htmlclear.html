@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML属性清理 - 词海工具箱</title>
+<meta name="description" content="HTML 属性清理工具：一键去除 class、style、data-*、onclick 等属性，或反向提取全部属性清单，便于清洗粘贴的网页代码。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/htmlclear.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="htmlclear" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>要移除的属性</label>
+        <select id="preset">
+          <option value="style" selected>仅 style</option>
+          <option value="all">style + class + id</option>
+          <option value="events">全部事件属性（on*）</option>
+          <option value="data">全部 data-* 属性</option>
+          <option value="rich">富文本净化（style/class/id/data-*/on*）</option>
+          <option value="custom">自定义（下方填写）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>自定义属性</label><input type="text" id="custom" placeholder="多个用逗号分隔，如：width,height,align"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">清理属性</button>
+      <button class="fbtn blue" id="listBtn">列出全部属性</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">HTML 代码</div>
+      <textarea id="src" style="min-height:150px;"><p class="intro" style="color:red;font-size:14px" onclick="alert(1)" data-id="9">词海工具箱</p>
+<a href="https://tools.hdemba.cn" target="_blank" rel="noopener" class="link">进入工具箱</a></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTML属性清理介绍：</h4>
+    <ol>
+      <li>从网页复制内容时经常会带上 class、style、data-* 等大量冗余属性，本工具可一键清理，只保留标签与核心属性。</li>
+      <li>「富文本净化」会同时移除 style、class、id、data-* 与全部事件属性（onclick 等），适合把粘贴的代码嵌入自己的页面。</li>
+      <li>自定义模式支持输入多个属性名（英文逗号分隔），也可用 `data-*`、`on*` 这种通配写法。</li>
+      <li>「列出全部属性」会统计每种属性出现的次数，便于先看清结构再决定删除什么。</li>
+      <li>清理只针对属性，不会修改标签名与文本内容，也不会删除 href、src 这类功能性属性（除非你指定）。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfAttrList(html) {
+  var tags = String(html).match(/<[a-zA-Z][^>]*>/g) || [];
+  var map = {};
+  tags.forEach(function (t) {
+    var body = t.replace(/^<[a-zA-Z0-9-]+/, "").replace(/\/?>$/, "");
+    var attrs = body.match(/[\w:.-]+\s*(?==)/g) || [];
+    attrs.forEach(function (a) { var k = a.trim().toLowerCase(); map[k] = (map[k] || 0) + 1; });
+  });
+  return map;
+}
+function __xfStripAttrs(html, attrs) {
+  var list = (attrs || []).map(function (a) { return String(a).trim().toLowerCase(); }).filter(Boolean);
+  var out = String(html);
+  list.forEach(function (name) {
+    if (name.indexOf("*") >= 0) {
+      var prefix = name.replace("*", "");
+      out = out.replace(new RegExp("\\s+" + prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[\\w-]*\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s>]+)", "gi"), "");
+      out = out.replace(new RegExp("\\s+" + prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[\\w-]*(?=[\\s>])", "gi"), "");
+    } else {
+      var n = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      out = out.replace(new RegExp("\\s+" + n + "\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s>]+)", "gi"), "");
+      out = out.replace(new RegExp("\\s+" + n + "(?=[\\s>])", "gi"), "");
+    }
+  });
+  return out.replace(/\s{2,}/g, " ").replace(/\s+>/g, ">");
+}
+function __xfPresetAttrs(preset, custom) {
+  if (preset === "style") return ["style"];
+  if (preset === "all") return ["style", "class", "id"];
+  if (preset === "events") return ["on*"];
+  if (preset === "data") return ["data-*"];
+  if (preset === "rich") return ["style", "class", "id", "data-*", "on*"];
+  return String(custom || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+}
+window.__xfAttrList = __xfAttrList;
+window.__xfStripAttrs = __xfStripAttrs;
+window.__xfPresetAttrs = __xfPresetAttrs;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var attrs = __xfPresetAttrs($("preset").value, $("custom").value);
+  var out = __xfStripAttrs($("src").value, attrs);
+  $("res").value = out;
+  $("state").textContent = "已移除：" + attrs.join("、");
+  $("tip").textContent = "✅ 清理完成";
+};
+$("listBtn").onclick = function () {
+  var map = __xfAttrList($("src").value);
+  var keys = Object.keys(map).sort();
+  if (!keys.length) { $("res").value = "未在输入内容中发现 HTML 属性。"; return; }
+  $("res").value = "共发现 " + keys.length + " 种属性：\n\n" + keys.map(function (k) { return k + "　出现 " + map[k] + " 次"; }).join("\n");
+  $("state").textContent = keys.length + " 种";
+  $("tip").textContent = "属性清单";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

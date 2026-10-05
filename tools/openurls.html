@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批量打开网址 - 词海工具箱</title>
+<meta name="description" content="把多行网址整理成可点击链接列表，自动补全协议、去重并过滤空行，支持一键批量打开便于逐站检查。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/openurls.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="openurls" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>自动补全协议</label>
+        <select id="pd"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+      <div class="fitem"><label>去除重复</label>
+        <select id="uq"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+      <div class="fitem"><label>每行最多打开</label><input type="number" id="lim" value="10" min="1" max="50"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">整理链接</button>
+      <button class="fbtn blue" id="openBtn">批量打开</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">每行一个网址</div>
+      <textarea id="src" style="min-height:170px;">tools.hdemba.cn
+https://www.hdemba.cn
+tools.hdemba.cn
+https://www.bing.com/</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">整理结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:170px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于批量打开网址介绍：</h4>
+    <ol>
+      <li>没有写协议的网址会自动补上 http://，已带 http 或 https 的保持原样。</li>
+      <li>去重以完整地址为准，同一域名下不同路径会被视为不同链接。</li>
+      <li>批量打开受浏览器弹窗拦截限制，首次使用时请允许本站弹出窗口。</li>
+      <li>每行最多打开数量用于防止一次打开过多标签页导致浏览器卡顿。</li>
+      <li>整理结果会附带域名标注，方便快速核对多个链接是否指向同一站点。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfNormUrl(u) {
+  var s = String(u).trim();
+  if (!s) return "";
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) return s;
+  if (/^\/\//.test(s)) return "https:" + s;
+  return "http://" + s;
+}
+function __xfParseUrls(text, opts) {
+  opts = opts || {};
+  var lines = String(text).replace(/\r\n?/g, "\n").split("\n").map(function (l) { return l.trim(); }).filter(function (l) { return l !== ""; });
+  var out = [];
+  lines.forEach(function (l) {
+    var v = opts.pad === false ? l : __xfNormUrl(l);
+    if (!v) return;
+    if (opts.unique !== false && out.indexOf(v) >= 0) return;
+    out.push(v);
+  });
+  return out;
+}
+function __xfUrlHost(u) {
+  var m = String(u).match(/^[a-z][a-z0-9+.-]*:\/\/([^\/?#]+)/i);
+  return m ? m[1] : String(u);
+}
+function __xfUrlList(text, opts) {
+  var list = __xfParseUrls(text, opts);
+  return list.map(function (u, i) { return (i + 1) + ". " + u + "  [" + __xfUrlHost(u) + "]"; }).join("\n");
+}
+window.__xfNormUrl = __xfNormUrl;
+window.__xfParseUrls = __xfParseUrls;
+window.__xfUrlHost = __xfUrlHost;
+window.__xfUrlList = __xfUrlList;
+function run() {
+  var list = __xfParseUrls($("src").value, { pad: $("pd").value === "yes", unique: $("uq").value === "yes" });
+  $("res").value = __xfUrlList($("src").value, { pad: $("pd").value === "yes", unique: $("uq").value === "yes" });
+  $("state").textContent = list.length + " 条链接";
+  $("tip").textContent = "✅ 已整理 " + list.length + " 条链接";
+  return list;
+}
+$("runBtn").onclick = run;
+$("openBtn").onclick = function () {
+  var list = __xfParseUrls($("src").value, { pad: $("pd").value === "yes", unique: $("uq").value === "yes" });
+  var lim = Math.min(list.length, parseInt($("lim").value, 10) || 10);
+  for (var i = 0; i < lim; i++) window.open(list[i], "_blank", "noopener");
+  alert("已尝试打开 " + lim + " 个链接，若被拦截请允许弹出窗口。");
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

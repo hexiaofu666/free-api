@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>字符串转义工具 - 词海工具箱</title>
+<meta name="description" content="字符串转义工具：把文本在十六进制、Unicode、八进制、HTML 实体、URL 编码、JS 字符串之间互转，支持一次性全部展示。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/strescape.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="strescape" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>转义方式</label>
+        <select id="mode">
+          <option value="hex" selected>十六进制 \\xHH</option>
+          <option value="unicode">Unicode \\uHHHH</option>
+          <option value="oct">八进制 \\\\ooo</option>
+          <option value="html">HTML 实体 &#NN;</option>
+          <option value="hexhtml">HTML 实体 &#xHH;</option>
+          <option value="url">URL 百分号编码</option>
+          <option value="js">JS 字符串（含引号转义）</option>
+          <option value="all">全部方式一起看</option>
+        </select>
+      </div>
+      <div class="fitem"><label>操作方向</label>
+        <select id="dir"><option value="enc" selected>编码（文本 → 转义）</option><option value="dec">解码（转义 → 文本）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">执行</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">输入内容</div>
+      <textarea id="src" style="min-height:110px;">Hello 词海工具箱 &amp; &lt;tag&gt;</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转义结果</strong></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于字符串转义工具介绍：</h4>
+    <ol>
+      <li>十六进制转义把文本按 UTF-8 字节逐字节写成 \\xHH，适合嵌入 C / Python / JS 字符串；中文会占 3 个字节。</li>
+      <li>Unicode 转义按 UTF-16 码元写成 \\uHHHH，字母数字保持原样可读，适合 JS 源码使用。</li>
+      <li>HTML 实体有十进制 &#NN; 与十六进制 &#xHH; 两种写法，浏览器渲染结果一致，常用于防爬虫与转义尖括号。</li>
+      <li>「解码」会依次识别 HTML 实体、Unicode、十六进制、八进制与 URL 编码，可把混用的转义串还原。</li>
+      <li>URL 编码遵循 encodeURIComponent 规则，中文与特殊字符会被转成 %XX 形式。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfToBytes(str) {
+  var b = [];
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    if (c < 128) b.push(c);
+    else if (c < 2048) b.push(192 | (c >> 6), 128 | (c & 63));
+    else b.push(224 | (c >> 12), 128 | ((c >> 6) & 63), 128 | (c & 63));
+  }
+  return b;
+}
+function __xfHexEsc(str, bytes) {
+  var list = bytes ? __xfToBytes(str) : Array.prototype.map.call(String(str), function (c) { return c.charCodeAt(0); });
+  return list.map(function (x) { return "\\x" + ("0" + x.toString(16)).slice(-2); }).join("");
+}
+function __xfUnicodeEsc(str) {
+  var out = "";
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    out += c < 128 && /[\w]/.test(str[i]) ? str[i] : "\\u" + ("000" + c.toString(16)).slice(-4);
+  }
+  return out;
+}
+function __xfOctEsc(str) {
+  var bytes = __xfToBytes(str);
+  return bytes.map(function (x) { return "\\" + ("00" + x.toString(8)).slice(-3); }).join("");
+}
+function __xfHtmlEsc(str, hex) {
+  var out = "";
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    out += "&#" + (hex ? "x" + c.toString(16) : c) + ";";
+  }
+  return out;
+}
+function __xfUrlEsc(str) { return encodeURIComponent(str); }
+function __xfJsEsc(str) {
+  var out = "";
+  for (var i = 0; i < str.length; i++) {
+    var c = str[i];
+    if (c === "\\") out += "\\\\";
+    else if (c === '"') out += '\\"';
+    else if (c === "\n") out += "\\n";
+    else if (c === "\t") out += "\\t";
+    else out += c;
+  }
+  return '"' + out + '"';
+}
+function __xfBytesToStr(list) {
+  var s = "", i = 0;
+  while (i < list.length) {
+    var c = list[i++];
+    if (c < 128) s += String.fromCharCode(c);
+    else if (c < 224) s += String.fromCharCode(((c & 31) << 6) | ((list[i++] || 0) & 63));
+    else if (c < 240) s += String.fromCharCode(((c & 15) << 12) | (((list[i++] || 0) & 63) << 6) | ((list[i++] || 0) & 63));
+    else s += "?";
+  }
+  return s;
+}
+function __xfUnescapeAll(text) {
+  var t = String(text);
+  t = t.replace(/&#x([0-9a-fA-F]+);/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); });
+  t = t.replace(/&#(\d+);/g, function (m, d) { return String.fromCharCode(parseInt(d, 10)); });
+  t = t.replace(/\\u\{([0-9a-fA-F]+)\}/g, function (m, h) { return String.fromCodePoint(parseInt(h, 16)); });
+  t = t.replace(/\\u([0-9a-fA-F]{4})/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); });
+  /* \xHH 与八进制按字节序列还原后再做 UTF-8 解码，保证中文等多字节字符正确还原 */
+  t = t.replace(/(?:\\x[0-9a-fA-F]{2})+/g, function (m) {
+    var bytes = (m.match(/\\x[0-9a-fA-F]{2}/g) || []).map(function (h) { return parseInt(h.slice(2), 16); });
+    return __xfBytesToStr(bytes);
+  });
+  t = t.replace(/(?:\\[0-7]{2,3})+/g, function (m) {
+    var bytes = (m.match(/\\[0-7]{2,3}/g) || []).map(function (o) { return parseInt(o.slice(1), 8); });
+    return __xfBytesToStr(bytes);
+  });
+  try { if (/%[0-9a-fA-F]{2}/.test(t)) t = decodeURIComponent(t); } catch (e) {}
+  return t;
+}
+window.__xfHexEsc = __xfHexEsc;
+window.__xfUnicodeEsc = __xfUnicodeEsc;
+window.__xfOctEsc = __xfOctEsc;
+window.__xfHtmlEsc = __xfHtmlEsc;
+window.__xfUrlEsc = __xfUrlEsc;
+window.__xfJsEsc = __xfJsEsc;
+window.__xfUnescapeAll = __xfUnescapeAll;
+
+var $ = function (id) { return document.getElementById(id); };
+var NAMES = { hex: "十六进制 \\xHH", unicode: "Unicode \\uHHHH", oct: "八进制", html: "HTML 实体 &#NN;", hexhtml: "HTML 实体 &#xHH;", url: "URL 百分号编码", js: "JS 字符串" };
+function enc(src, m) {
+  if (m === "hex") return __xfHexEsc(src, true);
+  if (m === "unicode") return __xfUnicodeEsc(src);
+  if (m === "oct") return __xfOctEsc(src);
+  if (m === "html") return __xfHtmlEsc(src, false);
+  if (m === "hexhtml") return __xfHtmlEsc(src, true);
+  if (m === "url") return __xfUrlEsc(src);
+  if (m === "js") return __xfJsEsc(src);
+  return "";
+}
+$("runBtn").onclick = function () {
+  var src = $("src").value;
+  if ($("dir").value === "dec") {
+    $("res").value = __xfUnescapeAll(src);
+    $("tip").textContent = "✅ 已解码";
+    return;
+  }
+  if ($("mode").value === "all") {
+    var lines = [];
+    Object.keys(NAMES).forEach(function (k) { lines.push("【" + NAMES[k] + "】\n" + enc(src, k) + "\n"); });
+    $("res").value = lines.join("\n");
+    $("tip").textContent = "✅ 全部转义方式";
+  } else {
+    $("res").value = enc(src, $("mode").value);
+    $("tip").textContent = "✅ 已按「" + NAMES[$("mode").value] + "」转义";
+  }
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("mode").onchange = function () { if ($("src").value.trim()) $("runBtn").click(); };
+$("runBtn").click();
+</script>
+</body>
+</html>

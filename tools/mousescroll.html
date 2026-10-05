@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鼠标滚轮测试 - 词海工具箱</title>
+<meta name="description" content="鼠标滚轮测试：检测滚轮上下滚动是否正常、有无跳格与回滚，实时显示滚动方向、滚动量与累计统计。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/mousescroll.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="mousescroll" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>当前方向</label><input type="text" id="dir" readonly placeholder="在下方区域滚动滚轮"></div>
+      <div class="fitem"><label>滚动量</label><input type="text" id="amount" readonly placeholder="deltaX / deltaY"></div>
+      <div class="fitem"><label>累计(上/下)</label><input type="text" id="total" readonly value="0 / 0"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="clearBtn">清空统计</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">滚轮测试区</strong><span id="anomaly">异常 0</span></div>
+      <div id="pad" style="height:200px;border:2px dashed #d1c4e9;border-radius:6px;padding:14px;overflow:auto;color:#9575cd;font-size:14px;">
+        把鼠标放在这里上下滚动滚轮。滚轮向上代表向上翻页（deltaY 为负），向下为正值。
+      </div>
+      <textarea id="log" readonly style="height:120px;margin-top:10px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于鼠标滚轮测试介绍：</h4>
+    <ol>
+      <li>滚轮向上滚动时 deltaY 为负值、向下为正值；水平滚轮（部分鼠标支持）则用 deltaX 表示。</li>
+      <li>deltaMode 表示滚动量的单位：0 为像素、1 为行、2 为页，不同浏览器与系统的默认值可能不同。</li>
+      <li>异常计数会统计「单次滚动量过大」与「方向突变且幅度过大」的情况，用于发现滚轮编码器跳格。</li>
+      <li>如果发现滚动时页面向下跳一大截或出现回滚，通常是滚轮编码器（光栅盘）磨损或进灰导致。</li>
+      <li>页面已拦截默认滚动行为，因此测试时背景不会跟着滚动，便于观察每一次事件。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+/* 滚动方向文字 */
+function __xfScrollDir(deltaY, deltaX) {
+  var y = Number(deltaY) || 0, x = Number(deltaX) || 0;
+  if (Math.abs(y) >= Math.abs(x)) {
+    if (y < 0) return "向上滚动";
+    if (y > 0) return "向下滚动";
+    return "无垂直滚动";
+  }
+  return x < 0 ? "向左滚动" : "向右滚动";
+}
+/* deltaMode：0=像素 1=行 2=页 */
+function __xfScrollUnit(mode) {
+  return { 0: "像素", 1: "行", 2: "页" }[Number(mode)] || "未知单位";
+}
+/* 异常检测：deltaY 绝对值极大（>150）或方向突变次数过多 */
+function __xfScrollAnomaly(records, threshold) {
+  var th = Number(threshold) || 150, n = 0;
+  var list = records || [];
+  for (var i = 0; i < list.length; i++) {
+    if (Math.abs(list[i].deltaY) > th) n++;
+    if (i > 0 && list[i].deltaY * list[i - 1].deltaY < 0 && Math.abs(list[i].deltaY) > th) n++;
+  }
+  return n;
+}
+window.__xfScrollDir = __xfScrollDir;
+window.__xfScrollUnit = __xfScrollUnit;
+window.__xfScrollAnomaly = __xfScrollAnomaly;
+
+var $ = function (id) { return document.getElementById(id); };
+var up = 0, down = 0, recs = [], logs = [];
+function onWheel(e) {
+  e.preventDefault();
+  var d = __xfScrollDir(e.deltaY, e.deltaX);
+  if (e.deltaY < 0) up++; else if (e.deltaY > 0) down++;
+  recs.push({ deltaX: e.deltaX, deltaY: e.deltaY, mode: e.deltaMode });
+  if (recs.length > 200) recs.shift();
+  $("dir").value = d;
+  $("amount").value = "X=" + e.deltaX + " Y=" + e.deltaY + "（" + __xfScrollUnit(e.deltaMode) + "）";
+  $("total").value = up + " / " + down;
+  var bad = __xfScrollAnomaly(recs, 150);
+  $("anomaly").textContent = "异常 " + bad;
+  logs.unshift(new Date().toLocaleTimeString() + "  " + d + "  ΔY=" + e.deltaY);
+  if (logs.length > 30) logs.pop();
+  $("log").value = logs.join("\n");
+  $("tip").textContent = "滚轮测试区";
+}
+$("pad").addEventListener("wheel", onWheel, { passive: false });
+$("clearBtn").onclick = function () { up = 0; down = 0; recs = []; logs = []; $("total").value = "0 / 0"; $("anomaly").textContent = "异常 0"; $("log").value = ""; $("dir").value = ""; $("amount").value = ""; };
+$("log").value = "";
+$("tip").textContent = "滚轮测试区";
+</script>
+</body>
+</html>

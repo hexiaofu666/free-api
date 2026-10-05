@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSV转SQL语句 - 词海工具箱</title>
+<meta name="description" content="把 CSV 数据转换为建表语句与批量 INSERT 语句，支持自定义表名、分隔符与首行表头，方便快速导入数据库。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/csv2sql.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="csv2sql" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>表名</label><input type="text" id="tb" value="my_table"></div>
+      <div class="fitem"><label>字段分隔符</label><input type="text" id="dl" value="," maxlength="1"></div>
+      <div class="fitem"><label>首行为表头</label>
+        <select id="hd"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+      <div class="fitem"><label>生成建表语句</label>
+        <select id="ct"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成 SQL</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">CSV 数据</div>
+      <textarea id="src" style="min-height:170px;">name,age,city
+张三,18,西安
+李四,20,北京</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">SQL 语句</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于CSV转SQL语句介绍：</h4>
+    <ol>
+      <li>表头中的中文与特殊字符会被替换为下划线，保证生成的字段名符合 SQL 命名规范。</li>
+      <li>字段值中的单引号会自动转义为两个单引号，避免插入时语法报错。</li>
+      <li>CSV 中带引号的字段可以包含逗号与换行，解析时会按标准 CSV 规则处理。</li>
+      <li>如果数据首行不是表头，选择否后会生成 col1、col2 这样占位的字段名。</li>
+      <li>生成结果可直接粘贴到 Navicat、phpMyAdmin 等工具的 SQL 窗口中执行。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfParseCsv(text, delim) {
+  delim = delim || ",";
+  var s = String(text).replace(/\r\n?/g, "\n");
+  var rows = [], row = [], cur = "", inQ = false, i = 0;
+  while (i < s.length) {
+    var c = s.charAt(i);
+    if (inQ) {
+      if (c === '"') { if (s.charAt(i + 1) === '"') { cur += '"'; i += 2; continue; } inQ = false; i++; continue; }
+      cur += c; i++; continue;
+    }
+    if (c === '"') { inQ = true; i++; continue; }
+    if (c === delim) { row.push(cur); cur = ""; i++; continue; }
+    if (c === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; i++; continue; }
+    cur += c; i++;
+  }
+  if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+function __xfSqlIdent(x) { return String(x).replace(/[^0-9A-Za-z_\u4e00-\u9fff]/g, "_"); }
+function __xfCsv2Sql(text, table, opts) {
+  opts = opts || {};
+  var rows = __xfParseCsv(text, opts.delim || ",").filter(function (r) { return !(r.length === 1 && r[0].trim() === ""); });
+  if (!rows.length) return "";
+  var hasHeader = opts.header !== false;
+  var cols = hasHeader ? rows[0].map(__xfSqlIdent) : rows[0].map(function (_, i) { return "col" + (i + 1); });
+  var body = hasHeader ? rows.slice(1) : rows;
+  var tb = __xfSqlIdent(table || "my_table");
+  var lines = [];
+  if (opts.createTable !== false) {
+    lines.push("CREATE TABLE " + tb + " (");
+    cols.forEach(function (c, i) { lines.push("  " + c + " VARCHAR(255)" + (i === cols.length - 1 ? "" : ",")); });
+    lines.push(");");
+    lines.push("");
+  }
+  body.forEach(function (r) {
+    var vals = r.map(function (v) { return "'" + String(v).replace(/'/g, "''") + "'"; });
+    lines.push("INSERT INTO " + tb + " (" + cols.join(", ") + ") VALUES (" + vals.join(", ") + ");");
+  });
+  return lines.join("\n");
+}
+window.__xfParseCsv = __xfParseCsv;
+window.__xfCsv2Sql = __xfCsv2Sql;
+function run() {
+  var out = __xfCsv2Sql($("src").value, $("tb").value, { delim: $("dl").value || ",", header: $("hd").value === "yes", createTable: $("ct").value === "yes" });
+  $("res").value = out;
+  var n = (out.match(/INSERT INTO/g) || []).length;
+  $("state").textContent = n + " 条 INSERT";
+  $("tip").textContent = "✅ 已生成 " + n + " 条插入语句";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

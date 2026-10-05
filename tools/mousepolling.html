@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鼠标回报率测试 - 词海工具箱</title>
+<meta name="description" content="鼠标回报率测试：在线测量鼠标每秒向电脑上报位置的次数（Hz），支持 125/500/1000Hz 常见档位识别。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/mousepolling.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="mousepolling" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>采样时长(秒)</label><input type="number" id="dur" value="5" min="1" max="20"></div>
+      <div class="fitem"><label>采样方式</label>
+        <select id="mode">
+          <option value="mousemove" selected>按鼠标移动事件（推荐）</option>
+          <option value="raf">按屏幕刷新帧</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="startBtn">开始测试</button>
+      <button class="fbtn brown" id="stopBtn">停止</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">测试区</strong><span id="status">未开始</span></div>
+      <div id="pad" style="height:170px;border:2px dashed #b2ebf2;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#80cbc4;font-size:14px;">点「开始测试」后在里面快速移动鼠标</div>
+      <textarea id="res" readonly style="height:150px;margin-top:10px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于鼠标回报率测试介绍：</h4>
+    <ol>
+      <li>鼠标回报率（Polling Rate）指鼠标每秒向电脑上报位置的次数，单位 Hz；常见档位有 125、500、1000 Hz。</li>
+      <li>1 ms 间隔对应 1000 Hz、2 ms 对应 500 Hz、8 ms 对应 125 Hz，本工具用相邻事件间隔的中位数来估算。</li>
+      <li>测试时请在框内尽量快速、连续地画圈移动鼠标，移动越密集，采样点越多，结果越准。</li>
+      <li>浏览器本身有事件节流与显示刷新限制，实测值通常略低于标称值，属正常现象。</li>
+      <li>无线鼠标受接收器干扰、USB 接口供电与电池电量影响较大，若长期明显低于标称档位可换接口再测。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+/* 由时间戳数组估算回报率：用相邻间隔中位数，避免个别长停顿拉低结果 */
+function __xfPollingRate(times) {
+  var t = (times || []).slice().sort(function (a, b) { return a - b; });
+  if (t.length < 3) return null;
+  var d = [];
+  for (var i = 1; i < t.length; i++) { if (t[i] - t[i - 1] > 0) d.push(t[i] - t[i - 1]); }
+  if (!d.length) return null;
+  d.sort(function (a, b) { return a - b; });
+  var med = d[Math.floor(d.length / 2)];
+  return {
+    count: t.length,
+    medianInterval: Math.round(med * 1000) / 1000,
+    hz: Math.round(1000 / med),
+    minInterval: Math.round(d[0] * 1000) / 1000
+  };
+}
+/* 把实测 Hz 归到常见档位 */
+function __xfRateLevel(hz) {
+  var std = [125, 250, 500, 1000, 2000, 4000, 8000];
+  var best = std[0], diff = Math.abs(hz - std[0]);
+  std.forEach(function (s) { var d = Math.abs(hz - s); if (d < diff) { diff = d; best = s; } });
+  return diff / best <= 0.25 ? best + " Hz 档位" : "非标准（接近 " + Math.round(hz) + " Hz）";
+}
+window.__xfPollingRate = __xfPollingRate;
+window.__xfRateLevel = __xfRateLevel;
+
+var $ = function (id) { return document.getElementById(id); };
+var times = [], running = false, t0 = 0, stopTimer = null;
+function report() {
+  if (!times.length) { $("status").textContent = "未采集到数据"; return; }
+  var r = __xfPollingRate(times);
+  if (!r) { $("status").textContent = "数据太少"; return; }
+  $("res").value = [
+    "采样事件数：" + r.count,
+    "相邻间隔中位数：" + r.medianInterval + " ms",
+    "最小间隔：" + r.minInterval + " ms",
+    "估算回报率：" + r.hz + " Hz",
+    "档位判定：" + __xfRateLevel(r.hz),
+    "",
+    "说明：鼠标回报率指每秒上报位置的次数，游戏鼠标常见 1000 Hz（间隔 1 ms）。",
+    "若结果远低于标称值，可能是 USB 接口供电不足、无线干扰或浏览器节流。"
+  ].join("\n");
+  $("status").textContent = r.hz + " Hz";
+}
+function start() {
+  times = []; running = true; t0 = performance.now();
+  $("status").textContent = "采集中…";
+  var dur = Math.max(1, Math.min(20, parseFloat($("dur").value) || 5));
+  stopTimer = setTimeout(function () { running = false; report(); }, dur * 1000);
+}
+$("startBtn").onclick = start;
+$("stopBtn").onclick = function () { running = false; if (stopTimer) clearTimeout(stopTimer); report(); };
+$("pad").addEventListener("mousemove", function () { if (running) times.push(performance.now()); });
+$("res").value = "点击「开始测试」，然后在虚线框内快速移动鼠标 5 秒。\n\n回报率（Polling Rate）越高，鼠标指针跟手程度越好。";
+$("tip").textContent = "测试区";
+</script>
+</body>
+</html>

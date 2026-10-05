@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人任务管家 - 词海工具箱</title>
+<meta name="description" content="个人任务管家：本地保存的待办清单，支持优先级、截止日期、完成状态与筛选排序，数据只存在本机浏览器。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/taskmanager.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="taskmanager" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>任务内容</label><input type="text" id="title" placeholder="例如：整理季度报表"></div>
+      <div class="fitem"><label>优先级</label>
+        <select id="prio">
+          <option value="2">普通</option>
+          <option value="3" selected>重要</option>
+          <option value="1">低</option>
+        </select>
+      </div>
+      <div class="fitem"><label>截止日期</label><input type="date" id="due"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="addBtn">＋ 添加任务</button>
+      <button class="fbtn gray" id="clearBtn">清空已完成</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">任务列表</strong><span id="stat"></span></div>
+      <div class="fitem" style="margin-bottom:10px;">
+        <select id="filter" style="border-radius:2px;">
+          <option value="all">全部</option>
+          <option value="todo">未完成</option>
+          <option value="done">已完成</option>
+          <option value="overdue">已逾期</option>
+          <option value="today">今天到期</option>
+        </select>
+      </div>
+      <div id="list" style="font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于个人任务管家介绍：</h4>
+    <ol>
+      <li>所有任务只保存在浏览器本地（localStorage），不会上传服务器，换设备或清理浏览器数据后需要重新录入。</li>
+      <li>支持优先级（重要/普通/低）与截止日期；列表按「未完成优先 → 优先级 → 截止日期」自动排序。</li>
+      <li>超过截止日期且未完成的任务会标注「已逾期」并显示为红色，筛选器可只看逾期事项。</li>
+      <li>「清空已完成」只删除已勾选的任务，不影响未完成条目，删除前建议先确认。</li>
+      <li>桌面端可用浏览器「添加到主屏幕」把它当成轻量待办 App 使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var KEY = "xf_tasks_v1";
+function __xfTaskStats(tasks, today) {
+  var t = today || "9999-12-31";
+  var s = { total: tasks.length, done: 0, undone: 0, overdue: 0, today: 0 };
+  tasks.forEach(function (x) {
+    if (x.done) { s.done++; return; }
+    s.undone++;
+    if (x.due && x.due < t) s.overdue++;
+    if (x.due && x.due === t) s.today++;
+  });
+  return s;
+}
+/* 排序：未完成优先 → 优先级高在前 → 截止日期近在前 */
+function __xfTaskSort(tasks) {
+  return tasks.slice().sort(function (a, b) {
+    if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+    if ((b.prio || 2) !== (a.prio || 2)) return (b.prio || 2) - (a.prio || 2);
+    var da = a.due || "9999-12-31", db = b.due || "9999-12-31";
+    return da < db ? -1 : (da > db ? 1 : 0);
+  });
+}
+function __xfTaskFilter(tasks, mode, today) {
+  var t = today || "9999-12-31";
+  if (mode === "todo") return tasks.filter(function (x) { return !x.done; });
+  if (mode === "done") return tasks.filter(function (x) { return x.done; });
+  if (mode === "overdue") return tasks.filter(function (x) { return !x.done && x.due && x.due < t; });
+  if (mode === "today") return tasks.filter(function (x) { return !x.done && x.due === t; });
+  return tasks.slice();
+}
+window.__xfTaskStats = __xfTaskStats;
+window.__xfTaskSort = __xfTaskSort;
+window.__xfTaskFilter = __xfTaskFilter;
+
+var $ = function (id) { return document.getElementById(id); };
+function today() { var d = new Date(), m = d.getMonth() + 1, dd = d.getDate(); return d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (dd < 10 ? "0" + dd : dd); }
+function load() { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { return []; } }
+function save(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} }
+var tasks = load();
+var PRIO = { 1: ["低", "#9e9e9e"], 2: ["普通", "#2196F3"], 3: ["重要", "#e74c3c"] };
+function render() {
+  var t = today();
+  var view = __xfTaskSort(__xfTaskFilter(tasks, $("filter").value, t));
+  var s = __xfTaskStats(tasks, t);
+  $("stat").textContent = "共 " + s.total + " 项 · 未完成 " + s.undone + " · 逾期 " + s.overdue;
+  if (!view.length) { $("list").innerHTML = "<p style='color:#999;padding:8px 0;'>暂无任务，添加一条试试</p>"; }
+  else {
+    $("list").innerHTML = view.map(function (x, i) {
+      var p = PRIO[x.prio || 2];
+      var over = !x.done && x.due && x.due < t;
+      return "<p style='padding:8px 0;border-bottom:1px dashed #eee;'>" +
+        "<label style='cursor:pointer;'><input type='checkbox' data-id='" + x.id + "' " + (x.done ? "checked" : "") + " style='vertical-align:middle;margin-right:6px;'>" +
+        "<span style='" + (x.done ? "text-decoration:line-through;color:#aaa;" : "") + "'>" + x.title + "</span></label>" +
+        "<span style='color:" + p[1] + ";font-size:12px;margin-left:8px;'>[" + p[0] + "]</span>" +
+        (x.due ? "<span style='color:" + (over ? "#e74c3c" : "#999") + ";font-size:12px;margin-left:6px;'>" + x.due + (over ? " 已逾期" : "") + "</span>" : "") +
+        "<a href='javascript:void(0)' data-del='" + x.id + "' style='float:right;color:#bbb;'>删除</a></p>";
+    }).join("");
+    Array.prototype.forEach.call($("list").querySelectorAll("input[type=checkbox]"), function (cb) {
+      cb.onchange = function () {
+        tasks.forEach(function (x) { if (x.id === cb.dataset.id) x.done = cb.checked; });
+        save(tasks); render();
+      };
+    });
+    Array.prototype.forEach.call($("list").querySelectorAll("a[data-del]"), function (a) {
+      a.onclick = function () {
+        tasks = tasks.filter(function (x) { return x.id !== a.dataset.del; });
+        save(tasks); render();
+      };
+    });
+  }
+  $("tip").textContent = "任务列表";
+}
+function add() {
+  var v = $("title").value.trim();
+  if (!v) return alert("请输入任务内容");
+  tasks.push({ id: String(Date.now()) + Math.random().toString(36).slice(2, 6), title: v, prio: +$("prio").value, due: $("due").value || "", done: false });
+  $("title").value = "";
+  save(tasks); render();
+}
+$("addBtn").onclick = add;
+$("title").addEventListener("keydown", function (e) { if (e.key === "Enter") add(); });
+$("clearBtn").onclick = function () { tasks = tasks.filter(function (x) { return !x.done; }); save(tasks); render(); };
+$("filter").onchange = render;
+render();
+</script>
+</body>
+</html>

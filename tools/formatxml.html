@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XML压缩格式化 - 词海工具箱</title>
+<meta name="description" content="XML 压缩格式化工具：把 XML 按标签层级缩进美化，或压缩成单行，支持属性保留、自闭合标签与注释。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/formatxml.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="formatxml" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>缩进</label>
+        <select id="indent"><option value="2" selected>2 个空格</option><option value="4">4 个空格</option><option value="tab">Tab</option></select>
+      </div>
+      <div class="fitem"><label>属性换行</label>
+        <select id="attr"><option value="no" selected>不换行</option><option value="yes">每个属性一行</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">格式化美化</button>
+      <button class="fbtn blue" id="minBtn">压缩为单行</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">XML 内容</div>
+      <textarea id="src" style="min-height:160px;"><?xml version="1.0" encoding="UTF-8"?><catalog><book id="1" lang="zh"><title>词海工具箱</title><author>贺小富</author><price>0</price></book><book id="2"><title>在线工具大全</title></book></catalog></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">处理结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于XML压缩格式化介绍：</h4>
+    <ol>
+      <li>格式化会保留 XML 声明、注释与自闭合标签，只调整缩进与换行，不改变文档语义。</li>
+      <li>「属性换行」适合属性很多的标签（如 Android 布局文件），可读性更好但行数会明显增多。</li>
+      <li>压缩会移除标签之间的空白与缩进，但保留标签内部的空格，避免把 `<a b` 粘成 `<ab`。</li>
+      <li>注意：如果 XML 的文本节点中原本就包含有意义的空白（如诗歌排版），压缩会丢失这些空白。</li>
+      <li>处理前请确保标签闭合正确，本工具不做语法校验，只做排版整理。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfFormatXml(xml, indentStr, attrBreak) {
+  var s = String(xml).replace(/>\s*</g, "><").trim();
+  var tokens = s.match(/<[^>]+>|[^<]+/g) || [];
+  var out = [], depth = 0;
+  var ind = indentStr === "tab" ? "\t" : new Array((parseInt(indentStr, 10) || 2) + 1).join(" ");
+  for (var i = 0; i < tokens.length; i++) {
+    var t = tokens[i];
+    if (t[0] !== "<") {
+      var text = t.trim();
+      if (text) out.push(new Array(depth + 1).join(ind) + text);
+      continue;
+    }
+    var isClose = /^<\//.test(t);
+    var isDecl = /^<[?!/]/.test(t);
+    var selfClose = /\/>$/.test(t);
+    if (isClose) depth = Math.max(0, depth - 1);
+    var line = new Array(depth + 1).join(ind) + t;
+    if (attrBreak === "yes" && !isDecl && !isClose && !selfClose) {
+      var m = t.match(/^<(\S+)([\s\S]*?)(\/?)>$/);
+      if (m && m[2].trim()) {
+        var attrs = m[2].trim().match(/[\w:-]+\s*=\s*("[^"]*"|'[^']*')/g) || [];
+        var parts = [new Array(depth + 1).join(ind) + "<" + m[1]];
+        attrs.forEach(function (a) { parts.push(new Array(depth + 2).join(ind) + a); });
+        parts[parts.length - 1] += ">";
+        out.push(parts.join("\n"));
+        depth++;
+        continue;
+      }
+    }
+    out.push(line);
+    if (!isClose && !selfClose && !isDecl) depth++;
+  }
+  return out.join("\n");
+}
+function __xfMinifyXml(xml) {
+  return String(xml).replace(/>\s+</g, "><").replace(/^\s+|\s+$/g, "").replace(/\s{2,}/g, " ");
+}
+function __xfXmlStats(xml) {
+  var s = String(xml);
+  var tags = (s.match(/<[a-zA-Z_][^>]*>/g) || []).length;
+  var attrs = (s.match(/[\w:-]+\s*=\s*("[^"]*"|'[^']*')/g) || []).length;
+  return { tags: tags, attrs: attrs, comments: (s.match(/<!--[\s\S]*?-->/g) || []).length, size: s.length };
+}
+window.__xfFormatXml = __xfFormatXml;
+window.__xfMinifyXml = __xfMinifyXml;
+window.__xfXmlStats = __xfXmlStats;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var out = __xfFormatXml($("src").value, $("indent").value, $("attr").value);
+  $("res").value = out;
+  var st = __xfXmlStats($("src").value);
+  $("state").textContent = out.split("\n").length + " 行";
+  $("tip").textContent = "✅ 格式化完成（" + st.tags + " 个标签 / " + st.attrs + " 个属性）";
+};
+$("minBtn").onclick = function () {
+  var out = __xfMinifyXml($("src").value);
+  $("res").value = out;
+  var st = __xfXmlStats($("src").value);
+  $("state").textContent = out.length + " 字符";
+  $("tip").textContent = "✅ 已压缩为单行（原始 " + st.size + " 字符）";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

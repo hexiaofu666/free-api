@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIME类型查询 - 词海工具箱</title>
+<meta name="description" content="在线查询文件扩展名对应的 MIME 类型，内置常用文本、图片、音视频与压缩包类型表，支持按关键词模糊搜索。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/mimetype.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="mimetype" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>关键词</label><input type="text" id="kw" value="image" placeholder="如 image 或 png"></div>
+      <div class="fitem"><label>输出格式</label>
+        <select id="fmt"><option value="list" selected>类型表</option><option value="ext">仅扩展名</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查询</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">单个文件名或扩展名</div>
+      <textarea id="src" style="min-height:70px;">index.html</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">查询结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:260px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于MIME类型查询介绍：</h4>
+    <ol>
+      <li>查询单个文件时会自动截取最后一个点号之后的扩展名，路径中的多级目录不影响结果。</li>
+      <li>关键词可以匹配扩展名，也可以匹配 MIME 字符串本身，例如输入 image 会列出全部图片类型。</li>
+      <li>未收录的类型会返回未收录提示，可在下方的类型表中确认是否属于生僻格式。</li>
+      <li>部署 Nginx 时可用于核对 add_header Content-Type 或 location 配置中的类型写法。</li>
+      <li>类型表按扩展名字母序排列，复制后可直接作为服务端配置的对照清单。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var MIME_MAP = {
+  html: "text/html", htm: "text/html", css: "text/css", js: "application/javascript", mjs: "application/javascript",
+  json: "application/json", xml: "application/xml", txt: "text/plain", csv: "text/csv", md: "text/markdown",
+  ico: "image/x-icon", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif",
+  webp: "image/webp", avif: "image/avif", svg: "image/svg+xml", bmp: "image/bmp", tiff: "image/tiff",
+  mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg", flac: "audio/flac", aac: "audio/aac",
+  mp4: "video/mp4", webm: "video/webm", mov: "video/quicktime", avi: "video/x-msvideo", mkv: "video/x-matroska",
+  pdf: "application/pdf", zip: "application/zip", gz: "application/gzip", tar: "application/x-tar", rar: "application/vnd.rar",
+  "7z": "application/x-7z-compressed", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ppt: "application/vnd.ms-powerpoint", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  woff: "font/woff", woff2: "font/woff2", ttf: "font/ttf", otf: "font/otf", eot: "application/vnd.ms-fontobject",
+  exe: "application/x-msdownload", apk: "application/vnd.android.package-archive", wasm: "application/wasm",
+  sh: "application/x-sh", py: "text/x-python", php: "application/x-httpd-php", rtf: "application/rtf", epub: "application/epub+zip"
+};
+function __xfMime(ext) {
+  var k = String(ext).replace(/^\./, "").toLowerCase();
+  return MIME_MAP.hasOwnProperty(k) ? MIME_MAP[k] : null;
+}
+function __xfMimeOf(filename) {
+  var s = String(filename);
+  var i = s.lastIndexOf(".");
+  if (i < 0 || i === s.length - 1) return null;
+  return __xfMime(s.slice(i + 1));
+}
+function __xfMimeList(kw) {
+  var k = String(kw || "").toLowerCase(), out = [];
+  Object.keys(MIME_MAP).forEach(function (ext) {
+    if (!k || ext.indexOf(k) >= 0 || MIME_MAP[ext].toLowerCase().indexOf(k) >= 0) out.push({ ext: ext, mime: MIME_MAP[ext] });
+  });
+  return out.sort(function (a, b) { return a.ext < b.ext ? -1 : 1; });
+}
+window.__xfMime = __xfMime;
+window.__xfMimeOf = __xfMimeOf;
+window.__xfMimeList = __xfMimeList;
+function run() {
+  var one = __xfMimeOf($("src").value) || __xfMime($("src").value);
+  var list = __xfMimeList($("kw").value);
+  var lines = ["【单条查询】" + ($("src").value.trim() || "-") + " → " + (one || "未收录"), "", "【关键词 " + ($("kw").value || "全部") + "】共 " + list.length + " 条"];
+  list.forEach(function (x) { lines.push("  ." + x.ext + "  →  " + x.mime); });
+  $("res").value = lines.join("\n");
+  $("state").textContent = list.length + " 条";
+  $("tip").textContent = "✅ 查询完成";
+  return { one: one, list: list };
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

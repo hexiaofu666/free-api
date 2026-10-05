@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>色盲模拟预览 - 词海工具箱</title>
+<meta name="description" content="模拟红绿色盲、蓝黄色盲与全色盲人群看到的颜色效果，帮助检查页面配色的可辨识度与无障碍友好程度。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/colorblind.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="colorblind" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>颜色列表（每行一个）</label>
+        <textarea id="src" style="min-height:100px;font-family:monospace;">#ff0000
+#00ff00
+#0000ff
+#ff6500
+#1e50a2</textarea>
+      </div>
+      <div class="fitem"><label>模拟类型</label>
+        <select id="type"><option value="protanopia" selected>红色盲</option><option value="deuteranopia">绿色盲</option><option value="tritanopia">蓝黄色盲</option><option value="achromatopsia">全色盲</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始模拟</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">模拟结果</strong><span id="state"></span></div>
+      <div id="sw" style="display:flex;flex-direction:column;gap:4px;margin:8px 0;"></div>
+      <textarea id="res" readonly style="height:170px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于色盲模拟预览介绍：</h4>
+    <ol>
+      <li>红绿色盲是最常见的类型，红绿两色在其眼中会趋近于相同的黄褐色，务必配合形状或文字区分。</li>
+      <li>蓝黄色盲相对少见，主要表现为蓝与黄的辨识困难，对红绿影响较小。</li>
+      <li>全色盲只能看到灰度，此时页面必须依靠明度差来保证信息层级。</li>
+      <li>做无障碍设计时，建议关键状态不要只依赖颜色，而是同时加图标或文字提示。</li>
+      <li>模拟算法采用常用的线性矩阵近似，与实际个体感受存在差异，仅供参考。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfHex2Rgb(hex) {
+  var s = String(hex).trim().replace(/^#/, "");
+  if (s.length === 3) s = s.replace(/./g, function (c) { return c + c; });
+  if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+  return { r: parseInt(s.slice(0, 2), 16), g: parseInt(s.slice(2, 4), 16), b: parseInt(s.slice(4, 6), 16) };
+}
+function __xfRgb2Hex(c) {
+  function h(x) { var v = Math.max(0, Math.min(255, Math.round(x))).toString(16); return v.length < 2 ? "0" + v : v; }
+  return "#" + h(c.r) + h(c.g) + h(c.b);
+}
+var BLIND_MATRIX = {
+  protanopia: [[0.567, 0.433, 0], [0.558, 0.442, 0], [0, 0.242, 0.758]],
+  deuteranopia: [[0.625, 0.375, 0], [0.7, 0.3, 0], [0, 0.3, 0.7]],
+  tritanopia: [[0.95, 0.05, 0], [0, 0.433, 0.567], [0, 0.475, 0.525]],
+  achromatopsia: [[0.299, 0.587, 0.114], [0.299, 0.587, 0.114], [0.299, 0.587, 0.114]]
+};
+function __xfBlindSimulate(hex, type) {
+  var c = __xfHex2Rgb(hex); if (!c) return null;
+  var m = BLIND_MATRIX[type] || BLIND_MATRIX.protanopia;
+  var out = { r: 0, g: 0, b: 0 };
+  out.r = m[0][0] * c.r + m[0][1] * c.g + m[0][2] * c.b;
+  out.g = m[1][0] * c.r + m[1][1] * c.g + m[1][2] * c.b;
+  out.b = m[2][0] * c.r + m[2][1] * c.g + m[2][2] * c.b;
+  return __xfRgb2Hex(out);
+}
+function __xfBlindTypes() { return Object.keys(BLIND_MATRIX); }
+window.__xfHex2Rgb = __xfHex2Rgb;
+window.__xfRgb2Hex = __xfRgb2Hex;
+window.__xfBlindSimulate = __xfBlindSimulate;
+window.__xfBlindTypes = __xfBlindTypes;
+function run() {
+  var type = $("type").value;
+  var list = String($("src").value).replace(/\r\n?/g, "\n").split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
+  var sw = $("sw"); sw.innerHTML = "";
+  var lines = [];
+  list.forEach(function (c) {
+    var out = __xfBlindSimulate(c, type);
+    if (!out) { lines.push(c + "  →  无法识别"); return; }
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;height:26px;border-radius:4px;overflow:hidden;";
+    [c, out].forEach(function (x) {
+      var d = document.createElement("div");
+      d.style.cssText = "flex:1;background:" + x + ";";
+      row.appendChild(d);
+    });
+    sw.appendChild(row);
+    lines.push(c + "  →  " + out);
+  });
+  $("res").value = lines.join("\n");
+  $("state").textContent = list.length + " 个颜色";
+  $("tip").textContent = "✅ 已完成色盲模拟";
+  return lines;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

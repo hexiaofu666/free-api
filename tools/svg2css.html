@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVG转CSS背景 - 词海工具箱</title>
+<meta name="description" content="把 SVG 源码转成可直接用在 CSS 中的 data URI 背景，支持 URL 编码与 Base64 两种编码方式并生成完整样式。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/svg2css.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="svg2css" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>编码方式</label>
+        <select id="mode"><option value="url" selected>URL 编码</option><option value="b64">Base64</option></select>
+      </div>
+      <div class="fitem"><label>选择器名</label><input type="text" id="sel" value=".icon-bg"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换并生成</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">SVG 源码</div>
+      <textarea id="src" style="min-height:170px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ff6500"/></svg></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">CSS 样式</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于SVG转CSS背景介绍：</h4>
+    <ol>
+      <li>URL 编码方式体积更小、可读性更好，是内联 SVG 背景的推荐做法。</li>
+      <li>Base64 方式兼容性最好，但体积约增加三分之一，长 SVG 建议优先用 URL 编码。</li>
+      <li>编码时会去掉 XML 声明与注释，并把双引号转成单引号，避免 CSS 中引号冲突。</li>
+      <li>生成的样式已包含不重复、居中对齐与自适应尺寸三项常用属性，开箱即用。</li>
+      <li>如需修改填充色，请先在 SVG 源码中改好 fill 值再转换，转换后不方便再调色。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSvgClean(svg) {
+  return String(svg).replace(/<\?xml[^>]*\?>/g, "").replace(/<!--[\s\S]*?-->/g, "").replace(/\s+/g, " ").trim();
+}
+function __xfUrlEncodeSvg(svg) {
+  return __xfSvgClean(svg)
+    .replace(/%/g, "%25").replace(/#/g, "%23").replace(/</g, "%3C").replace(/>/g, "%3E")
+    .replace(/"/g, "'").replace(/&/g, "%26").replace(/\n/g, "");
+}
+function __xfSvgUri(svg, mode) {
+  var s = __xfSvgClean(svg);
+  if (mode === "b64") return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(s)));
+  return "data:image/svg+xml," + __xfUrlEncodeSvg(s);
+}
+function __xfSvg2Css(svg, mode, sel, size) {
+  var uri = __xfSvgUri(svg, mode);
+  var selector = sel || ".icon-bg";
+  return selector + " {\n  background-image: url(\"" + uri + "\");\n  background-repeat: no-repeat;\n  background-position: center;\n  background-size: " + (size || "contain") + ";\n}";
+}
+window.__xfSvgUri = __xfSvgUri;
+window.__xfSvg2Css = __xfSvg2Css;
+window.__xfSvgClean = __xfSvgClean;
+window.__xfUrlEncodeSvg = __xfUrlEncodeSvg;
+function run() {
+  var out = __xfSvg2Css($("src").value, $("mode").value, $("sel").value);
+  $("res").value = out;
+  $("state").textContent = out.length + " 字符";
+  $("tip").textContent = "✅ 已生成 CSS";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

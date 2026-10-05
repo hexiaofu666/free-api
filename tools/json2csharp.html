@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON转C#实体类 - 词海工具箱</title>
+<meta name="description" content="JSON 转 C# 实体类工具：根据 JSON 样例生成 C# 类定义，支持属性语法、可空类型与 Newtonsoft 特性。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/json2csharp.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="json2csharp" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>根类名</label><input type="text" id="cls" value="Root"></div>
+      <div class="fitem"><label>命名空间</label><input type="text" id="ns" value="Example.Models"></div>
+      <div class="fitem"><label>属性风格</label>
+        <select id="style"><option value="auto" selected>自动属性 { get; set; }</option><option value="prop">带私字段的完整属性</option></select>
+      </div>
+      <div class="fitem"><label>可空引用</label>
+        <select id="nullable"><option value="no" selected>不标注</option><option value="yes">标注 string?</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成类代码</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">JSON 样例</div>
+      <textarea id="src" style="min-height:160px;">{
+  "id": 1001,
+  "name": "词海工具箱",
+  "score": 4.5,
+  "enabled": true,
+  "tags": ["工具"],
+  "owner": { "nick": "贺小富" }
+}</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:250px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JSON转C#实体类介绍：</h4>
+    <ol>
+      <li>生成的类可直接配合 Newtonsoft.Json（JsonConvert.DeserializeObject<T>）或 System.Text.Json 使用。</li>
+      <li>C# 属性名使用 PascalCase（首字母大写），与 JSON 的 key 不一致时可用 [JsonProperty("key")] 标注。</li>
+      <li>类型映射：整数→int（超范围→long）、小数→double、布尔→bool、字符串→string、数组→List<T>。</li>
+      <li>开启「可空引用」会把 string 写成 string?，适配 C# 8.0 以上开启 Nullable 的项目。</li>
+      <li>嵌套对象会生成独立的 public class，字段名相同的层级会自动去重以避免命名冲突。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfPascal(s) {
+  return String(s).replace(/[^a-zA-Z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; })
+    .replace(/^(.)/, function (m) { return m.toUpperCase(); });
+}
+function __xfCsType(v) {
+  if (v === null) return "object";
+  if (typeof v === "boolean") return "bool";
+  if (typeof v === "number") return Number.isInteger(v) ? (Math.abs(v) > 2147483647 ? "long" : "int") : "double";
+  return "string";
+}
+function __xfJson2Csharp(json, rootName, ns, style, nullable) {
+  var data;
+  try { data = typeof json === "string" ? JSON.parse(json) : json; }
+  catch (e) { return { ok: false, error: "JSON 解析失败：" + e.message }; }
+  if (data === null || typeof data !== "object") return { ok: false, error: "根节点必须是对象或数组" };
+  var classes = [], used = {};
+  function clsName(base) {
+    var n = base || "Item", i = 1, b = n;
+    while (used[n]) n = b + (i++);
+    used[n] = true;
+    return n;
+  }
+  function nt(t) { return nullable === "yes" && t === "string" ? "string?" : t; }
+  function build(obj, name) {
+    var props = [];
+    Object.keys(obj).forEach(function (k) {
+      var v = obj[k], type;
+      if (Array.isArray(v)) {
+        if (v.length && v[0] !== null && typeof v[0] === "object" && !Array.isArray(v[0])) {
+          var inner = clsName(__xfPascal(k) + "Item");
+          props.push({ name: __xfPascal(k), type: "List<" + inner + ">" });
+          build(v[0], inner);
+          return;
+        }
+        props.push({ name: __xfPascal(k), type: "List<" + __xfCsType(v.length ? v[0] : null) + ">" });
+        return;
+      }
+      if (v !== null && typeof v === "object") {
+        var sub = clsName(__xfPascal(k));
+        props.push({ name: __xfPascal(k), type: sub });
+        build(v, sub);
+        return;
+      }
+      props.push({ name: __xfPascal(k), type: nt(__xfCsType(v)), key: k });
+    });
+    classes.push({ name: name, props: props });
+  }
+  build(Array.isArray(data) ? (data[0] || {}) : data, clsName(rootName || "Root"));
+  var useList = classes.some(function (c) { return c.props.some(function (p) { return p.type.indexOf("List<") === 0; }); });
+  var L = [];
+  if (ns) L.push("namespace " + ns + "\n{");
+  var indent = ns ? "    " : "";
+  L.push(indent + "using System.Collections.Generic;".replace(indent, ns ? "    " : ""));
+  if (ns) { L.pop(); L.unshift("using System.Collections.Generic;"); }
+  classes.forEach(function (c, ci) {
+    L.push((ns ? "    " : "") + "public class " + c.name);
+    L.push((ns ? "    " : "") + "{");
+    var pre = ns ? "        " : "    ";
+    c.props.forEach(function (p) {
+      if (style === "prop") {
+        L.push(pre + "private " + p.type + " " + (p.name.charAt(0).toLowerCase() + p.name.slice(1)) + ";");
+        L.push(pre + "public " + p.type + " " + p.name);
+        L.push(pre + "{");
+        L.push(pre + "    get { return " + (p.name.charAt(0).toLowerCase() + p.name.slice(1)) + "; }");
+        L.push(pre + "    set { " + (p.name.charAt(0).toLowerCase() + p.name.slice(1)) + " = value; }");
+        L.push(pre + "}");
+      } else {
+        L.push(pre + "public " + p.type + " " + p.name + " { get; set; }");
+      }
+    });
+    L.push((ns ? "    " : "") + "}");
+    if (ci < classes.length - 1) L.push("");
+  });
+  if (ns) L.push("}");
+  var code = L.join("\n").replace(/\n{3,}/g, "\n\n");
+  if (classes.some(function (c) { return c.props.some(function (p) { return p.type.indexOf("List<") === 0; }); })) {
+    code = code.replace(/^(?=namespace|public)/m, "using System.Collections.Generic;\n\n");
+  }
+  return { ok: true, code: code, classes: classes.length, props: classes.reduce(function (a, c) { return a + c.props.length; }, 0) };
+}
+window.__xfJson2Csharp = __xfJson2Csharp;
+window.__xfCsType = __xfCsType;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var r = __xfJson2Csharp($("src").value, $("cls").value.trim() || "Root", $("ns").value.trim(), $("style").value, $("nullable").value);
+  if (!r.ok) { $("res").value = "❌ " + r.error; $("tip").textContent = "❌ 生成失败"; $("state").textContent = ""; return; }
+  $("res").value = r.code;
+  $("state").textContent = r.classes + " 个类 / " + r.props + " 个属性";
+  $("tip").textContent = "✅ 已生成 C# 类";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

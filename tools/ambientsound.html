@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>环境音效生成器 - 词海工具箱</title>
+<meta name="description" content="环境音效生成器：用 Web Audio 实时合成雨声、海浪、风扇、白噪音等助眠与专注背景音，可调音量与音色。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ambientsound.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ambientsound" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>音效类型</label>
+        <select id="type">
+          <option value="rain" selected>雨声</option>
+          <option value="wave">海浪</option>
+          <option value="fan">风扇</option>
+          <option value="white">白噪音</option>
+          <option value="brown">棕噪音（低沉）</option>
+          <option value="forest">森林夜晚</option>
+        </select>
+      </div>
+      <div class="fitem"><label>音量(%)</label><input type="range" id="vol" min="0" max="100" value="40" step="1"></div>
+      <div class="fitem"><label>音色强度</label><input type="range" id="tone" min="0" max="100" value="50" step="1"></div>
+      <div class="fitem"><label>定时关闭</label>
+        <select id="timer">
+          <option value="0">不关闭</option>
+          <option value="15">15 分钟</option>
+          <option value="30">30 分钟</option>
+          <option value="60">60 分钟</option>
+          <option value="90">90 分钟</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="playBtn">▶ 播放</button>
+      <button class="fbtn brown" id="stopBtn">■ 停止</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">参数说明</strong><span id="status">未播放</span></div>
+      <div id="res" style="padding:12px 15px;line-height:1.9;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于环境音效生成器介绍：</h4>
+    <ol>
+      <li>所有音效都在浏览器本地实时合成（Web Audio），不下载任何音频文件，因此完全离线可用、无版权问题。</li>
+      <li>雨声/海浪/森林使用了低频振荡器（LFO）调制滤波器频率，产生自然的强弱起伏，而不是一成不变的电流声。</li>
+      <li>白噪音适合屏蔽办公室人声与键盘声；棕噪音低频更重、更沉闷，常用于助眠与缓解耳鸣。</li>
+      <li>音量的听感变化采用平方曲线，因此滑到 40% 左右就已经接近日常舒适音量，不必要开到最大。</li>
+      <li>部分浏览器要求用户先与页面交互才允许播放声音，点击「播放」按钮即满足该要求。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+/* 各音效的合成参数：滤波类型 / 截止频率 / 是否加 LFO 起伏 */
+var PROFILES = {
+  rain:   { name: "雨声",       filter: "highpass", freq: 1200, lfo: 0.15, lfoGain: 300, gain: 0.35, desc: "高通白噪声模拟细密雨点，缓慢起伏像雨势变化" },
+  wave:   { name: "海浪",       filter: "lowpass",  freq: 600,  lfo: 0.08, lfoGain: 250, gain: 0.5,  desc: "低通噪声配超慢起伏，模拟潮水涨落" },
+  fan:    { name: "风扇",       filter: "lowpass",  freq: 900,  lfo: 0.3,  lfoGain: 60,  gain: 0.4,  desc: "稳定低通噪声，接近电扇持续运转声" },
+  white:  { name: "白噪音",     filter: "allpass",  freq: 8000, lfo: 0,    lfoGain: 0,   gain: 0.3,  desc: "全频段均匀噪声，用于屏蔽环境杂音" },
+  brown:  { name: "棕噪音",     filter: "lowpass",  freq: 350,  lfo: 0,    lfoGain: 0,   gain: 0.55, desc: "低频占优的深沉噪声，适合放松助眠" },
+  forest: { name: "森林夜晚",   filter: "bandpass", freq: 2200, lfo: 0.5,  lfoGain: 500, gain: 0.32, desc: "带通噪声加随机起伏，近似虫鸣与树叶声" }
+};
+function __xfSoundList() {
+  var out = [];
+  for (var k in PROFILES) out.push({ id: k, name: PROFILES[k].name, desc: PROFILES[k].desc });
+  return out;
+}
+function __xfSoundProfile(id) { return PROFILES[id] || null; }
+/* 音量百分比 → 音频增益（0-1） */
+function __xfVolumeGain(pct) {
+  var p = Math.max(0, Math.min(100, Number(pct) || 0)) / 100;
+  return Math.round(p * p * 1000) / 1000;   // 平方曲线更符合听感
+}
+window.__xfSoundList = __xfSoundList;
+window.__xfSoundProfile = __xfSoundProfile;
+window.__xfVolumeGain = __xfVolumeGain;
+
+var $ = function (id) { return document.getElementById(id); };
+var ctx = null, node = null, gainNode = null, lfo = null, timerId = null;
+function showInfo() {
+  var p = __xfSoundProfile($("type").value) || PROFILES.rain;
+  $("res").innerHTML = "<p><b>" + p.name + "</b>：" + p.desc + "</p>" +
+    "<p>滤波：" + p.filter + " @ " + p.freq + " Hz　基础增益：" + p.gain + "</p>" +
+    "<p>当前音量：" + $("vol").value + "%　音色强度：" + $("tone").value + "%</p>" +
+    "<p style='color:#999;'>提示：音量与音色改动会立即生效（播放中）。</p>";
+}
+function stop() {
+  if (timerId) { clearTimeout(timerId); timerId = null; }
+  if (ctx) { try { ctx.close(); } catch (e) {} }
+  ctx = null; node = null; gainNode = null; lfo = null;
+  $("status").textContent = "已停止";
+}
+function play() {
+  stop();
+  if (typeof AudioContext === "undefined" && typeof webkitAudioContext === "undefined") {
+    $("status").textContent = "浏览器不支持";
+    $("res").innerHTML = "<p>当前浏览器不支持 Web Audio API，无法合成音效。</p>";
+    return;
+  }
+  var AC = typeof AudioContext !== "undefined" ? AudioContext : webkitAudioContext;
+  ctx = new AC();
+  var p = __xfSoundProfile($("type").value) || PROFILES.rain;
+  var bufferSize = 2 * ctx.sampleRate;
+  var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  var data = buffer.getChannelData(0);
+  var last = 0;
+  for (var i = 0; i < bufferSize; i++) {
+    var w = Math.random() * 2 - 1;
+    if ($("type").value === "brown") { last = (last + 0.02 * w) / 1.02; data[i] = last * 3.5; }
+    else data[i] = w;
+  }
+  node = ctx.createBufferSource();
+  node.buffer = buffer; node.loop = true;
+  var filt = ctx.createBiquadFilter();
+  filt.type = p.filter; filt.frequency.value = p.freq;
+  gainNode = ctx.createGain();
+  gainNode.gain.value = __xfVolumeGain($("vol").value) * p.gain * 3;
+  var lfoGain = ctx.createGain();
+  lfoGain.gain.value = (Number($("tone").value) / 100) * p.lfoGain;
+  if (p.lfo) {
+    lfo = ctx.createOscillator();
+    lfo.frequency.value = p.lfo;
+    lfo.connect(lfoGain); lfoGain.connect(filt.frequency);
+    lfo.start();
+  }
+  node.connect(filt); filt.connect(gainNode); gainNode.connect(ctx.destination);
+  node.start();
+  $("status").textContent = "播放中：" + p.name;
+  var min = parseInt($("timer").value, 10);
+  if (min > 0) {
+    timerId = setTimeout(function () { stop(); $("status").textContent = "定时结束已停止"; }, min * 60000);
+  }
+}
+$("playBtn").onclick = play;
+$("stopBtn").onclick = stop;
+$("type").onchange = showInfo;
+$("vol").oninput = function () { if (gainNode) { var p = __xfSoundProfile($("type").value) || PROFILES.rain; gainNode.gain.value = __xfVolumeGain(this.value) * p.gain * 3; } showInfo(); };
+$("tone").oninput = showInfo;
+showInfo();
+</script>
+</body>
+</html>

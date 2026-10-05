@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本多行合并 - 词海工具箱</title>
+<meta name="description" content="把多行文本合并成一行或一段，支持自定义分隔符、去除首尾空格与过滤空行，常用于整理清单与批量数据拼接。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/txtmerge.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="txtmerge" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>分隔符</label><input type="text" id="sep" value=", " placeholder="如 , 或 | 或留空"></div>
+      <div class="fitem"><label>去除首尾空格</label>
+        <select id="trim"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+      <div class="fitem"><label>过滤空行</label>
+        <select id="skip"><option value="no" selected>否</option><option value="yes">是</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">合并</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">多行文本</div>
+      <textarea id="src" style="min-height:180px;">西安
+北京
+上海
+广州</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">合并结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:140px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本多行合并介绍：</h4>
+    <ol>
+      <li>默认去除每行首尾空格，避免粘贴时带出的缩进拼进结果里。</li>
+      <li>勾选「过滤空行」后，中间的空行会被忽略，适合清理从网页复制的分行清单。</li>
+      <li>分隔符支持任意字符，例如英文逗号加空格、竖线、中文顿号，留空即为无缝拼接。</li>
+      <li>如需生成 SQL 的 IN 列表，可把分隔符设为英文逗号，再配合批量加引号工具使用。</li>
+      <li>合并结果不改变原有顺序，行内内容保持原样，只处理行首行尾的空白。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfMergeLines(text, sep, opts) {
+  opts = opts || {};
+  var lines = String(text).replace(/\r\n?/g, "\n").split("\n");
+  if (opts.trim !== false) lines = lines.map(function (l) { return l.trim(); });
+  if (opts.skipEmpty) lines = lines.filter(function (l) { return l !== ""; });
+  return lines.join(sep === undefined ? "" : sep);
+}
+function __xfLineCount(text) {
+  return String(text).replace(/\r\n?/g, "\n").split("\n").length;
+}
+window.__xfMergeLines = __xfMergeLines;
+window.__xfLineCount = __xfLineCount;
+function run() {
+  var out = __xfMergeLines($("src").value, $("sep").value, { trim: $("trim").value === "yes", skipEmpty: $("skip").value === "yes" });
+  $("res").value = out;
+  $("state").textContent = __xfLineCount($("src").value) + " 行 → 1 段";
+  $("tip").textContent = "✅ 合并完成";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

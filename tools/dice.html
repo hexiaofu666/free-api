@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线掷骰子 - 词海工具箱</title>
+<meta name="description" content="在线掷骰子工具，可自定义骰子数量与面数并统计点数总和，支持多次投掷查看点数分布，适合桌游与概率演示。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/dice.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="dice" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>骰子数量</label><input type="number" id="cnt" value="2" min="1" max="20"></div>
+      <div class="fitem"><label>每颗面数</label><input type="number" id="sides" value="6" min="2" max="100"></div>
+      <div class="fitem"><label>投掷轮数</label><input type="number" id="times" value="1" min="1" max="1000"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">掷骰子</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">投掷结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:250px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线掷骰子介绍：</h4>
+    <ol>
+      <li>单颗六面骰的点数在 1 到 6 之间均匀分布，出现每个点数的概率都约为六分之一。</li>
+      <li>掷两颗六面骰时，和为 7 的组合最多，因此概率最高，这也是骰子游戏的常见设定。</li>
+      <li>面数可以自定义，输入 20 即可模拟二十面骰，输入 100 可以模拟百分骰。</li>
+      <li>多轮投掷会给出点数分布统计，用于直观展示中心极限现象。</li>
+      <li>结果采用均匀随机数生成，每次点击都相互独立，不受历史结果影响。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRollDice(count, sides, rnd) {
+  rnd = rnd || Math.random;
+  var c = Math.max(1, parseInt(count, 10) || 1);
+  var s = Math.max(2, parseInt(sides, 10) || 6);
+  var values = [], sum = 0;
+  for (var i = 0; i < c; i++) {
+    var v = Math.min(s, Math.floor(rnd() * s) + 1);
+    values.push(v); sum += v;
+  }
+  return { count: c, sides: s, values: values, sum: sum };
+}
+function __xfRollStat(count, sides, times, rnd) {
+  rnd = rnd || Math.random;
+  var t = Math.max(1, parseInt(times, 10) || 1);
+  var dist = {}, total = 0, min = Infinity, max = -Infinity, rolls = [];
+  for (var i = 0; i < t; i++) {
+    var r = __xfRollDice(count, sides, rnd);
+    rolls.push(r.sum);
+    total += r.sum;
+    dist[r.sum] = (dist[r.sum] || 0) + 1;
+    if (r.sum < min) min = r.sum;
+    if (r.sum > max) max = r.sum;
+  }
+  return { times: t, avg: Math.round(total / t * 100) / 100, min: min, max: max, dist: dist, rolls: rolls };
+}
+function __xfDiceRange(count, sides) { return { min: Math.max(1, parseInt(count, 10) || 1), max: (Math.max(1, parseInt(count, 10) || 1)) * (Math.max(2, parseInt(sides, 10) || 6)) }; }
+window.__xfRollDice = __xfRollDice;
+window.__xfRollStat = __xfRollStat;
+window.__xfDiceRange = __xfDiceRange;
+function run() {
+  var cnt = $("cnt").value, sides = $("sides").value, times = parseInt($("times").value, 10) || 1;
+  if (times > 1) {
+    var st = __xfRollStat(cnt, sides, times);
+    var lines = ["投掷 " + st.times + " 轮（每轮 " + cnt + " 颗 " + sides + " 面骰）", ""];
+    lines.push("点数和平均：" + st.avg);
+    lines.push("最小点数：" + st.min + "，最大点数：" + st.max);
+    lines.push("");
+    lines.push("点数分布：");
+    Object.keys(st.dist).sort(function (a, b) { return a - b; }).forEach(function (k) { lines.push("  " + k + " 点：" + st.dist[k] + " 次"); });
+    $("res").value = lines.join("\n");
+    $("state").textContent = times + " 轮";
+    $("tip").textContent = "✅ 平均 " + st.avg + " 点";
+    return st;
+  }
+  var r = __xfRollDice(cnt, sides);
+  var range = __xfDiceRange(cnt, sides);
+  $("res").value = ["骰子：" + r.count + " 颗，每颗 " + r.sides + " 面", "", "点数：" + r.values.join(" + ") + " = " + r.sum, "理论范围：" + range.min + " ~ " + range.max].join("\n");
+  $("state").textContent = "合计 " + r.sum + " 点";
+  $("tip").textContent = "✅ 掷出 " + r.sum + " 点";
+  return r;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

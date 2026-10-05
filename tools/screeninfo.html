@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕参数检测器 - 词海工具箱</title>
+<meta name="description" content="屏幕参数检测器：在线查看屏幕分辨率、可用区域、像素比、色彩深度、刷新率与视口尺寸，便于适配调试。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/screeninfo.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="screeninfo" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>物理分辨率</label><input type="number" id="pw" placeholder="宽，如 1920"></div>
+      <div class="fitem"><label>&nbsp;</label><input type="number" id="ph" placeholder="高，如 1080"></div>
+      <div class="fitem"><label>像素比</label><input type="number" id="dpr" value="1" step="0.25"></div>
+      <div class="fitem"><label>屏幕尺寸(英寸)</label><input type="number" id="inch" value="24" step="0.1"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="detectBtn">检测本机屏幕</button>
+      <button class="fbtn blue" id="calcBtn">计算 PPI</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">屏幕信息</strong></div>
+      <textarea id="res" readonly style="height:230px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于屏幕参数检测器介绍：</h4>
+    <ol>
+      <li>CSS 像素是网页布局使用的逻辑单位，物理像素才是屏幕真实的发光点；两者之比就是设备像素比 DPR。</li>
+      <li>例如 iPhone 的 DPR 常为 3：CSS 里写 390px 宽的盒子，实际占用 1170 个物理像素。</li>
+      <li>PPI（每英寸像素数）由「对角线像素数 ÷ 屏幕对角线英寸数」得出，是判断屏幕细腻程度的核心指标。</li>
+      <li>点距 = 25.4 ÷ PPI（毫米），点距越小画面越细腻；一般 PPI 超过 300 人眼在正常距离就难以分辨单个像素。</li>
+      <li>网页中图片建议按「CSS 尺寸 × DPR」准备，用 2 倍图可在高 DPR 设备上依然清晰。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+/* PPI = 对角线像素数 / 屏幕对角线英寸数 */
+function __xfPpi(width, height, inch) {
+  var i = Number(inch) || 0;
+  if (i <= 0) return null;
+  var d = Math.sqrt(Number(width) * Number(width) + Number(height) * Number(height));
+  return Math.round(d / i * 100) / 100;
+}
+/* 物理分辨率 = CSS 像素 × 像素比 */
+function __xfPhysical(cssW, cssH, dpr) {
+  var d = Number(dpr) || 1;
+  return { w: Math.round(Number(cssW) * d), h: Math.round(Number(cssH) * d) };
+}
+/* 汇总屏幕信息为文本行 */
+function __xfScreenReport(s, dpr, view) {
+  s = s || {}; view = view || {};
+  var ph = __xfPhysical(s.width, s.height, dpr);
+  var lines = [
+    "屏幕分辨率(CSS)： " + s.width + " × " + s.height,
+    "可用区域(CSS)： " + s.availWidth + " × " + s.availHeight,
+    "物理分辨率估算： " + ph.w + " × " + ph.h,
+    "设备像素比(DPR)： " + dpr,
+    "色彩深度： " + s.colorDepth + " 位（约 " + Math.pow(2, s.colorDepth).toLocaleString() + " 色）",
+    "像素深度： " + s.pixelDepth + " 位",
+    "浏览器视口： " + view.innerWidth + " × " + view.innerHeight,
+    "视口可用高度： " + view.innerHeight + " px",
+    "横竖屏： " + (view.innerWidth > view.innerHeight ? "横向（Landscape）" : "纵向（Portrait）"),
+    "预览比例： " + (Math.round(s.width / s.height * 1000) / 1000)
+  ];
+  if (s.orientation && s.orientation.type) lines.push("屏幕方向类型： " + s.orientation.type);
+  return lines.join("\n");
+}
+window.__xfPpi = __xfPpi;
+window.__xfPhysical = __xfPhysical;
+window.__xfScreenReport = __xfScreenReport;
+
+var $ = function (id) { return document.getElementById(id); };
+function detect() {
+  var s = { width: 0, height: 0, availWidth: 0, availHeight: 0, colorDepth: 24, pixelDepth: 24 };
+  var dpr = 1, view = { innerWidth: 0, innerHeight: 0 };
+  try {
+    if (typeof screen !== "undefined") { s = screen; }
+    dpr = window.devicePixelRatio || 1;
+    view = { innerWidth: window.innerWidth, innerHeight: window.innerHeight };
+  } catch (e) {}
+  $("res").value = __xfScreenReport(s, dpr, view);
+  $("pw").value = s.width; $("ph").value = s.height; $("dpr").value = dpr;
+  $("tip").textContent = "✅ 本机屏幕信息";
+}
+function calc() {
+  var p = __xfPpi($("pw").value, $("ph").value, $("inch").value);
+  if (p === null) { $("tip").textContent = "请填写屏幕尺寸"; return; }
+  var rating = p >= 300 ? "超高清（视网膜级）" : (p >= 200 ? "高清" : (p >= 100 ? "正常" : "偏低"));
+  $("res").value = [
+    "分辨率：" + $("pw").value + " × " + $("ph").value,
+    "屏幕尺寸：" + $("inch").value + " 英寸",
+    "像素密度 PPI：" + p,
+    "清晰度评价：" + rating,
+    "点距：" + (Math.round(25.4 / p * 10000) / 10000) + " mm",
+    "建议观看距离：" + (Math.round((Number($("inch").value) * 2.5) * 10) / 10) + " 英寸（约 " + (Math.round(Number($("inch").value) * 2.5 * 2.54 * 10) / 10) + " 厘米）起"
+  ].join("\n");
+  $("tip").textContent = "✅ PPI 计算结果";
+}
+$("detectBtn").onclick = detect;
+$("calcBtn").onclick = calc;
+["pw", "ph", "inch"].forEach(function (id) { $(id).addEventListener("change", calc); });
+$("res").value = __xfScreenReport({ width: 1920, height: 1080, availWidth: 1920, availHeight: 1040, colorDepth: 24, pixelDepth: 24 }, 1, { innerWidth: 1920, innerHeight: 950 }) + "\n\n（点击「检测本机屏幕」读取真实参数）";
+calc();
+</script>
+</body>
+</html>

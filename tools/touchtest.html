@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>触摸屏测试 - 词海工具箱</title>
+<meta name="description" content="触摸屏测试：在线检测手机/平板的触摸点数、滑动轨迹与多点触控是否正常，绘制触点轨迹排查触摸失灵区域。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/touchtest.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="touchtest" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>绘制模式</label>
+        <select id="mode">
+          <option value="line" selected>轨迹连线</option>
+          <option value="dot">仅显示触点</option>
+        </select>
+      </div>
+      <div class="fitem"><label>触点大小</label><input type="range" id="size" min="6" max="40" value="16" step="1"></div>
+      <div class="fitem"><label>最大触点数</label><input type="text" id="max" readonly value="0"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="clearBtn">清空轨迹</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">触摸测试区（请用手指操作）</strong><span id="cnt">触点 0</span></div>
+      <div id="pad" style="position:relative;height:320px;border:2px dashed #c5cae9;border-radius:6px;overflow:hidden;touch-action:none;background:#fafafa;"></div>
+      <p style="margin-top:8px;font-size:12px;color:#999;">在框内滑动手指；轨迹会实时绘制，断线处可能对应触摸失灵区域</p>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于触摸屏测试介绍：</h4>
+    <ol>
+      <li>本工具在手机、平板等带触摸屏的设备上才有意义；用鼠标点击不会产生触摸事件。</li>
+      <li>请用手指在虚线框内缓慢滑动，正常屏幕应形成连续的轨迹；轨迹出现断口的位置可能是触摸失灵区域。</li>
+      <li>支持多点触控的设备可同时用两根或多根手指按压，页面会记录最大同时触点数（多数手机为 10 点）。</li>
+      <li>Android 手机上若浏览器开启了「强制缩放」或手势导航，可能抢占触摸事件，建议在浏览器内直接打开本页测试。</li>
+      <li>如果某个区域反复无法绘制轨迹，建议重启设备后再测一次，以排除系统卡顿与贴膜影响。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var TYPES = { direct: "直接触摸", stylus: "手写笔/触控笔", unknown: "未知类型" };
+function __xfTouchType(t) { return TYPES[t] || "未知类型（" + t + "）"; }
+function __xfTouchInfo(t) {
+  return {
+    id: t.identifier,
+    type: __xfTouchType(t.touchType),
+    force: t.force !== undefined ? t.force : null,
+    radiusX: t.radiusX !== undefined ? Math.round(t.radiusX) : null,
+    radiusY: t.radiusY !== undefined ? Math.round(t.radiusY) : null
+  };
+}
+function __xfTouchStats(list) {
+  var n = (list || []).length;
+  return { count: n, multi: n > 1, level: n <= 1 ? "单点触控" : n + " 点同时触控" };
+}
+window.__xfTouchType = __xfTouchType;
+window.__xfTouchInfo = __xfTouchInfo;
+window.__xfTouchStats = __xfTouchStats;
+
+var $ = function (id) { return document.getElementById(id); };
+var pad = $("pad"), maxTouches = 0;
+function pos(e) {
+  var r = pad.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+function dot(x, y, color) {
+  var d = document.createElement("span");
+  var s = parseInt($("size").value, 10);
+  d.style.cssText = "position:absolute;width:" + s + "px;height:" + s + "px;border-radius:50%;background:" + color + ";opacity:.55;transform:translate(-50%,-50%);left:" + x + "px;top:" + y + "px;pointer-events:none;";
+  pad.appendChild(d);
+  if (pad.childNodes.length > 1200) pad.removeChild(pad.firstChild);
+}
+pad.addEventListener("touchstart", function (e) {
+  e.preventDefault();
+  var n = e.touches.length;
+  maxTouches = Math.max(maxTouches, n);
+  $("cnt").textContent = "触点 " + n;
+  $("max").value = maxTouches + "（" + __xfTouchStats(new Array(maxTouches)).level + "）";
+  $("tip").textContent = "检测中：" + __xfTouchStats(e.touches).level;
+  for (var i = 0; i < n; i++) { var p = pos(e.touches[i]); dot(p.x, p.y, "#3949ab"); }
+});
+pad.addEventListener("touchmove", function (e) {
+  e.preventDefault();
+  var n = e.touches.length;
+  maxTouches = Math.max(maxTouches, n);
+  $("cnt").textContent = "触点 " + n;
+  $("max").value = maxTouches + "（" + __xfTouchStats(new Array(maxTouches)).level + "）";
+  for (var i = 0; i < n; i++) { var p = pos(e.touches[i]); dot(p.x, p.y, i === 0 ? "#3949ab" : "#26a69a"); }
+});
+pad.addEventListener("touchend", function (e) { $("cnt").textContent = "触点 0"; });
+$("clearBtn").onclick = function () { pad.innerHTML = ""; maxTouches = 0; $("max").value = "0"; $("cnt").textContent = "触点 0"; $("tip").textContent = "已清空"; };
+$("mode").onchange = function () { pad.innerHTML = ""; };
+$("tip").textContent = "触摸测试区（请用手指操作）";
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML转义处理 - 词海工具箱</title>
+<meta name="description" content="HTML 转义处理工具：在 HTML 实体与纯文本之间互转，可转义尖括号防注入，也可一键去除全部 HTML 标签。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/html2str.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="html2str" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>处理方式</label>
+        <select id="mode">
+          <option value="escape" selected>转义（HTML → 实体）</option>
+          <option value="unescape">反转义（实体 → HTML）</option>
+          <option value="strip">去除标签（HTML → 纯文本）</option>
+          <option value="escapeTag">仅转义尖括号</option>
+        </select>
+      </div>
+      <div class="fitem"><label>保留换行</label>
+        <select id="br"><option value="no" selected>否（br/p 转空格）</option><option value="yes">是（br/p 转换行）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">执行</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">输入内容</div>
+      <textarea id="src" style="min-height:140px;"><div class="box">词海工具箱 &amp; 实用工具<br>访问 <a href="https://tools.hdemba.cn">工具箱</a></div></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">处理结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:190px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTML转义处理介绍：</h4>
+    <ol>
+      <li>转义会把 & < > \" ' 替换为对应 HTML 实体，用于在网页上安全展示代码片段，防止被浏览器当作标签解析。</li>
+      <li>反转义会还原全部常见实体（含 &nbsp;、&#39; 与 &#xHH; 十六进制形式）。</li>
+      <li>「去除标签」会先剔除 script 与 style 的整段内容，再删除其余标签，最后把实体还原成可读文本。</li>
+      <li>选择「保留换行」时 br 与 </p> 会转成换行符，适合把网页正文转成纯文本文稿。</li>
+      <li>仅转义尖括号是最轻量的做法：既能防止标签被解析，又保留了引号等其他字符的可读性。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfHtmlEscape(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function __xfHtmlUnescape(s) {
+  var t = String(s);
+  t = t.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;/g, "'").replace(/&apos;/g, "'").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
+  t = t.replace(/&#x([0-9a-fA-F]+);/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); });
+  t = t.replace(/&#(\d+);/g, function (m, d) { return String.fromCharCode(parseInt(d, 10)); });
+  return t;
+}
+function __xfStripTags(html, keepBr) {
+  var t = String(html);
+  if (keepBr === "yes") {
+    t = t.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<p[^>]*>/gi, "");
+  } else {
+    t = t.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>/gi, " ").replace(/<p[^>]*>/gi, " ");
+  }
+  t = t.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "");
+  t = t.replace(/<[^>]+>/g, "");
+  t = __xfHtmlUnescape(t);
+  return t.replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+}
+function __xfEscapeBrackets(s) { return String(s).replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function __xfTextStats(s) {
+  var t = String(s);
+  return { chars: t.length, words: t.trim() ? t.trim().split(/\s+/).length : 0, lines: t.split("\n").length, tags: (t.match(/<[^>]+>/g) || []).length };
+}
+window.__xfHtmlEscape = __xfHtmlEscape;
+window.__xfHtmlUnescape = __xfHtmlUnescape;
+window.__xfStripTags = __xfStripTags;
+window.__xfEscapeBrackets = __xfEscapeBrackets;
+window.__xfTextStats = __xfTextStats;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var m = $("mode").value, src = $("src").value, out;
+  if (m === "escape") out = __xfHtmlEscape(src);
+  else if (m === "unescape") out = __xfHtmlUnescape(src);
+  else if (m === "strip") out = __xfStripTags(src, $("br").value);
+  else out = __xfEscapeBrackets(src);
+  $("res").value = out;
+  var st = __xfTextStats(out);
+  $("state").textContent = st.chars + " 字符 / " + st.lines + " 行";
+  $("tip").textContent = "✅ 处理完成";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+["mode", "br"].forEach(function (id) { $(id).addEventListener("change", function () { if ($("src").value) $("runBtn").click(); }); });
+$("runBtn").click();
+</script>
+</body>
+</html>

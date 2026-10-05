@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>纸张尺寸对照表 - 词海工具箱</title>
+<meta name="description" content="查询 A、B、C 系列国际标准纸张尺寸与毫米、厘米、英寸、像素的换算结果，支持自定义 DPI 用于印刷排版核对。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/paper.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="paper" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>规格</label>
+        <select id="name"><option value="A0">A0</option><option value="A1">A1</option><option value="A2">A2</option><option value="A3">A3</option><option value="A4" selected>A4</option><option value="A5">A5</option><option value="A6">A6</option><option value="A7">A7</option><option value="B4">B4</option><option value="B5">B5</option><option value="B6">B6</option><option value="C4">C4</option><option value="C5">C5</option><option value="16k">16 开</option><option value="32k">32 开</option></select>
+      </div>
+      <div class="fitem"><label>DPI</label><input type="number" id="dpi" value="300" min="1"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算尺寸</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">尺寸数据</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:200px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于纸张尺寸对照表介绍：</h4>
+    <ol>
+      <li>A 系列纸张的长宽比恒为根号二，对折后仍保持同一比例，这是国际标准的核心设计。</li>
+      <li>A4 为 210 乘 297 毫米，是国内办公与打印最常用的规格。</li>
+      <li>B 系列比同号 A 系列更大，常用于书籍、海报与信封。</li>
+      <li>C 系列主要用作信封，C4 恰好能装下一张对折的 A4。</li>
+      <li>像素换算是按 DPI 计算的近似值，印刷前请与印刷厂确认最终分辨率要求。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var PAPER_MM = {
+  A0: [841, 1189], A1: [594, 841], A2: [420, 594], A3: [297, 420], A4: [210, 297],
+  A5: [148, 210], A6: [105, 148], A7: [74, 105], A8: [52, 74], A9: [37, 52], A10: [26, 37],
+  B0: [1000, 1414], B1: [707, 1000], B2: [500, 707], B3: [353, 500], B4: [250, 353],
+  B5: [176, 250], B6: [125, 176], B7: [88, 125], B8: [62, 88],
+  C4: [229, 324], C5: [162, 229], C6: [114, 162],
+  "16k": [185, 260], "32k": [130, 185], "64k": [92, 130]
+};
+function __xfPaperSize(name) {
+  var k = String(name).trim().toUpperCase();
+  if (!PAPER_MM.hasOwnProperty(k)) k = String(name).trim().toLowerCase();
+  if (!PAPER_MM.hasOwnProperty(k)) return null;
+  return { name: k, w: PAPER_MM[k][0], h: PAPER_MM[k][1] };
+}
+function __xfPaperPx(name, dpi) {
+  var s = __xfPaperSize(name); if (!s) return null;
+  var d = Number(dpi) || 300;
+  return { w: Math.round(s.w / 25.4 * d), h: Math.round(s.h / 25.4 * d) };
+}
+function __xfPaperIn(name) {
+  var s = __xfPaperSize(name); if (!s) return null;
+  return { w: Math.round(s.w / 25.4 * 100) / 100, h: Math.round(s.h / 25.4 * 100) / 100 };
+}
+function __xfPaperRatio(name) {
+  var s = __xfPaperSize(name); if (!s) return null;
+  return Math.round(s.h / s.w * 1000) / 1000;
+}
+function __xfPaperList() { return Object.keys(PAPER_MM); }
+window.__xfPaperSize = __xfPaperSize;
+window.__xfPaperPx = __xfPaperPx;
+window.__xfPaperIn = __xfPaperIn;
+window.__xfPaperRatio = __xfPaperRatio;
+window.__xfPaperList = __xfPaperList;
+function run() {
+  var s = __xfPaperSize($("name").value);
+  var dpi = parseFloat($("dpi").value) || 300;
+  if (!s) { $("res").value = "未收录该规格"; $("tip").textContent = "⚠️ 规格不存在"; return null; }
+  var px = __xfPaperPx(s.name, dpi), inch = __xfPaperIn(s.name), ratio = __xfPaperRatio(s.name);
+  $("res").value = [
+    "规格：" + s.name,
+    "毫米：" + s.w + " x " + s.h + " mm",
+    "厘米：" + (s.w / 10) + " x " + (s.h / 10) + " cm",
+    "英寸：" + inch.w + " x " + inch.h + " in",
+    "像素（" + dpi + " DPI）：" + px.w + " x " + px.h + " px",
+    "长宽比：" + ratio + "（√2≈1.414）"
+  ].join("\n");
+  $("state").textContent = s.w + "x" + s.h + " mm";
+  $("tip").textContent = "✅ " + s.name + " 尺寸";
+  return s;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

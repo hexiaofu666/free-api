@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文字隐藏工具 - 词海工具箱</title>
+<meta name="description" content="文字隐藏工具：用零宽字符把密文藏进普通文本里，复制粘贴后肉眼看不出差别，适合做水印标记与趣味传密。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/texthide.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="texthide" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>操作</label>
+        <select id="op"><option value="hide" selected>隐藏（把密文藏进载体文本）</option><option value="show">提取（从文本中取出密文）</option></select>
+      </div>
+      <div class="fitem"><label>插入位置</label>
+        <select id="pos"><option value="end" selected>追加到末尾</option><option value="start">插入到开头</option><option value="spread">均匀分散</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">执行</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">载体文本（隐藏模式）／含密文本（提取模式）</div>
+      <textarea id="src" style="min-height:100px;">这是一段看起来很普通的文字，实际上里面藏了秘密。</textarea>
+    </div>
+    <div class="vin" style="margin-top:10px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">待隐藏的密文（隐藏模式使用）</div>
+      <textarea id="secret" style="min-height:70px;">词海工具箱-2026</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:130px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文字隐藏工具介绍：</h4>
+    <ol>
+      <li>原理：用「零宽空格」「零宽非连接符」两个不可见字符分别代表 0 和 1，把密文按 UTF-8 字节写成二进制后藏进载体文本。</li>
+      <li>隐藏后的文本在屏幕上看与原文毫无差别，但字符总数会明显增加；复制粘贴到聊天、文档、评论区后隐藏内容会一起带过去。</li>
+      <li>「均匀分散」会把零宽字符散布到载体各处，比「追加到末尾」更不容易被察觉。</li>
+      <li>提取时只需把含密文本粘回本工具并切到「提取」模式，即可还原出原始密文。</li>
+      <li>这是隐写术而非加密：任何人都能用同类工具读出内容，如需保密请先加密再隐藏。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var ZERO = "\u200b", ONE = "\u200c", SEP = "\u200d";
+function __xfStrBytes(str) {
+  var b = [];
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    if (c < 128) b.push(c);
+    else if (c < 2048) b.push(192 | (c >> 6), 128 | (c & 63));
+    else b.push(224 | (c >> 12), 128 | ((c >> 6) & 63), 128 | (c & 63));
+  }
+  return b;
+}
+function __xfBytesStr(b) {
+  var s = "", i = 0;
+  while (i < b.length) {
+    var c = b[i++];
+    if (c < 128) s += String.fromCharCode(c);
+    else if (c < 224) s += String.fromCharCode(((c & 31) << 6) | (b[i++] & 63));
+    else s += String.fromCharCode(((c & 15) << 12) | ((b[i++] & 63) << 6) | (b[i++] & 63));
+  }
+  return s;
+}
+/* 文本 → 零宽字符序列 */
+function __xfEncodeZero(text) {
+  var bytes = __xfStrBytes(text), out = "";
+  for (var i = 0; i < bytes.length; i++) {
+    for (var bit = 7; bit >= 0; bit--) out += (bytes[i] >> bit) & 1 ? ONE : ZERO;
+    out += SEP;
+  }
+  return out;
+}
+function __xfDecodeZero(str) {
+  var s = String(str), bytes = [], cur = "", n = 0;
+  for (var i = 0; i < s.length; i++) {
+    var ch = s[i];
+    if (ch === ZERO || ch === ONE) { cur += ch === ONE ? "1" : "0"; n++; }
+    else if (ch === SEP) { if (n) bytes.push(parseInt(cur, 2)); cur = ""; n = 0; }
+    else if (n) { /* 遇到普通字符时忽略，继续累积 */ }
+  }
+  if (n >= 8) bytes.push(parseInt(cur, 2));
+  return __xfBytesStr(bytes);
+}
+/* 把零宽串插入载体 */
+function __xfHide(carrier, secret, pos) {
+  var hide = __xfEncodeZero(secret);
+  var c = String(carrier);
+  if (pos === "start") return hide + c;
+  if (pos === "spread") {
+    var chars = c.split(""), step = Math.max(1, Math.floor(chars.length / Math.max(1, hide.length))), out = "", hi = 0;
+    for (var i = 0; i < chars.length; i++) {
+      out += chars[i];
+      if (i % step === 0 && hi < hide.length) out += hide[hi++];
+    }
+    return out + hide.slice(hi);
+  }
+  return c + hide;
+}
+function __xfShow(text) { return __xfDecodeZero(text); }
+function __xfCountZero(text) {
+  var s = String(text), n = 0;
+  for (var i = 0; i < s.length; i++) if (s[i] === ZERO || s[i] === ONE || s[i] === SEP) n++;
+  return n;
+}
+window.__xfEncodeZero = __xfEncodeZero;
+window.__xfDecodeZero = __xfDecodeZero;
+window.__xfHide = __xfHide;
+window.__xfShow = __xfShow;
+window.__xfCountZero = __xfCountZero;
+
+var $ = function (id) { return document.getElementById(id); };
+function run() {
+  if ($("op").value === "hide") {
+    var out = __xfHide($("src").value, $("secret").value, $("pos").value);
+    $("res").value = out;
+    $("state").textContent = "已插入 " + __xfCountZero(out) + " 个零宽字符";
+    $("tip").textContent = "✅ 隐藏完成（肉眼与原文完全一致）";
+  } else {
+    var t = __xfShow($("src").value);
+    $("res").value = t || "（未在文本中发现零宽密文）";
+    $("state").textContent = "检测到 " + __xfCountZero($("src").value) + " 个零宽字符";
+    $("tip").textContent = t ? "✅ 提取成功" : "未检测到隐藏内容";
+  }
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制，可直接粘贴到聊天窗口或文档中"); }); };
+$("op").onchange = run;
+run();
+</script>
+</body>
+</html>

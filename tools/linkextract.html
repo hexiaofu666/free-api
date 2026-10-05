@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML源码链接提取 - 词海工具箱</title>
+<meta name="description" content="HTML 源码链接提取工具：一键提取页面里的超链接、图片、CSS、JS 与 iframe 地址，支持绝对化与去重。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/linkextract.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="linkextract" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>提取类型</label>
+        <select id="type">
+          <option value="a" selected>超链接 a[href]</option>
+          <option value="img">图片 img[src]</option>
+          <option value="css">样式 link[href]</option>
+          <option value="js">脚本 script[src]</option>
+          <option value="iframe">框架 iframe[src]</option>
+          <option value="all">全部一起（分类输出）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>基准地址</label><input type="text" id="base" placeholder="如 https://tools.hdemba.cn/ ，用于补全相对路径"></div>
+      <div class="fitem"><label>去重</label>
+        <select id="uniq"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">提取链接</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">HTML 源码</div>
+      <textarea id="src" style="min-height:150px;"><a href="/tools/json.html">JSON格式化</a>
+<a href="https://tools.hdemba.cn/tools/md5.html">MD5加密</a>
+<img src="assets/logo.png" alt="logo">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/chrome.js"></script></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">提取结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:210px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTML源码链接提取介绍：</h4>
+    <ol>
+      <li>提取范围覆盖页面里最常见的五类资源引用：超链接、图片、样式表、脚本与 iframe。</li>
+      <li>填写「基准地址」后，相对路径会补全成完整 URL，便于直接用于爬虫或资源核对。</li>
+      <li>协议相对地址（以 // 开头）与锚点、mailto、javascript: 等特殊链接会原样保留，不做拼接。</li>
+      <li>做 SEO 外链核对时，可先提取全部超链接，再按域名筛选出站链接与内链比例。</li>
+      <li>html 源码可在浏览器里右键「查看网页源代码」后全选复制，粘贴进来即可。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var PATTERNS = {
+  a: { label: "超链接", re: /<a\s[^>]*href\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi },
+  img: { label: "图片", re: /<img\s[^>]*src\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi },
+  css: { label: "样式表", re: /<link\s[^>]*href\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi },
+  js: { label: "脚本", re: /<script\s[^>]*src\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi },
+  iframe: { label: "框架", re: /<iframe\s[^>]*src\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi }
+};
+function __xfNormalizeUrl(u, base) {
+  var s = String(u).trim();
+  if (!s) return "";
+  if (/^(https?:|data:|mailto:|tel:|javascript:|#)/i.test(s)) return s;
+  var b = String(base || "").trim();
+  if (!b) return s;
+  if (!/\/$/.test(b)) b = b.replace(/\/[^/]*$/, "/");
+  if (/^\//.test(s)) {
+    var m = b.match(/^(https?:\/\/[^/]+)/);
+    return (m ? m[1] : "") + s;
+  }
+  return b + s;
+}
+function __xfExtractByType(html, type, base) {
+  var p = PATTERNS[type];
+  if (!p) return [];
+  var out = [], m;
+  p.re.lastIndex = 0;
+  while ((m = p.re.exec(String(html)))) {
+    var raw = m[1].replace(/^["']|["']$/g, "");
+    if (!raw) continue;
+    out.push({ raw: raw, url: __xfNormalizeUrl(raw, base) });
+  }
+  return out;
+}
+function __xfExtractAll(html, base, uniq) {
+  var res = {};
+  Object.keys(PATTERNS).forEach(function (k) {
+    var list = __xfExtractByType(html, k, base).map(function (x) { return x.url; });
+    if (uniq !== "no") list = list.filter(function (v, i) { return list.indexOf(v) === i; });
+    res[k] = list;
+  });
+  return res;
+}
+window.__xfExtractByType = __xfExtractByType;
+window.__xfExtractAll = __xfExtractAll;
+window.__xfNormalizeUrl = __xfNormalizeUrl;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var base = $("base").value.trim(), uniq = $("uniq").value, html = $("src").value;
+  if ($("type").value === "all") {
+    var all = __xfExtractAll(html, base, uniq), lines = [], total = 0;
+    Object.keys(all).forEach(function (k) {
+      lines.push("【" + PATTERNS[k].label + "】共 " + all[k].length + " 条");
+      all[k].forEach(function (u) { lines.push("  " + u); });
+      lines.push("");
+      total += all[k].length;
+    });
+    $("res").value = lines.join("\n").trim();
+    $("state").textContent = total + " 条";
+    $("tip").textContent = "✅ 全部类型提取完成";
+    return;
+  }
+  var list = __xfExtractByType(html, $("type").value, base).map(function (x) { return x.url; });
+  if (uniq !== "no") list = list.filter(function (v, i) { return list.indexOf(v) === i; });
+  $("res").value = list.join("\n") || "未提取到链接";
+  $("state").textContent = list.length + " 条";
+  $("tip").textContent = "✅ 已提取 " + PATTERNS[$("type").value].label;
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

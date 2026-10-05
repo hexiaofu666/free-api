@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线API测试工具 - 词海工具箱</title>
+<meta name="description" content="在线 API 测试工具：填写请求地址、方法、请求头与参数即可发送 HTTP 请求，查看状态码、响应头与响应体。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/apitest.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="apitest" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>请求方法</label>
+        <select id="method"><option value="GET" selected>GET</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option><option value="HEAD">HEAD</option></select>
+      </div>
+      <div class="fitem"><label>请求地址</label><input type="text" id="url" value="https://tools.hdemba.cn/api/timestamp" placeholder="https://"></div>
+      <div class="fitem"><label>请求头</label><input type="text" id="headers" placeholder="每行一个，如 Content-Type: application/json"></div>
+      <div class="fitem"><label>超时(秒)</label><input type="number" id="timeout" value="15" min="1" max="60"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="sendBtn">发送请求</button>
+      <button class="fbtn blue" id="buildBtn">仅查看完整请求</button>
+      <button class="fbtn brown" id="copyBtn">复制响应</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">请求体（POST/PUT 时使用）</div>
+      <textarea id="body" style="min-height:90px;" placeholder='{"key":"value"}'></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">响应结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:240px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线API测试工具介绍：</h4>
+    <ol>
+      <li>浏览器发起跨域请求受同源策略限制：目标接口必须返回 Access-Control-Allow-Origin 才能成功，这与 Postman 等桌面工具不同。</li>
+      <li>请求头按「名称: 值」每行一条填写，例如 Content-Type: application/json 与 Authorization: Bearer xxx。</li>
+      <li>响应体会自动尝试 JSON 格式化，方便阅读结构化数据；非 JSON 内容原样显示。</li>
+      <li>响应区会显示状态码、耗时与响应大小，可用于粗略评估接口性能与返回体量。</li>
+      <li>测试自己站点的接口最方便（同源无跨域限制），例如 tools.hdemba.cn 的开放 API。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfParseHeaders(text) {
+  var out = {}, bad = [];
+  String(text || "").split(/\n/).forEach(function (line) {
+    var l = line.trim();
+    if (!l) return;
+    var i = l.indexOf(":");
+    if (i < 0) { bad.push(l); return; }
+    out[l.slice(0, i).trim()] = l.slice(i + 1).trim();
+  });
+  return { headers: out, invalid: bad, count: Object.keys(out).length };
+}
+function __xfBuildUrl(base, params) {
+  var u = String(base || "").trim();
+  if (!u) return "";
+  if (!params || !params.length) return u;
+  var q = params.map(function (p) { return encodeURIComponent(p[0]) + "=" + encodeURIComponent(p[1]); }).join("&");
+  return u + (u.indexOf("?") >= 0 ? "&" : "?") + q;
+}
+function __xfFmtSize(n) {
+  var b = Number(n) || 0;
+  if (b < 1024) return b + " B";
+  return (Math.round(b / 1024 * 100) / 100) + " KB";
+}
+function __xfTryPretty(text) {
+  try { return JSON.stringify(JSON.parse(text), null, 2); } catch (e) { return text; }
+}
+function __xfStatusText(code) {
+  var m = { 200: "OK", 201: "Created", 204: "No Content", 301: "Moved Permanently", 302: "Found", 304: "Not Modified", 400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 429: "Too Many Requests", 500: "Internal Server Error", 502: "Bad Gateway", 503: "Service Unavailable" };
+  return m[Number(code)] || "";
+}
+window.__xfParseHeaders = __xfParseHeaders;
+window.__xfBuildUrl = __xfBuildUrl;
+window.__xfFmtSize = __xfFmtSize;
+window.__xfTryPretty = __xfTryPretty;
+window.__xfStatusText = __xfStatusText;
+
+var $ = function (id) { return document.getElementById(id); };
+function summary() {
+  var h = __xfParseHeaders($("headers").value);
+  return ["方法：" + $("method").value,
+    "地址：" + $("url").value,
+    "请求头：" + (h.count ? Object.keys(h.headers).map(function (k) { return k + ": " + h.headers[k]; }).join("；") : "（无）"),
+    $("body").value.trim() && $("method").value !== "GET" ? "请求体：" + $("body").value.trim().slice(0, 200) : ""].filter(Boolean).join("\n");
+}
+$("buildBtn").onclick = function () {
+  $("res").value = "—— 即将发送的请求 ——\n" + summary() + "\n\n提示：浏览器受同源策略限制，目标接口必须允许 CORS 跨域，否则会提示 Failed to fetch。";
+  $("tip").textContent = "请求预览";
+  $("state").textContent = "";
+};
+$("sendBtn").onclick = function () {
+  var url = $("url").value.trim();
+  if (!/^https?:\/\//i.test(url)) { $("res").value = "❌ 请输入以 http:// 或 https:// 开头的完整地址"; $("tip").textContent = "❌ 地址不合法"; return; }
+  var h = __xfParseHeaders($("headers").value);
+  var opt = { method: $("method").value, headers: h.headers };
+  if ($("body").value.trim() && $("method").value !== "GET" && $("method").value !== "HEAD") opt.body = $("body").value;
+  var ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+  if (ctl) opt.signal = ctl.signal;
+  var t0 = Date.now();
+  var timer = setTimeout(function () { if (ctl) ctl.abort(); }, (parseInt($("timeout").value, 10) || 15) * 1000);
+  $("state").textContent = "请求中…";
+  $("tip").textContent = "发送中…";
+  fetch(url, opt).then(function (res) {
+    return res.text().then(function (text) {
+      clearTimeout(timer);
+      var cost = Date.now() - t0;
+      var heads = [];
+      res.headers.forEach(function (v, k) { heads.push(k + ": " + v); });
+      $("res").value = [
+        "—— 响应状态 ——",
+        res.status + " " + (__xfStatusText(res.status) || "") + "　耗时 " + cost + " ms　大小 " + __xfFmtSize(text.length),
+        "",
+        "—— 响应头 ——",
+        heads.join("\n") || "（无）",
+        "",
+        "—— 响应体 ——",
+        __xfTryPretty(text)
+      ].join("\n");
+      $("state").textContent = res.status + " / " + cost + " ms";
+      $("tip").textContent = res.ok ? "✅ 请求成功（" + res.status + "）" : "⚠️ 请求完成但状态异常（" + res.status + "）";
+    });
+  }).catch(function (e) {
+    clearTimeout(timer);
+    $("res").value = ["❌ 请求失败：" + e.message, "",
+      "常见原因：",
+      "1. 目标接口未开启 CORS（浏览器跨域限制），这是浏览器安全策略，非工具问题；",
+      "2. 地址不可达或域名解析失败；",
+      "3. 请求超时（可在上方调整超时秒数）；",
+      "4. 目标服务要求 HTTPS 而地址填了 HTTP（或反之）。",
+      "",
+      "小技巧：自己站点的接口一般允许跨域，可先用同域接口验证工具是否正常工作。"].join("\n");
+    $("state").textContent = "失败";
+    $("tip").textContent = "❌ 请求失败";
+  });
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("buildBtn").click();
+</script>
+</body>
+</html>

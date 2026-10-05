@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keccak加密 - 词海工具箱</title>
+<meta name="description" content="Keccak-256 哈希工具：计算以太坊使用的 Keccak（原始 SHA-3）摘要，与标准 SHA3-256 的填充方式不同，切勿混用。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/keccak.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="keccak" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>算法</label>
+        <select id="alg">
+          <option value="keccak256" selected>Keccak-256（以太坊）</option>
+          <option value="keccak512">Keccak-512</option>
+          <option value="sha3_256">SHA3-256（NIST 标准）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>输出大小写</label>
+        <select id="cs"><option value="lower" selected>小写</option><option value="upper">大写</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算摘要</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">输入内容</div>
+      <textarea id="src" style="min-height:120px;">abc</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">摘要结果</strong><span id="len"></span></div>
+      <textarea id="res" readonly style="height:120px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Keccak加密介绍：</h4>
+    <ol>
+      <li>Keccak 与 SHA-3 是同一套置换函数，但填充方式不同：Keccak 用 0x01，NIST 的 SHA-3 用 0x06，因此同一输入的摘要完全不同。</li>
+      <li>以太坊的智能合约、地址校验（EIP-55）与事件签名使用的是 Keccak-256，而不是 SHA3-256，务必区分。</li>
+      <li>空串的 Keccak-256 摘要是 c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470，可用它快速验证实现是否正确。</li>
+      <li>Keccak-512 输出 64 字节摘要；摘要长度与输入无关，输入的微小变化会导致摘要完全不同。</li>
+      <li>本实现使用大整数运算完成 Keccak-f[1600] 置换，纯浏览器本地计算，不上传任何数据。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var RC = [0x0000000000000001n,0x0000000000008082n,0x800000000000808an,0x8000000080008000n,0x000000000000808bn,0x0000000080000001n,0x8000000080008081n,0x8000000000008009n,0x000000000000008an,0x0000000000000088n,0x0000000080008009n,0x000000008000000an,0x000000008000808bn,0x800000000000008bn,0x8000000000008089n,0x8000000000008003n,0x8000000000008002n,0x8000000000000080n,0x000000000000800an,0x800000008000000an,0x8000000080008081n,0x8000000000008080n,0x0000000080000001n,0x8000000080008008n];
+var ROT = [[0,36,3,41,18],[1,44,10,45,2],[62,6,43,15,61],[28,55,25,21,56],[27,20,39,8,14]];
+var M64 = 0xffffffffffffffffn;
+function __xfKrot(v, n) { var b = BigInt(n); return n === 0 ? v : (((v << b) | (v >> (64n - b))) & M64); }
+function __xfKeccakF(A) {
+  for (var round = 0; round < 24; round++) {
+    var C = [], D = [], x, y;
+    for (x = 0; x < 5; x++) C[x] = A[x] ^ A[x + 5] ^ A[x + 10] ^ A[x + 15] ^ A[x + 20];
+    for (x = 0; x < 5; x++) D[x] = C[(x + 4) % 5] ^ __xfKrot(C[(x + 1) % 5], 1);
+    for (x = 0; x < 5; x++) for (y = 0; y < 5; y++) A[x + 5 * y] = A[x + 5 * y] ^ D[x];
+    var B = new Array(25);
+    for (x = 0; x < 5; x++) for (y = 0; y < 5; y++) B[y + 5 * ((2 * x + 3 * y) % 5)] = __xfKrot(A[x + 5 * y], ROT[x][y]);
+    for (x = 0; x < 5; x++) for (y = 0; y < 5; y++) A[x + 5 * y] = B[x + 5 * y] ^ ((~B[(x + 1) % 5 + 5 * y] & M64) & B[(x + 2) % 5 + 5 * y]);
+    A[0] = A[0] ^ RC[round];
+  }
+}
+function __xfKeccak(bytes, bits, nist) {
+  var rate = (1600 - bits * 2) / 8;
+  var A = new Array(25);
+  for (var i = 0; i < 25; i++) A[i] = 0n;
+  var p = bytes.slice();
+  p.push(nist ? 0x06 : 0x01);
+  while (p.length % rate !== 0) p.push(0);
+  p[p.length - 1] = p[p.length - 1] | 0x80;
+  for (var off = 0; off < p.length; off += rate) {
+    for (var i2 = 0; i2 < rate / 8; i2++) {
+      var lane = 0n;
+      for (var j = 0; j < 8; j++) lane = lane | (BigInt(p[off + i2 * 8 + j]) << BigInt(8 * j));
+      A[i2] = A[i2] ^ lane;
+    }
+    __xfKeccakF(A);
+  }
+  var out = [];
+  for (var k = 0; k < bits / 8; k++) {
+    var idx = Math.floor(k / 8);
+    out.push(Number((A[idx] >> BigInt(8 * (k % 8))) & 255n));
+  }
+  return out;
+}
+function __xfStrBytes(str) {
+  var b = [];
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    if (c < 128) b.push(c);
+    else if (c < 2048) b.push(192 | (c >> 6), 128 | (c & 63));
+    else b.push(224 | (c >> 12), 128 | ((c >> 6) & 63), 128 | (c & 63));
+  }
+  return b;
+}
+function __xfKeccakHex(text, bits, nist) {
+  return __xfKeccak(__xfStrBytes(String(text)), bits || 256, !!nist).map(function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+}
+window.__xfKeccak = __xfKeccak;
+window.__xfKeccakHex = __xfKeccakHex;
+
+var $ = function (id) { return document.getElementById(id); };
+function run() {
+  var alg = $("alg").value;
+  var bits = alg === "keccak512" ? 512 : 256;
+  var nist = alg === "sha3_256";
+  var h = __xfKeccakHex($("src").value, bits, nist);
+  if ($("cs").value === "upper") h = h.toUpperCase();
+  $("res").value = h;
+  $("len").textContent = bits + " 位";
+  $("tip").textContent = "✅ " + (alg === "keccak256" ? "Keccak-256" : alg === "keccak512" ? "Keccak-512" : "SHA3-256") + " 摘要";
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+["alg", "cs"].forEach(function (id) { $(id).addEventListener("change", run); });
+run();
+</script>
+</body>
+</html>

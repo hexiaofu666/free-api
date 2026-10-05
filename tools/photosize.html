@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>证件照尺寸计算 - 词海工具箱</title>
+<meta name="description" content="查询一寸、二寸等常见证件照的标准尺寸，并换算成指定 DPI 下的像素尺寸，方便在修图软件中精确设置画布。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/photosize.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="photosize" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>规格</label>
+        <select id="name"><option value="1inch" selected>一寸 25x35mm</option><option value="1inch-s">小一寸 22x32mm</option><option value="1inch-b">大一寸 33x48mm</option><option value="2inch">二寸 35x49mm</option><option value="2inch-s">小二寸 35x45mm</option><option value="2inch-b">大二寸 35x53mm</option><option value="3inch">三寸 55x84mm</option><option value="passport">护照 33x48mm</option><option value="visa">签证 35x45mm</option><option value="driver">驾照 22x32mm</option></select>
+      </div>
+      <div class="fitem"><label>DPI</label><input type="number" id="dpi" value="300" min="1"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算像素</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">尺寸结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:180px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于证件照尺寸计算介绍：</h4>
+    <ol>
+      <li>一寸照片标准为 25 乘 35 毫米，二寸为 35 乘 49 毫米，各地证件要求可能略有差异。</li>
+      <li>冲印常用 300 DPI，因此一寸照片约 295 乘 413 像素，低于这个尺寸会显得模糊。</li>
+      <li>六寸相纸可以拼版多张证件照，排版数量按整除计算，留边会略减数量。</li>
+      <li>证件照建议使用纯色背景并保证头部占比，避免使用美颜过度导致失真。</li>
+      <li>不同用途对底色有要求，身份证多为白底，部分签证要求蓝底或灰底，请以官方要求为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var PHOTO_MM = {
+  "1inch": ["一寸", 25, 35], "1inch-s": ["小一寸", 22, 32], "1inch-b": ["大一寸", 33, 48],
+  "2inch": ["二寸", 35, 49], "2inch-s": ["小二寸", 35, 45], "2inch-b": ["大二寸", 35, 53],
+  "3inch": ["三寸", 55, 84], "passport": ["护照", 33, 48], "visa": ["签证", 35, 45], "driver": ["驾照", 22, 32]
+};
+function __xfPhotoSize(name) {
+  var k = String(name).trim();
+  if (!PHOTO_MM.hasOwnProperty(k)) return null;
+  var a = PHOTO_MM[k];
+  return { key: k, name: a[0], w: a[1], h: a[2] };
+}
+function __xfPhotoPx(name, dpi) {
+  var s = __xfPhotoSize(name); if (!s) return null;
+  var d = Number(dpi) || 300;
+  return { w: Math.round(s.w / 25.4 * d), h: Math.round(s.h / 25.4 * d) };
+}
+function __xfPhotoSheet(name, paperW, paperH) {
+  var s = __xfPhotoSize(name); if (!s) return null;
+  var pw = paperW || 152, ph = paperH || 102;
+  return Math.floor(pw / s.w) * Math.floor(ph / s.h);
+}
+function __xfPhotoList() { return Object.keys(PHOTO_MM); }
+window.__xfPhotoSize = __xfPhotoSize;
+window.__xfPhotoPx = __xfPhotoPx;
+window.__xfPhotoSheet = __xfPhotoSheet;
+window.__xfPhotoList = __xfPhotoList;
+function run() {
+  var s = __xfPhotoSize($("name").value);
+  var dpi = parseFloat($("dpi").value) || 300;
+  if (!s) { $("res").value = "未收录该规格"; $("tip").textContent = "⚠️ 规格不存在"; return null; }
+  var px = __xfPhotoPx(s.key, dpi);
+  var sheet = __xfPhotoSheet(s.key, 152, 102);
+  $("res").value = [
+    "规格：" + s.name,
+    "物理尺寸：" + s.w + " x " + s.h + " mm",
+    "像素尺寸（" + dpi + " DPI）：" + px.w + " x " + px.h + " px",
+    "6 寸相纸（152x102mm）可排版：" + sheet + " 张",
+    "建议背景：白底或蓝底，头部占画面约三分之二"
+  ].join("\n");
+  $("state").textContent = px.w + "x" + px.h + " px";
+  $("tip").textContent = "✅ " + s.name + " 像素尺寸";
+  return s;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

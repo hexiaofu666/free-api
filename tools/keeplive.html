@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕常亮工具 - 词海工具箱</title>
+<meta name="description" content="屏幕常亮工具：调用 Wake Lock API 让手机或电脑屏幕保持常亮不自动息屏，适合看菜谱、直播、演示与练琴。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/keeplive.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="keeplive" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>定时释放</label>
+        <select id="timer">
+          <option value="0" selected>不自动释放</option>
+          <option value="5">5 分钟</option>
+          <option value="15">15 分钟</option>
+          <option value="30">30 分钟</option>
+          <option value="60">60 分钟</option>
+        </select>
+      </div>
+      <div class="fitem"><label>保持画面</label>
+        <select id="visual">
+          <option value="plain" selected>普通白底</option>
+          <option value="dark">深色（省电）</option>
+          <option value="clock">显示当前时间</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="onBtn">开启常亮</button>
+      <button class="fbtn brown" id="offBtn">关闭常亮</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">状态</strong><span id="state">未开启</span></div>
+      <div id="stage" style="height:180px;border-radius:6px;border:1px solid #eee;display:flex;align-items:center;justify-content:center;font-size:28px;color:#00897b;background:#fff;"></div>
+      <textarea id="res" readonly style="height:130px;margin-top:10px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于屏幕常亮工具介绍：</h4>
+    <ol>
+      <li>原理是浏览器的 Wake Lock API：页面在前台时向系统申请「屏幕唤醒锁」，阻止设备自动息屏。</li>
+      <li>常见用途：边看菜谱边做菜、跟练视频、看直播、演示文稿、练琴看谱等需要长时间亮屏的场景。</li>
+      <li>页面切到后台或最小化时，浏览器会自动释放锁以省电；回到前台需要重新点击「开启常亮」。</li>
+      <li>部分浏览器与系统（尤其省电模式开启时）会拒绝申请，页面会在结果区提示原因与替代方案。</li>
+      <li>深色模式可显著降低 OLED 屏幕的耗电与烧屏风险，长时间常亮建议选择深色背景。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfWakeSupported() {
+  return !!(typeof navigator !== "undefined" && navigator.wakeLock && typeof navigator.wakeLock.request === "function");
+}
+/* 剩余时间格式化 */
+function __xfFmtDuration(sec) {
+  var s = Math.max(0, Math.floor(Number(sec) || 0));
+  var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+  if (h > 0) return h + " 小时 " + m + " 分 " + ss + " 秒";
+  if (m > 0) return m + " 分 " + ss + " 秒";
+  return ss + " 秒";
+}
+/* 依据剩余秒数给出状态提示 */
+function __xfWakeStatus(remain, active) {
+  if (!active) return "未开启常亮";
+  if (remain <= 0) return "定时时间到，已自动释放";
+  if (remain <= 30) return "即将在 " + remain + " 秒后释放";
+  return "常亮中，剩余 " + __xfFmtDuration(remain);
+}
+window.__xfWakeSupported = __xfWakeSupported;
+window.__xfFmtDuration = __xfFmtDuration;
+window.__xfWakeStatus = __xfWakeStatus;
+
+var $ = function (id) { return document.getElementById(id); };
+var lock = null, timerId = null, tickId = null, remain = 0;
+function paint() {
+  $("state").textContent = __xfWakeStatus(remain, !!lock);
+}
+function stagePaint() {
+  var v = $("visual").value;
+  var el = $("stage");
+  if (v === "dark") { el.style.background = "#0f1112"; el.style.color = "#2fbf8f"; el.textContent = "深色模式（更省电）"; }
+  else if (v === "clock") { el.style.background = "#fff"; el.style.color = "#00897b"; el.textContent = new Date().toLocaleTimeString(); }
+  else { el.style.background = "#fff"; el.style.color = "#00897b"; el.textContent = "屏幕保持常亮中"; }
+}
+function release(msg) {
+  if (lock) { try { lock.release(); } catch (e) {} lock = null; }
+  if (timerId) { clearTimeout(timerId); timerId = null; }
+  if (tickId) { clearInterval(tickId); tickId = null; }
+  remain = 0;
+  $("res").value = msg || "已释放屏幕常亮，系统可正常息屏。";
+  $("state").textContent = "未开启";
+}
+function on() {
+  if (!__xfWakeSupported()) {
+    $("res").value = ["当前浏览器不支持 Wake Lock API。", "", "支持情况：Chrome / Edge / Android 浏览器较新版本可用；iOS Safari 15.4 以上部分支持。", "不支持时可临时在系统设置里把「自动锁屏」时间调长。"].join("\n");
+    $("state").textContent = "不支持";
+    return;
+  }
+  navigator.wakeLock.request("screen").then(function (l) {
+    lock = l;
+    var min = parseInt($("timer").value, 10) || 0;
+    remain = min * 60;
+    if (min > 0) {
+      timerId = setTimeout(function () { release("⏰ 定时时间到，已自动释放屏幕常亮。"); }, min * 60000);
+      tickId = setInterval(function () { remain = Math.max(0, remain - 1); paint(); }, 1000);
+    }
+    paint();
+    $("res").value = [
+      "✅ 已开启屏幕常亮。",
+      min > 0 ? "将在 " + min + " 分钟后自动释放。" : "未设置定时，需手动点击「关闭常亮」释放。",
+      "",
+      "注意：切换到其他标签页或最小化浏览器时，系统可能自动释放该锁（这是浏览器的省电策略）。"
+    ].join("\n");
+  }).catch(function (e) {
+    $("state").textContent = "被拒绝";
+    $("res").value = "无法申请屏幕常亮：" + e.message + "\n\n可能原因：页面不在前台、浏览器不支持，或系统省电模式限制。";
+  });
+}
+$("onBtn").onclick = on;
+$("offBtn").onclick = function () { release(); };
+$("visual").onchange = stagePaint;
+setInterval(function () { if ($("visual").value === "clock") stagePaint(); }, 1000);
+$("res").value = "点击「开启常亮」后，本页面会请求屏幕唤醒锁（Wake Lock），让设备在停留本页期间不自动息屏。";
+stagePaint();
+paint();
+</script>
+</body>
+</html>

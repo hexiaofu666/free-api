@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕在线检测 - 词海工具箱</title>
+<meta name="description" content="屏幕在线检测：全屏切换纯色画面，检查坏点、亮点、暗点、色偏与漏光，支持红绿蓝黑白等九种测试色。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/screentest.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="screentest" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>起始颜色</label>
+        <select id="start">
+          <option value="0" selected>白色</option>
+          <option value="1">黑色</option>
+          <option value="2">红色</option>
+          <option value="3">绿色</option>
+          <option value="4">蓝色</option>
+        </select>
+      </div>
+      <div class="fitem"><label>自动切换(秒)</label><input type="number" id="auto" value="0" min="0" max="30" placeholder="0 表示手动"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="fullBtn">全屏开始检测</button>
+      <button class="fbtn brown" id="stopBtn">停止自动切换</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">测试色预览</strong><span id="idx">1 / 9</span></div>
+      <div id="grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
+      <p style="margin-top:8px;font-size:12px;color:#999;">全屏后：单击切换下一色 / 按 ESC 或右键退出</p>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于屏幕在线检测介绍：</h4>
+    <ol>
+      <li>全屏后单击画面（或用空格、方向键）即可切换到下一种颜色，按 ESC 或点右键退出并回到本页。</li>
+      <li>检查亮点用白/红/绿/蓝纯色：若在纯色画面上看到位置固定的异色小点，说明该子像素有缺陷。</li>
+      <li>检查暗点与漏光用黑色：全黑画面下若四角或边缘发白、发灰，属于背光漏光，属于常见现象但严重程度因机型而异。</li>
+      <li>检查 Mura 云纹与色温一致性用 50% 灰：灰阶画面最容易暴露不均匀的暗斑与色块。</li>
+      <li>坏点数量通常有厂商标准（如 3 个以内属于合格范围），若刚购机发现明显坏点建议在退换期内及时处理。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var COLORS = [
+  { hex: "#ffffff", name: "白色", use: "检查亮点（异常发亮的像素点）与整体发黄/发蓝" },
+  { hex: "#000000", name: "黑色", use: "检查漏光、暗点（不发光的像素点）与背光均匀度" },
+  { hex: "#ff0000", name: "红色", use: "检查红色子像素缺失与色偏" },
+  { hex: "#00ff00", name: "绿色", use: "检查绿色子像素缺失与色偏" },
+  { hex: "#0000ff", name: "蓝色", use: "检查蓝色子像素缺失与色偏" },
+  { hex: "#ffff00", name: "黄色", use: "检查红绿子像素混合是否均匀" },
+  { hex: "#00ffff", name: "青色", use: "检查绿蓝子像素混合是否均匀" },
+  { hex: "#ff00ff", name: "洋红", use: "检查红蓝子像素混合是否均匀" },
+  { hex: "#808080", name: "灰色", use: "检查灰阶过渡、色温一致性与 Mura 云纹" }
+];
+function __xfScreenColors() { return COLORS.slice(); }
+function __xfColorInfo(i) {
+  var n = COLORS.length, idx = ((Number(i) % n) + n) % n;
+  return COLORS[idx];
+}
+function __xfNextIndex(i) { return (Number(i) + 1) % COLORS.length; }
+window.__xfScreenColors = __xfScreenColors;
+window.__xfColorInfo = __xfColorInfo;
+window.__xfNextIndex = __xfNextIndex;
+
+var $ = function (id) { return document.getElementById(id); };
+var cur = 0, timer = null;
+function grid() {
+  $("grid").innerHTML = COLORS.map(function (c, i) {
+    return "<div data-i='" + i + "' style='cursor:pointer;border:1px solid #eee;border-radius:4px;text-align:center;padding:10px 0;background:" + c.hex + ";color:" + (i === 0 || i === 5 || i === 6 || i === 7 ? "#333" : "#fff") + ";font-size:12px;'>" + c.name + "</div>";
+  }).join("");
+  Array.prototype.forEach.call($("grid").querySelectorAll("div"), function (d) {
+    d.onclick = function () { show(+d.dataset.i); };
+  });
+}
+function show(i) {
+  cur = ((i % COLORS.length) + COLORS.length) % COLORS.length;
+  var c = COLORS[cur];
+  $("idx").textContent = (cur + 1) + " / " + COLORS.length;
+  $("tip").textContent = c.name + "：" + c.use;
+}
+function fullscreen() {
+  var c = COLORS[cur];
+  var box = document.createElement("div");
+  box.style.cssText = "position:fixed;inset:0;z-index:99999;background:" + c.hex + ";cursor:pointer;";
+  var tip = document.createElement("div");
+  tip.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);font-size:13px;padding:6px 14px;border-radius:20px;background:rgba(0,0,0,.45);color:#fff;pointer-events:none;";
+  box.appendChild(tip);
+  function paint() {
+    var cc = COLORS[cur];
+    box.style.background = cc.hex;
+    tip.textContent = cc.name + "（" + (cur + 1) + "/" + COLORS.length + "）　单击下一色 · ESC 退出";
+    show(cur);
+  }
+  function next() { cur = __xfNextIndex(cur); paint(); }
+  function quit() { document.body.removeChild(box); document.removeEventListener("keydown", onKey); if (timer) { clearInterval(timer); timer = null; $("stopBtn").textContent = "停止自动切换"; } }
+  function onKey(e) { if (e.key === "Escape") quit(); else if (e.key === "ArrowRight" || e.key === " ") next(); }
+  box.onclick = next;
+  box.oncontextmenu = function (e) { e.preventDefault(); quit(); };
+  document.addEventListener("keydown", onKey);
+  document.body.appendChild(box);
+  paint();
+  var sec = parseFloat($("auto").value) || 0;
+  if (sec > 0) {
+    if (timer) clearInterval(timer);
+    timer = setInterval(next, sec * 1000);
+    $("stopBtn").textContent = "停止自动切换（运行中）";
+  }
+}
+$("fullBtn").onclick = function () { show(+$("start").value); fullscreen(); };
+$("stopBtn").onclick = function () { if (timer) { clearInterval(timer); timer = null; this.textContent = "停止自动切换"; } };
+grid();
+show(0);
+</script>
+</body>
+</html>

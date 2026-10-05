@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本批量加行号 - 词海工具箱</title>
+<meta name="description" content="给文本每一行批量添加序号，支持自定义起始数字、编号格式与补零宽度，适合整理清单、生成台账与行号标注。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/linenum.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="linenum" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>起始序号</label><input type="number" id="st" value="1"></div>
+      <div class="fitem"><label>编号格式</label>
+        <select id="fmt"><option value="{n}. " selected>1. 内容</option><option value="[{n}] ">[1] 内容</option><option value="{n}、">{n}、内容</option><option value="">仅内容</option></select>
+      </div>
+      <div class="fitem"><label>补零宽度</label><input type="number" id="pad" value="0" min="0" max="10"></div>
+      <div class="fitem"><label>跳过空行</label>
+        <select id="skip"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">添加行号</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">原始文本</div>
+      <textarea id="src" style="min-height:180px;">整理工具箱导航
+补充工具说明
+检查移动端适配
+提交搜索引擎</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:170px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本批量加行号介绍：</h4>
+    <ol>
+      <li>起始序号可设为 0 或任意数字，便于与已有台账的行号衔接。</li>
+      <li>补零宽度大于自然宽度时生效，例如起始 1 共 9 行时设为 2 会得到 01 到 09。</li>
+      <li>选择「跳过空行」后空行不占用编号，序号在有效内容行上连续递增。</li>
+      <li>编号格式支持圆点、方括号、顿号等常见样式，也可留空只做缩进对齐。</li>
+      <li>输出结果可直接粘贴进 Excel 一列，或者贴回文本文件中做条目化整理。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfLineNumber(text, opts) {
+  opts = opts || {};
+  var start = parseInt(opts.start, 10); if (isNaN(start)) start = 1;
+  var fmt = opts.fmt === undefined ? "{n}. " : opts.fmt;
+  var lines = String(text).replace(/\r\n?/g, "\n").split("\n");
+  if (opts.skipEmpty !== false) lines = lines.filter(function (l) { return l.trim() !== ""; });
+  var width = String(start + lines.length - 1).length;
+  var pad = parseInt(opts.pad, 10) || 0;
+  if (pad > width) width = pad;
+  return lines.map(function (l, i) {
+    var n = start + i, ns = String(n);
+    while (ns.length < width) ns = "0" + ns;
+    return fmt.replace(/\{n\}/g, ns) + l;
+  }).join("\n");
+}
+window.__xfLineNumber = __xfLineNumber;
+function run() {
+  var out = __xfLineNumber($("src").value, { start: $("st").value, fmt: $("fmt").value, pad: $("pad").value, skipEmpty: $("skip").value === "yes" });
+  $("res").value = out;
+  $("state").textContent = out.split("\n").length + " 行";
+  $("tip").textContent = "✅ 已添加行号";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

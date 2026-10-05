@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JWT在线解密 - 词海工具箱</title>
+<meta name="description" content="JWT在线解密工具：解析 JSON Web Token 的头部与载荷，展示签发时间、过期时间、剩余有效期，并检查签名段是否完整。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jwt.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jwt" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>时间显示</label>
+        <select id="tz"><option value="local" selected>本地时间</option><option value="utc">UTC 时间</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">解析 JWT</button>
+      <button class="fbtn gray" id="demoBtn">填入示例</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">JWT 字符串</div>
+      <textarea id="src" style="min-height:100px;" placeholder="粘贴形如 xxxxx.yyyyy.zzzzz 的 JWT"></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">解析结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:240px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JWT在线解密介绍：</h4>
+    <ol>
+      <li>JWT（JSON Web Token）由三段组成，用英文句点分隔：头部.载荷.签名；前两段是 Base64URL 编码的 JSON。</li>
+      <li>解析只是解码展示，不代表签名有效：本工具不校验签名（校验需要密钥），仅用于查看内容与有效期。</li>
+      <li>exp 是过期时间、nbf 是生效时间、iat 是签发时间，均为 Unix 时间戳（秒）；注意服务器时间与自己设备时间可能有偏差。</li>
+      <li>载荷内容是明文可见的，切勿把密码、身份证号等敏感信息直接放进 JWT 载荷。</li>
+      <li>alg 为 none 的 token 表示无签名，任何一方都能伪造，生产环境必须拒绝接受这类 token。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfB64UrlDecode(s) {
+  var t = String(s).replace(/-/g, "+").replace(/_/g, "/");
+  while (t.length % 4) t += "=";
+  try {
+    var bin = atob(t), out = "";
+    for (var i = 0; i < bin.length; i++) out += "%" + ("0" + bin.charCodeAt(i).toString(16)).slice(-2);
+    return decodeURIComponent(out);
+  } catch (e) { return null; }
+}
+function __xfJwtParse(token) {
+  var parts = String(token || "").trim().split(".");
+  if (parts.length < 2) return { ok: false, error: "JWT 至少应包含两段（头部.载荷），当前为 " + parts.length + " 段" };
+  var header = __xfB64UrlDecode(parts[0]), payload = __xfB64UrlDecode(parts[1]);
+  if (header === null) return { ok: false, error: "头部不是合法的 Base64URL" };
+  if (payload === null) return { ok: false, error: "载荷不是合法的 Base64URL" };
+  var h, p;
+  try { h = JSON.parse(header); } catch (e) { return { ok: false, error: "头部不是合法 JSON：" + e.message }; }
+  try { p = JSON.parse(payload); } catch (e) { return { ok: false, error: "载荷不是合法 JSON：" + e.message }; }
+  return { ok: true, header: h, payload: p, signature: parts[2] || "", segments: parts.length };
+}
+function __xfJwtTime(payload, nowSec) {
+  var now = nowSec === undefined ? Math.floor(Date.now() / 1000) : nowSec;
+  var out = { iat: payload.iat || null, exp: payload.exp || null, nbf: payload.nbf || null, expired: false, valid: true, remain: null };
+  if (out.exp) { out.expired = now > out.exp; out.remain = out.exp - now; }
+  if (out.nbf && now < out.nbf) out.valid = false;
+  return out;
+}
+function __xfFmtTime(sec, utc) {
+  if (!sec) return "—";
+  var d = new Date(Number(sec) * 1000);
+  var s = utc ? d.toISOString().replace("T", " ").slice(0, 19) + " UTC" : d.toLocaleString();
+  return s + "（时间戳 " + sec + "）";
+}
+window.__xfJwtParse = __xfJwtParse;
+window.__xfJwtTime = __xfJwtTime;
+window.__xfB64UrlDecode = __xfB64UrlDecode;
+window.__xfFmtTime = __xfFmtTime;
+
+var $ = function (id) { return document.getElementById(id); };
+var DEMO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Iuivjea1t-W3peWFt-eeiyIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjo0NzI2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+function run() {
+  var r = __xfJwtParse($("src").value);
+  if (!r.ok) { $("res").value = "❌ 解析失败：" + r.error; $("tip").textContent = "❌ 解析失败"; $("state").textContent = ""; return; }
+  var t = __xfJwtTime(r.payload);
+  var utc = $("tz").value === "utc";
+  var lines = [];
+  lines.push("—— 头部 Header ——");
+  lines.push(JSON.stringify(r.header, null, 2));
+  lines.push("");
+  lines.push("—— 载荷 Payload ——");
+  lines.push(JSON.stringify(r.payload, null, 2));
+  lines.push("");
+  lines.push("—— 时间信息 ——");
+  lines.push("签发时间 iat：" + __xfFmtTime(t.iat, utc));
+  lines.push("生效时间 nbf：" + __xfFmtTime(t.nbf, utc));
+  lines.push("过期时间 exp：" + __xfFmtTime(t.exp, utc));
+  if (t.exp) {
+    var d = Math.abs(t.remain);
+    lines.push(t.expired ? "⏰ 状态：已过期（过期 " + Math.floor(d / 86400) + " 天前）" : "✅ 状态：有效，剩余 " + Math.floor(t.remain / 86400) + " 天 " + Math.floor((t.remain % 86400) / 3600) + " 小时");
+  } else lines.push("状态：未设置 exp（永不过期，存在安全隐患）");
+  lines.push("");
+  lines.push("—— 签名与算法 ——");
+  lines.push("签名算法：" + (r.header.alg || "未声明") + "，类型：" + (r.header.typ || "未声明"));
+  lines.push("签名段长度：" + r.signature.length + " 字符，共 " + r.segments + " 段");
+  $("res").value = lines.join("\n");
+  $("tip").textContent = "✅ 解析成功";
+  $("state").textContent = t.expired ? "已过期" : "有效";
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = function () { $("src").value = DEMO; run(); };
+$("tz").onchange = function () { if ($("src").value.trim()) run(); };
+$("src").value = DEMO;
+run();
+</script>
+</body>
+</html>

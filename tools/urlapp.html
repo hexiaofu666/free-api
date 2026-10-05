@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网站桌面快捷方式 - 词海工具箱</title>
+<meta name="description" content="网站桌面快捷方式生成器：为任意网址生成 Windows .url 快捷方式文件与 iOS/Android 添加到主屏的配置说明。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/urlapp.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="urlapp" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>网站名称</label><input type="text" id="name" value="词海工具箱" placeholder="显示在桌面图标下方"></div>
+      <div class="fitem"><label>网站地址</label><input type="text" id="url" value="https://tools.hdemba.cn/" placeholder="https://"></div>
+      <div class="fitem"><label>图标地址</label><input type="text" id="icon" placeholder="可留空，或填 https://xxx/favicon.ico"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="genBtn">生成快捷方式</button>
+      <button class="fbtn blue" id="downBtn">下载 .url 文件</button>
+      <button class="fbtn brown" id="copyBtn">复制内容</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成结果</strong></div>
+      <textarea id="res" readonly style="height:220px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于网站桌面快捷方式介绍：</h4>
+    <ol>
+      <li>.url 是 Windows 的纯文本快捷方式格式，只需 [InternetShortcut] 段与 URL= 一行，IconFile= 可指定自定义图标。</li>
+      <li>最简单的做法是：在浏览器里把地址栏左侧的图标直接拖到桌面，系统会自动创建快捷方式，无需任何代码。</li>
+      <li>手机端「添加到主屏幕」会读取页面的 apple-touch-icon 与 theme-color，配合 manifest 可实现接近原生 App 的全屏体验。</li>
+      <li>Windows 快捷方式的图标建议使用 ICO 格式，PNG 有时无法正常显示，尺寸推荐 48×48 或 256×256。</li>
+      <li>生成的 .url 文件是纯文本，可安全地用记事本打开查看与修改。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfUrlFile(name, url, icon) {
+  var lines = ["[InternetShortcut]", "URL=" + String(url).trim()];
+  if (icon && String(icon).trim()) lines.push("IconFile=" + String(icon).trim(), "IconIndex=0");
+  lines.push("", "; 由词海工具箱生成：把本文件保存为 .url 后双击即可打开网站");
+  return lines.join("\r\n");
+}
+function __xfValidUrl(u) { return /^https?:\/\/[^\s]+$/i.test(String(u).trim()); }
+function __xfNormUrl(u) {
+  var s = String(u).trim();
+  if (!s) return "";
+  if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+  return s;
+}
+/* 移动端添加到主屏所需的最小 HTML 片段 */
+function __xfPwaSnippet(name, icon) {
+  return [
+    '<link rel="apple-touch-icon" href="' + (icon || "/favicon.ico") + '">',
+    '<meta name="apple-mobile-web-app-capable" content="yes">',
+    '<meta name="apple-mobile-web-app-title" content="' + name + '">',
+    '<meta name="mobile-web-app-capable" content="yes">',
+    '<meta name="theme-color" content="#ff6500">'
+  ].join("\n");
+}
+/* 生成 BAT 快捷创建脚本（Windows 批量部署场景） */
+function __xfBatSnippet(name, url, icon) {
+  var f = name + ".url";
+  return [
+    "@echo off",
+    "rem 由词海工具箱生成：双击运行即在桌面创建快捷方式",
+    "(echo [InternetShortcut]",
+    " echo URL=" + url,
+    (icon ? " echo IconFile=" + icon + "\n echo IconIndex=0" : ""),
+    ") > \"%USERPROFILE%\\Desktop\\" + f + "\"",
+    "echo 已在桌面创建：" + f,
+    "pause"
+  ].filter(function (x) { return x !== ""; }).join("\r\n");
+}
+window.__xfUrlFile = __xfUrlFile;
+window.__xfValidUrl = __xfValidUrl;
+window.__xfNormUrl = __xfNormUrl;
+window.__xfPwaSnippet = __xfPwaSnippet;
+window.__xfBatSnippet = __xfBatSnippet;
+
+var $ = function (id) { return document.getElementById(id); };
+function build() {
+  var url = __xfNormUrl($("url").value);
+  var name = $("name").value.trim() || "快捷方式";
+  if (!__xfValidUrl(url)) return null;
+  return {
+    url: url,
+    name: name,
+    content: __xfUrlFile(name, url, $("icon").value),
+    pwa: __xfPwaSnippet(name, $("icon").value || url.replace(/\/$/, "") + "/favicon.ico"),
+    bat: __xfBatSnippet(name, url, $("icon").value)
+  };
+}
+function render() {
+  var b = build();
+  if (!b) { $("res").value = "❌ 请输入合法的网址（需以 http:// 或 https:// 开头）"; $("tip").textContent = "❌ 网址不合法"; return; }
+  $("res").value = [
+    "—— 方法一：Windows .url 快捷方式（推荐）——",
+    "把下面内容保存为「" + b.name + ".url」，双击即在浏览器打开；也可直接点「下载 .url 文件」。",
+    "",
+    b.content,
+    "",
+    "—— 方法二：拖拽法 ——",
+    "把浏览器地址栏左侧的小锁/图标直接拖到桌面，系统会自动生成快捷方式，最省事。",
+    "",
+    "—— 方法三：手机添加到主屏 ——",
+    "在手机浏览器打开该网站 → 菜单 → 添加到主屏幕。网站若加入以下标签可全屏运行：",
+    "",
+    b.pwa
+  ].join("\n");
+  $("tip").textContent = "✅ 已生成（目标：" + b.url + "）";
+}
+$("genBtn").onclick = render;
+$("downBtn").onclick = function () {
+  var b = build();
+  if (!b) return alert("请先填写合法网址");
+  var blob = new Blob([b.content], { type: "application/octet-stream" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = b.name + ".url";
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+["name", "url", "icon"].forEach(function (id) { $(id).addEventListener("change", render); });
+render();
+</script>
+</body>
+</html>

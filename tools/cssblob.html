@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS液态形状生成器 - 词海工具箱</title>
+<meta name="description" content="生成圆润的液态形状 CSS 代码，通过八值圆角参数控制形状轮廓，支持随机生成并实时预览实际效果。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cssblob.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cssblob" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>尺寸 px</label><input type="number" id="sz" value="160" min="40" max="400"></div>
+      <div class="fitem"><label>变化幅度 %</label><input type="number" id="amp" value="30" min="0" max="50"></div>
+      <div class="fitem"><label>填充色</label><input type="text" id="c" value="#ff6500"></div>
+      <div class="fitem"><label>旋转角度</label><input type="number" id="rot" value="0" min="0" max="360"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">随机生成</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">CSS 代码</strong><span id="state"></span></div>
+      <div style="padding:12px 0;text-align:center;"><div id="pv" style="display:inline-block;width:160px;height:160px;background:#ff6500;"></div></div>
+      <textarea id="res" readonly style="height:120px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于CSS液态形状生成器介绍：</h4>
+    <ol>
+      <li>八值圆角分别对应四个水平半径与四个垂直半径，斜杠前为水平、斜杠后为垂直。</li>
+      <li>变化幅度越大形状越不规则，幅度为 0 时退化为标准的圆角方形。</li>
+      <li>液态形状适合做头像框、背景装饰与卡片底图，配合旋转能得到更自然的轮廓。</li>
+      <li>同一组圆角值配合 CSS 动画修改百分比，可以做出呼吸般的缓慢变形效果。</li>
+      <li>如果把圆角设得很大并降低元素透明度，还能做出气泡与水珠的观感。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfBlobRadius(rnd, amp) {
+  rnd = rnd || Math.random;
+  var a = amp === undefined ? 30 : Number(amp);
+  var base = 50 - a / 2;
+  var v = [];
+  for (var i = 0; i < 8; i++) v.push(Math.round(base + rnd() * a));
+  return v;
+}
+function __xfBlobRadiusCss(rnd, amp) {
+  var v = __xfBlobRadius(rnd, amp);
+  return v.slice(0, 4).join("% ") + "% / " + v.slice(4).join("% ") + "%";
+}
+function __xfBlobCss(opts, rnd) {
+  opts = opts || {};
+  var sz = Number(opts.size) || 160, c = opts.color || "#ff6500", rot = Number(opts.rot) || 0;
+  var lines = ["." + (opts.cls || "blob") + " {"];
+  lines.push("  width: " + sz + "px;");
+  lines.push("  height: " + sz + "px;");
+  lines.push("  background: " + c + ";");
+  lines.push("  border-radius: " + __xfBlobRadiusCss(rnd, opts.amp) + ";");
+  if (rot) lines.push("  transform: rotate(" + rot + "deg);");
+  lines.push("}");
+  return lines.join("\n");
+}
+window.__xfBlobRadius = __xfBlobRadius;
+window.__xfBlobRadiusCss = __xfBlobRadiusCss;
+window.__xfBlobCss = __xfBlobCss;
+var lastCss = "";
+function run() {
+  lastCss = __xfBlobCss({ size: $("sz").value, color: $("c").value, rot: $("rot").value, amp: $("amp").value, cls: "blob" });
+  $("res").value = lastCss;
+  var radius = lastCss.split("border-radius: ")[1].split(";")[0];
+  $("pv").style.cssText = "display:inline-block;width:" + $("sz").value + "px;height:" + $("sz").value + "px;background:" + $("c").value + ";border-radius:" + radius + ";transform:rotate(" + ($("rot").value || 0) + "deg);";
+  $("state").textContent = $("sz").value + "px";
+  $("tip").textContent = "✅ 已生成液态形状";
+  return lastCss;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

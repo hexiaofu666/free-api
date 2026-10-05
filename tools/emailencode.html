@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email邮箱地址加密 - 词海工具箱</title>
+<meta name="description" content="Email邮箱地址加密工具：把邮箱地址转换为 HTML 实体或 JS 转义形式，用于网页上防爬虫抓取邮箱，粘贴即可还原。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/emailencode.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="emailencode" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>编码方式</label>
+        <select id="mode">
+          <option value="html10" selected>HTML 十进制实体（推荐）</option>
+          <option value="html16">HTML 十六进制实体</option>
+          <option value="js">JavaScript 转义 \\u</option>
+          <option value="url">URL 百分号编码</option>
+          <option value="mix">混合随机（实体+大小写）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>同时生成 mailto 链接</label>
+        <select id="mailto"><option value="yes" selected>是</option><option value="no">否</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成加密代码</button>
+      <button class="fbtn gray" id="decBtn">反向解码</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">邮箱地址（编码）／加密代码（解码）</div>
+      <textarea id="src" style="min-height:90px;">admin@example.com</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">结果</strong></div>
+      <textarea id="res" readonly style="height:160px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Email邮箱地址加密介绍：</h4>
+    <ol>
+      <li>原理：把邮箱里的 @ 与 . 等字符替换成 HTML 实体（如 &#64;），浏览器渲染出来仍是正常的邮箱，但爬虫抓到的源码里没有明文地址。</li>
+      <li>HTML 十进制实体兼容性最好；十六进制实体更短；JavaScript 转义适合直接写进 JS 字符串。</li>
+      <li>「混合随机」会让每个字符随机选择保留原字符或转为实体，同一邮箱每次生成的结果都不同，进一步降低被规则匹配的概率（不会改变邮箱本身的大小写）。</li>
+      <li>点「反向解码」可以把加密代码还原成明文邮箱，方便自己核对是否写错。</li>
+      <li>更严格的防护可结合服务端图片验证码或表单提交，本工具定位是轻量级的防采集手段。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfHtmlEntities(text, hex) {
+  var out = "";
+  for (var i = 0; i < text.length; i++) {
+    var c = text.charCodeAt(i);
+    if (/[a-zA-Z0-9]/.test(text[i])) out += text[i];
+    else out += "&#" + (hex ? "x" + c.toString(16) : c) + ";";
+  }
+  return out;
+}
+function __xfJsEscapes(text) {
+  var out = "";
+  for (var i = 0; i < text.length; i++) {
+    var c = text.charCodeAt(i);
+    out += /[a-zA-Z0-9]/.test(text[i]) ? text[i] : "\\u" + ("000" + c.toString(16)).slice(-4);
+  }
+  return out;
+}
+function __xfUrlEncode(text) { return encodeURIComponent(text).replace(/%40/g, "%40"); }
+/* 混合：每个字符随机选择「保留原字符」或「转为实体」，不改变邮箱本身的大小写 */
+function __xfMix(text, rnd) {
+  var r = rnd || Math.random, out = "";
+  for (var i = 0; i < text.length; i++) {
+    var ch = text[i];
+    if (/[a-zA-Z0-9]/.test(ch) && r() < 0.55) out += ch;
+    else out += "&#" + ch.charCodeAt(0) + ";";
+  }
+  return out;
+}
+function __xfDecodeEntities(text) {
+  var t = String(text).replace(/&#x([0-9a-fA-F]+);/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); });
+  t = t.replace(/&#(\d+);/g, function (m, d) { return String.fromCharCode(parseInt(d, 10)); });
+  t = t.replace(/\\u([0-9a-fA-F]{4})/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); });
+  try { t = decodeURIComponent(t); } catch (e) {}
+  return t;
+}
+/* 从任意代码片段中提取邮箱 */
+function __xfFindEmail(text) {
+  var t = __xfDecodeEntities(text);
+  var m = t.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  return m ? m[0] : "";
+}
+function __xfValidEmail(email) {
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(String(email).trim());
+}
+window.__xfHtmlEntities = __xfHtmlEntities;
+window.__xfJsEscapes = __xfJsEscapes;
+window.__xfMix = __xfMix;
+window.__xfDecodeEntities = __xfDecodeEntities;
+window.__xfFindEmail = __xfFindEmail;
+window.__xfValidEmail = __xfValidEmail;
+
+var $ = function (id) { return document.getElementById(id); };
+function run() {
+  var src = $("src").value.trim();
+  if (!__xfValidEmail(src)) { $("res").value = "❌ 请输入合法的邮箱地址，例如 admin@example.com"; $("tip").textContent = "❌ 邮箱格式不正确"; return; }
+  var m = $("mode").value, code;
+  if (m === "html10") code = __xfHtmlEntities(src, false);
+  else if (m === "html16") code = __xfHtmlEntities(src, true);
+  else if (m === "js") code = __xfJsEscapes(src);
+  else if (m === "url") code = __xfUrlEncode(src);
+  else code = __xfMix(src);
+  var lines = ["—— 加密后的邮箱代码（可直接粘进网页）——", code];
+  if ($("mailto").value === "yes") {
+    var at = __xfHtmlEntities("@", false), link = '<a href="mailto:' + code + '">' + code + '</a>';
+    lines.push("", "—— 完整可点击链接 ——", link);
+    lines.push("", "提示：把上面这段 HTML 直接替换网页里的邮箱文本即可，浏览器会正常显示与点击，但爬虫抓不到明文。");
+  }
+  $("res").value = lines.join("\n");
+  $("tip").textContent = "✅ 已生成加密代码（可还原）";
+}
+$("runBtn").onclick = run;
+$("decBtn").onclick = function () {
+  var e = __xfFindEmail($("src").value);
+  $("res").value = e ? "✅ 还原出的邮箱：" + e + "\n\n（若源文本中本身没有邮箱，请先粘贴加密后的代码）" : "未能从输入内容中识别出邮箱地址";
+  $("tip").textContent = e ? "✅ 解码成功" : "未识别到邮箱";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("mode").onchange = run;
+run();
+</script>
+</body>
+</html>

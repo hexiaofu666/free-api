@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML代码调试预览 - 词海工具箱</title>
+<meta name="description" content="HTML 代码调试预览工具：在线编辑 HTML/CSS/JS 并即时预览效果，自动补全文档结构，也支持只粘贴片段。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/htmldemo.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="htmldemo" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>编辑模式</label>
+        <select id="mode"><option value="full" selected>完整 HTML</option><option value="fragment">仅片段（自动补全）</option></select>
+      </div>
+      <div class="fitem"><label>背景色</label>
+        <select id="bg"><option value="#ffffff" selected>白色</option><option value="#f5f5f5">浅灰</option><option value="#000000">黑色</option></select>
+      </div>
+      <div class="fitem"><label>沙箱权限</label>
+        <select id="sandbox"><option value="allow-scripts" selected>允许脚本（安全）</option><option value="allow-scripts allow-same-origin">允许脚本+同源</option><option value="">完全禁止脚本</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">刷新预览</button>
+      <button class="fbtn blue" id="docBtn">查看完整文档</button>
+      <button class="fbtn brown" id="downBtn">下载 HTML</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">HTML / CSS / JS 代码</div>
+      <textarea id="src" style="min-height:190px;"><style>
+  .card { padding: 16px; border-radius: 8px; background: #ff6500; color: #fff; font-family: sans-serif; }
+</style>
+<div class="card">
+  <h3>词海工具箱</h3>
+  <p>在这里写 HTML、CSS 与 JS，点击「刷新预览」即可看到效果。</p>
+</div>
+<script>
+  document.querySelector(".card").addEventListener("click", function () {
+    this.style.background = "#00b277";
+  });
+</script></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">实时预览</strong><span id="state"></span></div>
+      <div id="preview" style="height:300px;border:1px solid #eee;border-radius:4px;overflow:hidden;background:#fff;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTML代码调试预览介绍：</h4>
+    <ol>
+      <li>「仅片段」模式会自动补全 DOCTYPE、head 与 body，直接粘贴一段 div 或表格代码就能看到效果。</li>
+      <li>预览区使用 iframe 隔离运行，脚本不会影响本页面的其它功能，可放心测试。</li>
+      <li>沙箱权限默认只开放脚本执行；若代码需要通过 fetch 读取接口或使用 localStorage，需选择「允许脚本+同源」。</li>
+      <li>点「查看完整文档」可得到补全后的完整 HTML 源码，复制后另存为 .html 文件即为一个独立网页。</li>
+      <li>调试响应式布局时，可先改浏览器窗口宽度，或把代码粘贴到手机浏览器中查看实际效果。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfWrapHtml(code, mode, bg) {
+  var c = String(code || "");
+  if (mode === "full" && /<html[\s>]/i.test(c)) {
+    return /<!doctype/i.test(c) ? c : "<!DOCTYPE html>\n" + c;
+  }
+  return "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>预览</title>\n<style>body{margin:0;padding:16px;background:" + (bg || "#ffffff") + ";font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}</style>\n</head>\n<body>\n" + c + "\n</body>\n</html>";
+}
+function __xfExtractBody(html) {
+  var m = String(html).match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  return m ? m[1].trim() : String(html).trim();
+}
+function __xfHasDoctype(html) { return /<!doctype/i.test(String(html)); }
+function __xfSnippetStats(code) {
+  var s = String(code);
+  return {
+    chars: s.length,
+    lines: s.split("\n").length,
+    hasStyle: /<style[\s>]/i.test(s),
+    hasScript: /<script[\s>]/i.test(s),
+    tags: (s.match(/<[a-zA-Z][^>]*>/g) || []).length
+  };
+}
+window.__xfWrapHtml = __xfWrapHtml;
+window.__xfExtractBody = __xfExtractBody;
+window.__xfHasDoctype = __xfHasDoctype;
+window.__xfSnippetStats = __xfSnippetStats;
+
+var $ = function (id) { return document.getElementById(id); };
+function build() { return __xfWrapHtml($("src").value, $("mode").value, $("bg").value); }
+function run() {
+  var doc = build();
+  var iframe = document.createElement("iframe");
+  iframe.setAttribute("sandbox", $("sandbox").value);
+  iframe.style.cssText = "width:100%;height:100%;border:0;background:#fff;";
+  iframe.srcdoc = doc;
+  var box = $("preview");
+  box.innerHTML = "";
+  box.appendChild(iframe);
+  var st = __xfSnippetStats($("src").value);
+  $("state").textContent = st.chars + " 字符";
+  $("tip").textContent = "✅ 预览已刷新" + (st.hasScript ? "（含脚本）" : "");
+}
+$("runBtn").onclick = run;
+$("docBtn").onclick = function () {
+  var doc = build();
+  $("state").textContent = doc.length + " 字符";
+  $("tip").textContent = "完整文档（可复制到本地保存为 .html）";
+  var box = $("preview");
+  box.innerHTML = "";
+  var ta = document.createElement("textarea");
+  ta.style.cssText = "width:100%;height:100%;border:0;padding:10px;font-size:12px;box-sizing:border-box;";
+  ta.value = doc;
+  box.appendChild(ta);
+};
+$("downBtn").onclick = function () {
+  var blob = new Blob([build()], { type: "text/html;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "preview.html";
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+};
+$("mode").onchange = run;
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本字符频率统计 - 词海工具箱</title>
+<meta name="description" content="在线统计文本中每个字符或词语出现的次数，按频次从高到低排序并给出占比，适合做词频分析与文本特征统计。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/txtfreq.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="txtfreq" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>统计方式</label>
+        <select id="mode"><option value="char" selected>按字符统计</option><option value="word">按词语统计</option></select>
+      </div>
+      <div class="fitem"><label>忽略空格</label>
+        <select id="sp"><option value="no" selected>否</option><option value="yes">是</option></select>
+      </div>
+      <div class="fitem"><label>忽略大小写</label>
+        <select id="cs"><option value="no" selected>否</option><option value="yes">是</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始统计</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">待统计文本</div>
+      <textarea id="src" style="min-height:170px;">词海工具箱，好用又免费。词海工具箱收录了大量在线小工具。</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">统计结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:280px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本字符频率统计介绍：</h4>
+    <ol>
+      <li>按字符统计会区分大小写与空格；需要做词频分析时请切换到「按词语统计」。</li>
+      <li>词语分割以非字母、非数字、非汉字为界，中英文混排会自动分别切分。</li>
+      <li>「忽略空格」可过滤掉空白字符的计数，适合分析正文内容的字符分布。</li>
+      <li>结果按出现次数降序排列，次数相同时按字符编码升序，便于稳定对比。</li>
+      <li>统计结果可直接复制到 Excel 中，用制表符或文本导入向导整理成表格。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfCharFreq(text, opts) {
+  opts = opts || {};
+  var s = String(text);
+  if (opts.ignoreSpace) s = s.replace(/\s/g, "");
+  if (opts.ignoreCase) s = s.toLowerCase();
+  var map = {}, i;
+  for (i = 0; i < s.length; i++) { var c = s[i]; map[c] = (map[c] || 0) + 1; }
+  var arr = Object.keys(map).map(function (k) { return { char: k, count: map[k] }; });
+  arr.sort(function (a, b) { return b.count - a.count || (a.char < b.char ? -1 : a.char > b.char ? 1 : 0); });
+  return arr;
+}
+function __xfFreqSummary(text, opts) {
+  var arr = __xfCharFreq(text, opts), total = 0;
+  arr.forEach(function (x) { total += x.count; });
+  return { total: total, unique: arr.length, top: arr.slice(0, 10) };
+}
+function __xfWordFreq(text, ignoreCase) {
+  var s = String(text);
+  if (ignoreCase) s = s.toLowerCase();
+  var parts = s.split(/[^0-9A-Za-z\u4e00-\u9fff]+/).filter(function (x) { return x !== ""; });
+  var map = {};
+  parts.forEach(function (w) { map[w] = (map[w] || 0) + 1; });
+  var arr = Object.keys(map).map(function (k) { return { word: k, count: map[k] }; });
+  arr.sort(function (a, b) { return b.count - a.count || (a.word < b.word ? -1 : 1); });
+  return arr;
+}
+function __xfFreqReport(text, mode, ignoreSpace, ignoreCase) {
+  var arr = mode === "word" ? __xfWordFreq(text, ignoreCase) : __xfCharFreq(text, { ignoreSpace: ignoreSpace, ignoreCase: ignoreCase });
+  var total = 0;
+  arr.forEach(function (x) { total += x.count; });
+  return arr.map(function (x, i) {
+    var key = mode === "word" ? x.word : x.char;
+    var show = key === " " ? "（空格）" : key === "\n" ? "（换行）" : key === "\t" ? "（制表）" : key;
+    return (i + 1) + ". " + show + "  ×" + x.count + "  " + (total ? (x.count * 100 / total).toFixed(2) : "0") + "%";
+  }).join("\n");
+}
+window.__xfCharFreq = __xfCharFreq;
+window.__xfFreqSummary = __xfFreqSummary;
+window.__xfWordFreq = __xfWordFreq;
+window.__xfFreqReport = __xfFreqReport;
+function run() {
+  var mode = $("mode").value, sp = $("sp").value === "yes", cs = $("cs").value === "yes";
+  var arr = mode === "word" ? __xfWordFreq($("src").value, cs) : __xfCharFreq($("src").value, { ignoreSpace: sp, ignoreCase: cs });
+  $("res").value = __xfFreqReport($("src").value, mode, sp, cs);
+  var total = 0; arr.forEach(function (x) { total += x.count; });
+  $("state").textContent = arr.length + " 种 / 共 " + total + " 个";
+  $("tip").textContent = "✅ 统计完成";
+  return arr;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

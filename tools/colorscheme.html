@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>配色方案生成器 - 词海工具箱</title>
+<meta name="description" content="输入一个基色自动生成互补色、邻近色、三角配色与四角配色方案，输出十六进制色值并实时预览全部颜色。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/colorscheme.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="colorscheme" data-cat="color">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>基色</label><input type="text" id="base" value="#ff6500"></div>
+      <div class="fitem"><label>方案类型</label>
+        <select id="type"><option value="complement" selected>互补色（对角）</option><option value="analogous">邻近色</option><option value="triadic">三角配色</option><option value="tetradic">四角配色</option></select>
+      </div>
+      <div class="fitem"><label>饱和度微调</label><input type="number" id="sat" value="0" min="-50" max="50"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成配色</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">配色方案</strong><span id="state"></span></div>
+      <div id="sw" style="display:flex;height:52px;border-radius:6px;overflow:hidden;margin:8px 0;"></div>
+      <textarea id="res" readonly style="height:140px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于配色方案生成器介绍：</h4>
+    <ol>
+      <li>色相环以 360 度为一周，互补色相差 180 度，邻近色相差 30 度，三角配色相差 120 度。</li>
+      <li>生成的配色保持基色的明度与饱和度，仅旋转色相，因此整体风格统一。</li>
+      <li>饱和度微调可整体提高或降低配色鲜艳度，负值会让颜色更沉稳。</li>
+      <li>互补色对比最强烈，适合做主图与强调元素；邻近色最柔和，适合大面积背景。</li>
+      <li>输出的 HSL 数值可直接用于 CSS 的 hsl() 函数，方便继续做亮度调整。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfHex2Rgb(hex) {
+  var s = String(hex).trim().replace(/^#/, "");
+  if (s.length === 3) s = s.replace(/./g, function (c) { return c + c; });
+  if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+  return { r: parseInt(s.slice(0, 2), 16), g: parseInt(s.slice(2, 4), 16), b: parseInt(s.slice(4, 6), 16) };
+}
+function __xfRgb2Hex(c) {
+  function h(x) { var v = Math.max(0, Math.min(255, Math.round(x))).toString(16); return v.length < 2 ? "0" + v : v; }
+  return "#" + h(c.r) + h(c.g) + h(c.b);
+}
+function __xfRgb2Hsl(c) {
+  var r = c.r / 255, g = c.g / 255, b = c.b / 255;
+  var max = Math.max(r, g, b), min = Math.min(r, g, b), h = 0, s = 0, l = (max + min) / 2;
+  var d = max - min;
+  if (d) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+    else if (max === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  return { h: Math.round(h), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+function __xfHsl2Rgb(h, s, l) {
+  h = ((h % 360) + 360) % 360; s /= 100; l /= 100;
+  var c = (1 - Math.abs(2 * l - 1)) * s;
+  var x = c * (1 - Math.abs((h / 60) % 2 - 1));
+  var m = l - c / 2, r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  return { r: Math.round((r + m) * 255), g: Math.round((g + m) * 255), b: Math.round((b + m) * 255) };
+}
+function __xfHueShift(hex, deg, satAdj) {
+  var rgb = __xfHex2Rgb(hex);
+  if (!rgb) return null;
+  var hsl = __xfRgb2Hsl(rgb);
+  var s = Math.max(0, Math.min(100, hsl.s + (satAdj || 0)));
+  return __xfRgb2Hex(__xfHsl2Rgb(hsl.h + deg, s, hsl.l));
+}
+function __xfScheme(hex, type) {
+  var rgb = __xfHex2Rgb(hex); if (!rgb) return [];
+  var offsets = type === "complement" ? [0, 180]
+    : type === "analogous" ? [-30, 0, 30]
+    : type === "triadic" ? [0, 120, 240]
+    : [0, 90, 180, 270];
+  return offsets.map(function (d) { return __xfHueShift(hex, d); });
+}
+window.__xfHex2Rgb = __xfHex2Rgb;
+window.__xfRgb2Hex = __xfRgb2Hex;
+window.__xfRgb2Hsl = __xfRgb2Hsl;
+window.__xfHsl2Rgb = __xfHsl2Rgb;
+window.__xfHueShift = __xfHueShift;
+window.__xfScheme = __xfScheme;
+function run() {
+  var list = __xfScheme($("base").value, $("type").value);
+  var sw = $("sw"); sw.innerHTML = "";
+  list.forEach(function (c) {
+    var d = document.createElement("div");
+    d.style.cssText = "flex:1;background:" + (c || "#ccc") + ";";
+    d.title = c || "";
+    sw.appendChild(d);
+  });
+  var lines = list.map(function (c, i) {
+    var rgb = __xfHex2Rgb(c), hsl = rgb ? __xfRgb2Hsl(rgb) : null;
+    return ["色 " + (i + 1), "  HEX " + c, "  RGB " + (rgb ? rgb.r + ", " + rgb.g + ", " + rgb.b : "-"), "  HSL " + (hsl ? "hsl(" + hsl.h + ", " + hsl.s + "%, " + hsl.l + "%)" : "-")].join("\n");
+  });
+  $("res").value = lines.join("\n\n");
+  $("state").textContent = list.length + " 个颜色";
+  $("tip").textContent = "✅ 已生成配色方案";
+  return list;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

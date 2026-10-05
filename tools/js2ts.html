@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS转TypeScript - 词海工具箱</title>
+<meta name="description" content="JS 转 TypeScript 工具：为变量、函数参数与返回值自动补全类型注解，并根据字面量推断基础类型。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/js2ts.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="js2ts" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>推断强度</label>
+        <select id="level"><option value="literal" selected>按字面量推断</option><option value="any">全部标为 any</option></select>
+      </div>
+      <div class="fitem"><label>函数返回值</label>
+        <select id="ret"><option value="infer" selected>推断</option><option value="none">不添加</option></select>
+      </div>
+      <div class="fitem"><label>生成 interface</label>
+        <select id="iface"><option value="yes" selected>为对象字面量生成</option><option value="no">不生成</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换为 TS</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">JavaScript 代码</div>
+      <textarea id="src" style="min-height:180px;">const siteName = "词海工具箱";
+let toolCount = 205;
+var isOnline = true;
+const ratio = 0.85;
+
+function greet(name, times) {
+  return "Hello " + name;
+}
+
+const config = { host: "localhost", port: 8080 };</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">TypeScript 代码</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:230px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JS转TypeScript介绍：</h4>
+    <ol>
+      <li>支持为 const/let/var 声明添加类型注解，字符串→string、整数与小数→number、true/false→boolean、数组→any[]。</li>
+      <li>函数参数默认标注为 any（可手动细化）；返回值会读取函数体里的 return 语句进行推断。</li>
+      <li>工具会为对象字面量生成同名 interface（首字母大写），并自动加上 as 断言，减少手动整理结构的工作量。</li>
+      <li>转换结果是起点而非终点：复杂的泛型、联合类型与第三方库类型仍需人工完善。</li>
+      <li>建议转换后开启 TypeScript 的 strict 模式，逐步把 any 替换为精确类型。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfInferType(expr) {
+  var e = String(expr).trim();
+  if (/^-?\d+$/.test(e)) return "number";
+  if (/^-?\d*\.\d+$/.test(e)) return "number";
+  if (/^(true|false)$/.test(e)) return "boolean";
+  if (/^['"]/.test(e)) return "string";
+  if (/^\[/.test(e)) return "any[]";
+  if (/^\{/.test(e)) return "object";
+  if (/^new\s+/.test(e)) return "any";
+  if (/=>|^function/.test(e)) return "Function";
+  return "any";
+}
+function __xfJs2Ts(code, level, ret, iface) {
+  var src = String(code);
+  var interfaces = [];
+  if (iface === "yes") {
+    src = src.replace(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(\{[^;\n]*\})\s*;/g, function (m, name, obj) {
+      var props = [];
+      var re = /([A-Za-z_$][\w$]*)\s*:\s*([^,}]+)/g, mm;
+      while ((mm = re.exec(obj))) props.push("  " + mm[1] + ": " + __xfInferType(mm[2]) + ";");
+      if (props.length) {
+        var iname = name.charAt(0).toUpperCase() + name.slice(1);
+        interfaces.push("interface " + iname + " {\n" + props.join("\n") + "\n}");
+        return m.replace(obj, obj + " as " + iname);
+      }
+      return m;
+    });
+  }
+  var lines = src.split("\n").map(function (line) {
+    var indent = (line.match(/^\s*/) || [""])[0];
+    var body = line.trim();
+    if (!body || /^\/\//.test(body) || /^\/\*/.test(body)) return line;
+    /* 变量声明 */
+    var vm = body.match(/^(const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*([^;]+);(.*)$/);
+    if (vm) {
+      var t = level === "any" ? "any" : __xfInferType(vm[3]);
+      return indent + vm[1] + " " + vm[2] + ": " + t + " = " + vm[3] + ";" + vm[4];
+    }
+    return line;
+  });
+  var out = lines.join("\n");
+  /* 函数参数与返回值 */
+  out = out.replace(/function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*\{/g, function (m, name, params) {
+    if (!params.trim()) return m;
+    var ps = params.split(",").map(function (p) {
+      var t = p.trim();
+      if (!t || /:/.test(t)) return t;
+      return t + ": " + (level === "any" ? "any" : "any");
+    });
+    return "function " + name + "(" + ps.join(", ") + ") {";
+  });
+  if (ret === "infer") {
+    out = out.replace(/function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*\{([\s\S]*?)\n\}/g, function (m, name, params, body) {
+      var rm = body.match(/return\s+([^;]+);/);
+      if (!rm) return m;
+      var t = __xfInferType(rm[1]);
+      return "function " + name + "(" + params + "): " + t + " {\n" + body + "\n}";
+    });
+  }
+  if (interfaces.length) out = interfaces.join("\n\n") + "\n\n" + out;
+  return out;
+}
+window.__xfJs2Ts = __xfJs2Ts;
+window.__xfInferType = __xfInferType;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var out = __xfJs2Ts($("src").value, $("level").value, $("ret").value, $("iface").value);
+  $("res").value = out;
+  $("state").textContent = out.split("\n").filter(function (l) { return l.trim(); }).length + " 行";
+  $("tip").textContent = "✅ 已转换为 TypeScript";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

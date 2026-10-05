@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>本机字体检测 - 词海工具箱</title>
+<meta name="description" content="本机字体检测：在线检测设备是否安装了指定字体，常用于排查网页字体显示异常与设计稿字体是否可用。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/fontcheck.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="fontcheck" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>测试字体</label>
+        <select id="font">
+          <option value="Microsoft YaHei">微软雅黑 Microsoft YaHei</option>
+          <option value="SimSun">宋体 SimSun</option>
+          <option value="SimHei">黑体 SimHei</option>
+          <option value="KaiTi">楷体 KaiTi</option>
+          <option value="PingFang SC">苹方 PingFang SC</option>
+          <option value="Arial">Arial</option>
+          <option value="Helvetica">Helvetica</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Consolas">Consolas</option>
+          <option value="Courier New">Courier New</option>
+        </select>
+      </div>
+      <div class="fitem"><label>测试字号</label><input type="number" id="size" value="72" min="16" max="200"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="checkBtn">检测该字体</button>
+      <button class="fbtn blue" id="allBtn">检测全部</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">检测结果</strong></div>
+      <div id="demo" style="padding:12px 15px;border-bottom:1px dashed #eee;font-size:26px;">字体预览：词海工具箱 ABCabc 12345</div>
+      <div id="list" style="padding:10px 15px;font-size:13px;line-height:2;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于本机字体检测介绍：</h4>
+    <ol>
+      <li>检测原理：把待测字体与三种基准字体的组合渲染到 canvas，比较文本宽度，宽度发生变化即说明该字体存在。</li>
+      <li>同一字体在不同系统上的名称不同（如 Windows 叫「微软雅黑」，macOS 叫「苹方」），网页 CSS 里通常写成字体栈依次回退。</li>
+      <li>网页设计中建议始终写字体栈（如 PingFang SC, Microsoft YaHei, sans-serif），避免在缺少字体的系统上显示异常。</li>
+      <li>部分浏览器出于隐私保护会限制字体枚举，检测结果可能存在个别偏差，重要场景建议以实际渲染效果为准。</li>
+      <li>若需要跨平台一致的效果，可使用 Web Font（如思源黑体）通过 @font-face 加载，代价是首次加载需要下载字体文件。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var FONTS = [
+  { name: "Microsoft YaHei", cn: "微软雅黑", os: "Windows" },
+  { name: "SimSun", cn: "宋体", os: "Windows" },
+  { name: "SimHei", cn: "黑体", os: "Windows" },
+  { name: "KaiTi", cn: "楷体", os: "Windows" },
+  { name: "FangSong", cn: "仿宋", os: "Windows" },
+  { name: "Microsoft JhengHei", cn: "微软正黑体", os: "Windows" },
+  { name: "PingFang SC", cn: "苹方-简", os: "macOS/iOS" },
+  { name: "Hiragino Sans GB", cn: "冬青黑体", os: "macOS" },
+  { name: "Songti SC", cn: "宋体-简", os: "macOS/iOS" },
+  { name: "Heiti SC", cn: "黑体-简", os: "macOS" },
+  { name: "Noto Sans CJK SC", cn: "思源黑体", os: "Android/Linux" },
+  { name: "Source Han Sans SC", cn: "思源黑体（Adobe）", os: "跨平台" },
+  { name: "Arial", cn: "Arial", os: "通用" },
+  { name: "Helvetica", cn: "Helvetica", os: "通用" },
+  { name: "Verdana", cn: "Verdana", os: "通用" },
+  { name: "Tahoma", cn: "Tahoma", os: "通用" },
+  { name: "Georgia", cn: "Georgia", os: "通用" },
+  { name: "Times New Roman", cn: "Times New Roman", os: "通用" },
+  { name: "Courier New", cn: "Courier New", os: "通用" },
+  { name: "Consolas", cn: "Consolas", os: "Windows" },
+  { name: "Monaco", cn: "Monaco", os: "macOS" },
+  { name: "Menlo", cn: "Menlo", os: "macOS" },
+  { name: "Cambria", cn: "Cambria", os: "Windows" },
+  { name: "Calibri", cn: "Calibri", os: "Windows" }
+];
+var BASELINE = ["monospace", "sans-serif", "serif"];
+function __xfFontList() { return FONTS.slice(); }
+function __xfFontGroups() {
+  var g = {};
+  FONTS.forEach(function (f) { (g[f.os] = g[f.os] || []).push(f.cn); });
+  return g;
+}
+function __xfTestString() { return "mmmmmmmmmmlli"; }
+/* 核心判定：用多个基准字体测量宽度，任一基准下宽度不同即认为该字体存在 */
+function __xfIsFontAvailable(font, measure) {
+  var test = __xfTestString();
+  for (var i = 0; i < BASELINE.length; i++) {
+    var w1 = measure(test, "'" + BASELINE[i] + "'");
+    var w2 = measure(test, "'" + font + "', '" + BASELINE[i] + "'");
+    if (w1 !== w2) return true;
+  }
+  return false;
+}
+window.__xfFontList = __xfFontList;
+window.__xfFontGroups = __xfFontGroups;
+window.__xfIsFontAvailable = __xfIsFontAvailable;
+
+var $ = function (id) { return document.getElementById(id); };
+function measureWith(font) {
+  var c = document.createElement("canvas").getContext("2d");
+  var size = parseInt($("size").value, 10) || 72;
+  return function (text, family) { c.font = size + "px " + family; return c.measureText(text).width; };
+}
+function check(font) {
+  var size = parseInt($("size").value, 10) || 72;
+  $("demo").style.fontFamily = "'" + font + "', sans-serif";
+  try {
+    return __xfIsFontAvailable(font, measureWith(font));
+  } catch (e) { return false; }
+}
+$("checkBtn").onclick = function () {
+  var f = $("font").value, ok = check(f);
+  var info = FONTS.filter(function (x) { return x.name === f; })[0] || { cn: f, os: "未知" };
+  $("list").innerHTML = "<p><b>" + info.cn + "</b>（" + f + "）：" + (ok ? "<span style='color:#06b672;'>✅ 已安装</span>" : "<span style='color:#e74c3c;'>❌ 未检测到</span>") + "</p><p style='color:#999;'>常见平台：" + info.os + "</p>";
+  $("tip").textContent = ok ? "✅ 检测到该字体" : "❌ 未检测到该字体";
+};
+$("allBtn").onclick = function () {
+  var html = "", found = 0;
+  FONTS.forEach(function (f) {
+    var ok = check(f.name);
+    if (ok) found++;
+    html += "<span style='display:inline-block;min-width:210px;'>" + (ok ? "✅" : "❌") + " " + f.cn + "</span>";
+  });
+  $("list").innerHTML = html + "<p style='color:#999;margin-top:6px;'>共检测 " + FONTS.length + " 款，本机可用 " + found + " 款</p>";
+  $("tip").textContent = "全部检测完成";
+};
+$("font").onchange = function () { check(this.value); };
+$("font").onchange();
+$("tip").textContent = "检测结果";
+</script>
+</body>
+</html>

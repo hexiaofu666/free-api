@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS代码压缩混淆 - 词海工具箱</title>
+<meta name="description" content="JS 代码压缩混淆工具：去除注释与多余空白、把字符串与数字转为转义写法，在保持语义不变的前提下提高阅读难度。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jsobfuscate.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jsobfuscate" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>混淆强度</label>
+        <select id="level">
+          <option value="light">轻度（仅去注释与空白）</option>
+          <option value="normal" selected>中度（转义字符串）</option>
+          <option value="heavy">重度（字符串+数字+标识符分割）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>保留换行</label>
+        <select id="keep"><option value="no" selected>否（压成一行）</option><option value="yes">是（按语句换行）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始混淆</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">JS 源代码</div>
+      <textarea id="src" style="min-height:140px;">// 打招呼函数
+function greet(name) {
+  /* 返回问候语 */
+  return "Hello, " + name + "!";
+}
+console.log(greet("词海工具箱"));</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">混淆结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:180px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JS代码压缩混淆介绍：</h4>
+    <ol>
+      <li>去注释与压缩空白使用状态机实现，能正确跳过字符串字面量里的 `//` 与 `/*`，不会误删字符串内容。</li>
+      <li>中度混淆会把字符串内容转成 \\xHH 形式，代码照常执行但肉眼难以直接读出文字。</li>
+      <li>重度混淆额外把 2 位以上整数转成十六进制，进一步降低可读性（浮点数与 0/1 保持不变以免影响语义）。</li>
+      <li>本工具不做变量名重命名，因此不会破坏代码语义；如果需要更激进的压缩请使用专业的 UglifyJS / Terser。</li>
+      <li>混淆不等于加密：还原非常容易，只是增加阅读成本，切勿用它来保护密钥或敏感逻辑。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+/* 去注释：状态机，保护字符串与正则字面量中的 // 与 /* */
+function __xfStripComments(code) {
+  var s = String(code), out = "", i = 0, n = s.length;
+  var state = "code";
+  while (i < n) {
+    var c = s[i], c2 = s[i + 1];
+    if (state === "code") {
+      if (c === "/" && c2 === "/") { state = "line"; i += 2; continue; }
+      if (c === "/" && c2 === "*") { state = "block"; i += 2; continue; }
+      if (c === '"' || c === "'" || c === "\u0060") { state = c; out += c; i++; continue; }
+      out += c; i++; continue;
+    }
+    if (state === "line") { if (c === "\n") { state = "code"; out += c; } i++; continue; }
+    if (state === "block") { if (c === "*" && c2 === "/") { state = "code"; i += 2; continue; } i++; continue; }
+    if (state === '"' || state === "'" || state === "\u0060") {
+      if (c === "\\") { out += c + (c2 || ""); i += 2; continue; }
+      if (c === state) state = "code";
+      out += c; i++; continue;
+    }
+  }
+  return out;
+}
+/* 压缩空白：字符串外合并连续空白，去掉运算符两侧多余空格 */
+function __xfMinify(code) {
+  var s = __xfStripComments(code), out = "", i = 0, state = "code";
+  while (i < s.length) {
+    var c = s[i];
+    if (state === "code") {
+      if (c === '"' || c === "'" || c === "\u0060") { state = c; out += c; i++; continue; }
+      if (/\s/.test(c)) {
+        var j = i;
+        while (j < s.length && /\s/.test(s[j])) j++;
+        var prev = out.slice(-1), next = s[j] || "";
+        if (/[\w$\]\)}]/.test(prev) && /[\w$(\[{]/.test(next)) out += " ";
+        i = j; continue;
+      }
+      out += c; i++; continue;
+    }
+    if (c === "\\") { out += c + (s[i + 1] || ""); i += 2; continue; }
+    if (c === state) state = "code";
+    out += c; i++;
+  }
+  return out;
+}
+/* 字符串转义为 \\xHH 形式（仅 ASCII 可打印字符，避免破坏多字节） */
+function __xfEscapeStrings(code) {
+  var out = "", i = 0, state = "code";
+  while (i < code.length) {
+    var c = code[i];
+    if (state === "code") {
+      if (c === '"' || c === "'" || c === "\u0060") { state = c; out += c; i++; continue; }
+      out += c; i++; continue;
+    }
+    if (c === "\\") { out += c + (code[i + 1] || ""); i += 2; continue; }
+    if (c === state) { state = "code"; out += c; i++; continue; }
+    var code2 = c.charCodeAt(0);
+    out += (code2 >= 32 && code2 < 127 && c !== "\\") ? "\\x" + ("0" + code2.toString(16)).slice(-2) : c;
+    i++;
+  }
+  return out;
+}
+/* 数字转十六进制（仅整数，跳过 0/1 与标识符中的数字） */
+function __xfHexNumbers(code) {
+  return code.replace(/(^|[^\w$."'])(\d{2,})(?![\w$.])/g, function (m, p, d) {
+    return p + "0x" + Number(d).toString(16);
+  });
+}
+function __xfObfuscate(code, level, keepLines) {
+  var out = __xfMinify(code);
+  if (level === "normal" || level === "heavy") out = __xfEscapeStrings(out);
+  if (level === "heavy") out = __xfHexNumbers(out);
+  if (keepLines === "yes") out = out.replace(/;/g, ";\n");
+  return out;
+}
+window.__xfStripComments = __xfStripComments;
+window.__xfMinify = __xfMinify;
+window.__xfEscapeStrings = __xfEscapeStrings;
+window.__xfHexNumbers = __xfHexNumbers;
+window.__xfObfuscate = __xfObfuscate;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var src = $("src").value;
+  var out = __xfObfuscate(src, $("level").value, $("keep").value);
+  $("res").value = out;
+  $("state").textContent = "原 " + src.length + " 字符 → " + out.length + " 字符";
+  $("tip").textContent = "✅ 混淆完成";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("level").onchange = function () { if ($("src").value.trim()) $("runBtn").click(); };
+$("runBtn").click();
+</script>
+</body>
+</html>

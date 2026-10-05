@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHP代码格式化 - 词海工具箱</title>
+<meta name="description" content="PHP 代码格式化压缩工具：自动整理 PHP 代码缩进与换行，保留 &lt;?php 标记、字符串与注释，也可压缩为单行。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/formatphp.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="formatphp" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>缩进</label>
+        <select id="indent"><option value="4" selected>4 个空格</option><option value="2">2 个空格</option><option value="tab">Tab</option></select>
+      </div>
+      <div class="fitem"><label>左大括号</label>
+        <select id="brace"><option value="same" selected>同一行</option><option value="next">另起一行</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">格式化</button>
+      <button class="fbtn gray" id="minBtn">压缩为单行</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">PHP 代码</div>
+      <textarea id="src" style="min-height:170px;"><?php function greet($name) { $msg = "Hello, " . $name; if (strlen($name) > 0) { echo $msg; } else { echo "参数为空"; } return $msg; } ?></textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">格式化结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:230px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于PHP代码格式化介绍：</h4>
+    <ol>
+      <li>PHP 同时支持 //、# 与 /* */ 三种注释，格式化时会正确识别并跳过这些位置。</li>
+      <li><?php 与 ?> 标记会保持原样并置于行首，不会被合并进其它语句，避免破坏 PHP 与 HTML 混排文件。</li>
+      <li>字符串中的 $变量、分号与大括号不会被误处理，格式化结果可直接运行。</li>
+      <li>PHP 变量以 $ 开头，压缩时会注意不把 `$a` 与后续标识符粘连。</li>
+      <li>若代码中包含 heredoc / nowdoc（<<<EOT）语法，建议先在本地验证一次格式化结果。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+/* PHP/类 C 语法格式化：保护 <?php ?> 标记、字符串与注释 */
+function __xfFormatPHP(code, indentStr, braceNext) {
+  var ind = indentStr === "tab" ? "\t" : new Array((parseInt(indentStr, 10) || 4) + 1).join(" ");
+  var src = String(code).replace(/\r\n/g, "\n");
+  var lines = src.split("\n"), out = [], depth = 0, inBlock = false;
+  lines.forEach(function (raw) {
+    var line = raw.trim();
+    if (!line) { if (out.length) out.push(""); return; }
+    if (inBlock) { out.push(new Array(depth + 1).join(ind) + line); if (line.indexOf("*/") >= 0) inBlock = false; return; }
+    if (/^<\?php/i.test(line) || /^<\?=/.test(line)) {
+      var tag = line.match(/^<\?php|^<\?=/i)[0];
+      out.push(tag);
+      line = line.replace(/^<\?php\s*/i, "").replace(/^<\?=\s*/, "");
+      if (!line) return;
+    }
+    if (/^\?>$/.test(line)) { depth = 0; out.push("?>"); return; }
+    var parts = [], buf = "", state = "code";
+    for (var i = 0; i < line.length; i++) {
+      var c = line[i], c2 = line[i + 1];
+      if (state === "code") {
+        if (c === "\"" || c === "'") { state = c; buf += c; continue; }
+        if (c === "/" && c2 === "/") break;
+        if (c === "#" && (c2 === " " || c2 === undefined)) break;
+        if (c === "/" && c2 === "*") { state = "block"; buf += c + c2; i++; continue; }
+        if (c === "{" || c === "}" || c === ";") { buf += c; parts.push(buf.trim()); buf = ""; continue; }
+        buf += c; continue;
+      }
+      if (state === "block") { buf += c; if (c === "*" && c2 === "/") { buf += c2; i++; state = "code"; } continue; }
+      if (c === "\\") { buf += c + (c2 || ""); i++; continue; }
+      if (c === state) state = "code";
+      buf += c;
+    }
+    if (buf.trim()) parts.push(buf.trim());
+    parts.forEach(function (p) {
+      if (p === "}") { depth = Math.max(0, depth - 1); out.push(new Array(depth + 1).join(ind) + p); return; }
+      if (p === "{") { out.push(new Array(depth + 1).join(ind) + "{"); depth++; return; }
+      if (/\{$/.test(p)) {
+        var head = p.slice(0, -1).trim();
+        if (braceNext === "next") { out.push(new Array(depth + 1).join(ind) + head); out.push(new Array(depth + 1).join(ind) + "{"); }
+        else out.push(new Array(depth + 1).join(ind) + head + " {");
+        depth++;
+        return;
+      }
+      out.push(new Array(depth + 1).join(ind) + p);
+    });
+  });
+  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+function __xfMinifyPHP(code) {
+  var out = "", state = "code", src = String(code);
+  for (var i = 0; i < src.length; i++) {
+    var c = src[i], c2 = src[i + 1];
+    if (state === "code") {
+      if (c === "\"" || c === "'") { state = c; out += c; continue; }
+      if (c === "/" && c2 === "/") { state = "line"; i++; continue; }
+      if (c === "/" && c2 === "*") { state = "block"; i++; continue; }
+      if (/\s/.test(c)) {
+        var prev = out.slice(-1), next = src[i + 1] || "";
+        if (/[\w$\]\)}]/.test(prev) && /[\w$(\[{]/.test(next)) out += " ";
+        continue;
+      }
+      out += c; continue;
+    }
+    if (state === "line") { if (c === "\n") state = "code"; continue; }
+    if (state === "block") { if (c === "*" && c2 === "/") { state = "code"; i++; } continue; }
+    if (c === "\\") { out += c + (c2 || ""); i++; continue; }
+    if (c === state) state = "code";
+    out += c;
+  }
+  return out;
+}
+function __xfPHPStats(code) {
+  var s = String(code);
+  return {
+    lines: s.split("\n").length,
+    funcs: (s.match(/function\s+\w+/g) || []).length,
+    vars: (s.match(/\$[\w]+/g) || []).length,
+    hasOpen: /<\?php|<\?=/.test(s)
+  };
+}
+window.__xfFormatPHP = __xfFormatPHP;
+window.__xfMinifyPHP = __xfMinifyPHP;
+window.__xfPHPStats = __xfPHPStats;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var out = __xfFormatPHP($("src").value, $("indent").value, $("brace").value);
+  $("res").value = out;
+  $("state").textContent = out.split("\n").length + " 行";
+  $("tip").textContent = "✅ 格式化完成";
+};
+$("minBtn").onclick = function () {
+  var out = __xfMinifyPHP($("src").value);
+  $("res").value = out;
+  $("state").textContent = out.length + " 字符";
+  $("tip").textContent = "✅ 已压缩";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

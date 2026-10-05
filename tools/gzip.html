@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gzip编码解码 - 词海工具箱</title>
+<meta name="description" content="Gzip 编码解码工具：基于浏览器原生压缩 API 把文本压缩为 Gzip 并输出 Base64，也可把 Base64 解压回原文。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/gzip.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="gzip" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>操作</label>
+        <select id="op"><option value="zip" selected>压缩（文本 → Gzip Base64）</option><option value="unzip">解压（Gzip Base64 → 文本）</option></select>
+      </div>
+      <div class="fitem"><label>输出格式</label>
+        <select id="fmt"><option value="base64" selected>Base64</option><option value="hex">十六进制</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始处理</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">输入内容</div>
+      <textarea id="src" style="min-height:120px;">Hello 词海工具箱，这是一段用于演示 Gzip 压缩的文本。Gzip 对重复内容压缩率较高，重复内容越多效果越明显。</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">处理结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:160px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Gzip编码解码介绍：</h4>
+    <ol>
+      <li>Gzip 是网页传输中最常用的压缩算法，服务器开启 Gzip 后文本资源体积通常能减少 60%-80%。</li>
+      <li>本工具用浏览器原生 CompressionStream API 完成压缩，纯本地运算，不上传任何数据。</li>
+      <li>压缩结果以 Base64 或十六进制输出，便于复制粘贴；解压时请保持与压缩时相同的格式。</li>
+      <li>Gzip 数据固定以 1f 8b 两个字节开头，若解压失败可先检查开头是否正确。</li>
+      <li>文本重复度越高压缩率越好；对已压缩过的数据（如 JPG、PNG、ZIP）再 Gzip 通常没有效果甚至变大。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfB64(bytes) { return btoa(String.fromCharCode.apply(null, new Uint8Array(bytes))); }
+function __xfUnB64(s) {
+  var bin = atob(String(s).trim().replace(/\s+/g, ""));
+  var u = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+function __xfHexOf(bytes) { return Array.prototype.map.call(new Uint8Array(bytes), function (x) { return ("0" + x.toString(16)).slice(-2); }).join(""); }
+function __xfFromHex(hex) {
+  var h = String(hex).replace(/[^0-9a-fA-F]/g, "");
+  var u = new Uint8Array(h.length / 2);
+  for (var i = 0; i < u.length; i++) u[i] = parseInt(h.substr(i * 2, 2), 16);
+  return u;
+}
+function __xfFmtSize(n) {
+  var b = Number(n) || 0;
+  if (b < 1024) return b + " B";
+  if (b < 1024 * 1024) return (Math.round(b / 1024 * 100) / 100) + " KB";
+  return (Math.round(b / 1048576 * 100) / 100) + " MB";
+}
+function __xfRatio(orig, now) {
+  if (!orig) return "—";
+  return (Math.round(now / orig * 1000) / 10) + "%";
+}
+function __xfSupport() {
+  return !!(typeof CompressionStream !== "undefined" && typeof DecompressionStream !== "undefined");
+}
+async function __xfGzipText(text) {
+  var cs = new CompressionStream("gzip");
+  var stream = new Blob([new TextEncoder().encode(text)]).stream().pipeThrough(cs);
+  var buf = await new Response(stream).arrayBuffer();
+  return new Uint8Array(buf);
+}
+async function __xfGunzipBytes(bytes) {
+  var ds = new DecompressionStream("gzip");
+  var stream = new Blob([bytes]).stream().pipeThrough(ds);
+  var buf = await new Response(stream).arrayBuffer();
+  return new TextDecoder().decode(buf);
+}
+window.__xfB64 = __xfB64;
+window.__xfUnB64 = __xfUnB64;
+window.__xfHexOf = __xfHexOf;
+window.__xfFromHex = __xfFromHex;
+window.__xfFmtSize = __xfFmtSize;
+window.__xfRatio = __xfRatio;
+window.__xfSupport = __xfSupport;
+window.__xfGzipText = __xfGzipText;
+window.__xfGunzipBytes = __xfGunzipBytes;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  if (!__xfSupport()) {
+    $("res").value = "当前浏览器不支持原生压缩 API（CompressionStream）。\n\n建议使用较新版本的 Chrome / Edge / Firefox / Safari。";
+    $("tip").textContent = "浏览器不支持";
+    return;
+  }
+  var src = $("src").value, fmt = $("fmt").value;
+  $("state").textContent = "处理中…";
+  if ($("op").value === "zip") {
+    __xfGzipText(src).then(function (gz) {
+      var out = fmt === "hex" ? __xfHexOf(gz) : __xfB64(gz);
+      $("res").value = out;
+      var raw = new TextEncoder().encode(src).length;
+      $("tip").textContent = "✅ 压缩完成：" + __xfFmtSize(raw) + " → " + __xfFmtSize(gz.length) + "（" + __xfRatio(raw, gz.length) + "）";
+      $("state").textContent = "";
+    }).catch(function (e) { $("res").value = "压缩失败：" + e.message; $("state").textContent = ""; });
+  } else {
+    var bytes = fmt === "hex" ? __xfFromHex(src) : __xfUnB64(src);
+    __xfGunzipBytes(bytes).then(function (t) {
+      $("res").value = t;
+      $("tip").textContent = "✅ 解压完成：" + __xfFmtSize(bytes.length) + " → " + __xfFmtSize(new TextEncoder().encode(t).length);
+      $("state").textContent = "";
+    }).catch(function (e) { $("res").value = "解压失败：" + e.message + "\n\n请确认输入的是合法的 Gzip 数据（以 1f 8b 开头）。"; $("state").textContent = ""; });
+  }
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("op").onchange = function () { if ($("src").value.trim()) $("runBtn").click(); };
+$("runBtn").click();
+</script>
+</body>
+</html>

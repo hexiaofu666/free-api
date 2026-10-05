@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS Packer 打包解密 - 词海工具箱</title>
+<meta name="description" content="JS Packer 打包与解包工具：把 JS 代码压缩成 eval(function(p,a,c,k,e,d)) 形式的紧凑代码，也可反向解包还原。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jspacker.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jspacker" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>操作</label>
+        <select id="op"><option value="pack" selected>打包（代码 → Packer）</option><option value="unpack">解包（Packer → 代码）</option></select>
+      </div>
+      <div class="fitem"><label>Base62 标识符</label>
+        <select id="b62"><option value="yes" selected>启用（0-9a-zA-Z）</option><option value="no">关闭（仅 0-9a-z）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始处理</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">JS 代码 / Packer 字符串</div>
+      <textarea id="src" style="min-height:140px;">function hello(name) { return "Hello, " + name + "!"; }
+alert(hello("词海工具箱"));</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">处理结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:180px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JS Packer 打包解密介绍：</h4>
+    <ol>
+      <li>Packer 的原理：把代码中重复出现的单词（变量名、关键字、字符串）抽到字典里，正文用短标记替换，再用一段自解压代码在运行时还原。</li>
+      <li>打包后的代码体积通常能减少 20%-50%，代价是可读性变差、执行时有轻微还原开销。</li>
+      <li>Base62 使用 0-9a-zA-Z 共 62 个字符作标记，比 Base36 能表示更多字典项，字典很大时更省字符。</li>
+      <li>「解包」会自动识别 eval(function(p,a,c,k,e,d)) 结构并把标记替换回原单词，用于阅读他人打包过的代码。</li>
+      <li>打包只是压缩与混淆，不提供任何加密强度：任何人都可以用本工具或同类工具一键还原。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var KEYCHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+function __xfEncode62(n) {
+  var s = "", v = Number(n);
+  if (v === 0) return "0";
+  while (v > 0) { s = KEYCHARS[v % 62] + s; v = Math.floor(v / 62); }
+  return s;
+}
+function __xfEncode36(n) {
+  var v = Number(n);
+  return v === 0 ? "0" : v.toString(36);
+}
+/* 打包：把出现 2 次以上的单词替换成短标记，再拼成 eval(function(p,a,c,k,e,d)) 形式 */
+function __xfPack(code, base62) {
+  var enc = base62 === false ? __xfEncode36 : __xfEncode62;
+  var words = String(code).match(/[\w$]+/g) || [];
+  var freq = {}, order = [];
+  words.forEach(function (w) {
+    if (w.length < 2) return;
+    if (!freq[w]) { freq[w] = 0; order.push(w); }
+    freq[w]++;
+  });
+  var dict = order.filter(function (w) { return freq[w] > 1; }).sort(function (a, b) { return freq[b] - freq[a] || (a < b ? -1 : 1); });
+  var index = {};
+  dict.forEach(function (w, i) { index[w] = i; });
+  var packed = String(code).replace(/[\w$]+/g, function (w) { return index[w] !== undefined ? enc(index[w]) : w; });
+  var keys = dict.map(function (w, i) { return w; });
+  return "eval(function(p,a,c,k,e,d){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--){d[" + enc(0) + "[c]]=k[c]||" + enc(0) + "[c]}k=[function(e){return d[e]}];e=function(){return'\\\\w+'};c=1};while(c--){if(k[c]){p=p.replace(new RegExp('\\\\b'+e(c)+'\\\\b','g'),k[c])}}return p}('" + packed.replace(/'/g, "\\\\'") + "'," + (base62 === false ? 36 : 62) + "," + keys.length + ",'" + keys.join("|").replace(/'/g, "") + "'.split('|'),0,{}))";
+}
+/* 解包：解析 eval(function(p,a,c,k,e,d){...}('PACKED',A,C,'k1|k2') 结构并还原 */
+function __xfUnpack(text) {
+  var s = String(text || "").trim();
+  var m = s.match(/\('([\s\S]*)',(\d+),(\d+),'([\s\S]*?)'\.split\('\|'\)/);
+  if (!m) return { ok: false, error: "未匹配到 Packer 结构（需要 eval(function(p,a,c,k,e,d){...}('...',a,c,'...'.split('|')) 形式）" };
+  var p = m[1].replace(/\\'/g, "'").replace(/\\\\/g, "\\");
+  var a = parseInt(m[2], 10);
+  var k = m[4].split("|");
+  var d = {};
+  for (var i = 0; i < k.length; i++) d[i] = k[i];
+  for (var j = 0; j < k.length; j++) {
+    if (!k[j]) continue;
+    var token = __xfEncode(a === 62 ? j : j, a === 62 ? 62 : 36, a);
+    p = p.split(new RegExp("\\b" + token + "\\b", "g")).join(k[j]);
+  }
+  return { ok: true, code: p };
+}
+function __xfEncode(n, radix, alpha) {
+  var chars = alpha === 62 ? KEYCHARS : "0123456789abcdefghijklmnopqrstuvwxyz";
+  var v = Number(n), s = "";
+  if (v === 0) return "0";
+  while (v > 0) { s = chars[v % radix] + s; v = Math.floor(v / radix); }
+  return s;
+}
+window.__xfPack = __xfPack;
+window.__xfUnpack = __xfUnpack;
+window.__xfEncode62 = __xfEncode62;
+window.__xfEncode36 = __xfEncode36;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  if ($("op").value === "pack") {
+    var code = $("src").value;
+    var out = __xfPack(code, $("b62").value === "yes");
+    $("res").value = out;
+    $("state").textContent = "原 " + code.length + " → 打包 " + out.length + " 字符";
+    $("tip").textContent = "✅ 打包完成（可直接粘贴到浏览器控制台运行）";
+  } else {
+    var r = __xfUnpack($("src").value);
+    $("res").value = r.ok ? r.code : "❌ 解包失败：" + r.error;
+    $("tip").textContent = r.ok ? "✅ 解包完成" : "❌ 解包失败";
+    $("state").textContent = "";
+  }
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("op").onchange = function () { if ($("src").value.trim()) $("runBtn").click(); };
+$("runBtn").click();
+</script>
+</body>
+</html>

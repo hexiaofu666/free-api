@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHP序列化工具 - 词海工具箱</title>
+<meta name="description" content="PHP 序列化工具：把 JSON 数据转换成 PHP serialize() 格式字符串，支持数组、对象、字符串、整数与浮点数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/phpserialize.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="phpserialize" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>对象类型</label>
+        <select id="obj"><option value="array" selected>关联数组 a:N:{}</option><option value="object">对象 O:8:"stdClass"</option></select>
+      </div>
+      <div class="fitem"><label>输出</label>
+        <select id="out"><option value="plain" selected>仅序列化字符串</option><option value="php">带 php 代码</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">序列化</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">JSON 数据</div>
+      <textarea id="src" style="min-height:150px;">{
+  "name": "词海工具箱",
+  "count": 205,
+  "price": 9.9,
+  "vip": true,
+  "tags": ["工具", "SEO"],
+  "empty": null
+}</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">序列化结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:190px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于PHP序列化工具介绍：</h4>
+    <ol>
+      <li>PHP 序列化格式用类型前缀标记每种值：s:长度:字符串、i:整数、d:浮点、b:布尔、N:null、a:数量:{键值对}、O:类名长度:类名:属性数:{}。</li>
+      <li>字符串长度按 UTF-8 字节数计算，一个汉字占 3 字节，与 PHP 的 strlen() 结果一致。</li>
+      <li>JSON 对象默认序列化为关联数组 a:N:{}；如需与 PHP 对象兼容（如缓存中存储的对象），可切换为 O:8:"stdClass" 形式。</li>
+      <li>序列化结果可用于生成数据库种子数据、缓存键值或与其他 PHP 系统交换数据。</li>
+      <li>PHP 反序列化存在对象注入风险，生产环境请只反序列化可信来源的数据。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfByteLen(s) {
+  var n = 0, str = String(s);
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    if (c < 0x80) n += 1;
+    else if (c < 0x800) n += 2;
+    else if (c >= 0xd800 && c <= 0xdbff) { n += 4; i++; }
+    else n += 3;
+  }
+  return n;
+}
+function __xfSerialize(v, objMode) {
+  if (v === null || v === undefined) return "N;";
+  if (typeof v === "boolean") return "b:" + (v ? 1 : 0) + ";";
+  if (typeof v === "number") {
+    if (Number.isInteger(v)) return "i:" + v + ";";
+    return "d:" + v + ";";
+  }
+  if (typeof v === "string") return 's:' + __xfByteLen(v) + ':"' + v + '";';
+  if (Array.isArray(v)) {
+    var body = "";
+    v.forEach(function (x, i) { body += __xfSerialize(i, objMode) + __xfSerialize(x, objMode); });
+    return "a:" + v.length + ":{" + body + "}";
+  }
+  var keys = Object.keys(v);
+  var inner = "";
+  keys.forEach(function (k) { inner += __xfSerialize(k, objMode) + __xfSerialize(v[k], objMode); });
+  if (objMode === "object") {
+    var cn = "stdClass";
+    return 'O:' + cn.length + ':"' + cn + '":' + keys.length + ":{" + inner + "}";
+  }
+  return "a:" + keys.length + ":{" + inner + "}";
+}
+window.__xfSerialize = __xfSerialize;
+window.__xfByteLen = __xfByteLen;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var data;
+  try { data = JSON.parse($("src").value); }
+  catch (e) { $("res").value = "❌ JSON 解析失败：" + e.message; $("tip").textContent = "❌ 失败"; $("state").textContent = ""; return; }
+  var s = __xfSerialize(data, $("obj").value);
+  $("res").value = $("out").value === "php" ? "$data = unserialize('" + s.replace(/'/g, "\\'") + "');" : s;
+  $("state").textContent = s.length + " 字符";
+  $("tip").textContent = "✅ 序列化完成";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

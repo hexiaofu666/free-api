@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>世界各国首都查询 - 词海工具箱</title>
+<meta name="description" content="查询世界主要国家的首都名称与所属大洲，支持中文名模糊检索，适合学习地理、写作文案与出国前做功课。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/capitalworld.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="capitalworld" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" value="" placeholder="输入国家或首都名称"></div>
+      <div class="fitem"><label>排序方式</label>
+        <select id="sort"><option value="name" selected>按国家名</option><option value="continent">按大洲</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查询</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">查询结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:280px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于世界各国首都查询介绍：</h4>
+    <ol>
+      <li>中国的首都是北京，本表只收录主权国家，中国香港、中国澳门与中国台湾不作为国家列出。</li>
+      <li>部分国家有多个首都，例如南非的行政首都为比勒陀利亚，本表给出最常见的取值。</li>
+      <li>以色列与巴勒斯坦的耶路撒冷问题存在争议，本表按常见资料标注，仅供地理学习参考。</li>
+      <li>按大洲排序可快速浏览同一区域的国家，适合做区域性的地理梳理。</li>
+      <li>搜索框同时匹配国家名与首都名，输入东京也能定位到日本。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var CAP_RAW = "中国,北京,亚洲;日本,东京,亚洲;韩国,首尔,亚洲;印度,新德里,亚洲;泰国,曼谷,亚洲;越南,河内,亚洲;新加坡,新加坡,亚洲;马来西亚,吉隆坡,亚洲;印度尼西亚,雅加达,亚洲;菲律宾,马尼拉,亚洲;巴基斯坦,伊斯兰堡,亚洲;孟加拉国,达卡,亚洲;尼泊尔,加德满都,亚洲;斯里兰卡,科伦坡,亚洲;蒙古,乌兰巴托,亚洲;哈萨克斯坦,阿斯塔纳,亚洲;伊朗,德黑兰,亚洲;沙特阿拉伯,利雅得,亚洲;阿联酋,阿布扎比,亚洲;以色列,耶路撒冷,亚洲;英国,伦敦,欧洲;法国,巴黎,欧洲;德国,柏林,欧洲;意大利,罗马,欧洲;西班牙,马德里,欧洲;葡萄牙,里斯本,欧洲;荷兰,阿姆斯特丹,欧洲;比利时,布鲁塞尔,欧洲;瑞士,伯尔尼,欧洲;瑞典,斯德哥尔摩,欧洲;挪威,奥斯陆,欧洲;丹麦,哥本哈根,欧洲;芬兰,赫尔辛基,欧洲;奥地利,维也纳,欧洲;波兰,华沙,欧洲;希腊,雅典,欧洲;俄罗斯,莫斯科,欧洲;乌克兰,基辅,欧洲;捷克,布拉格,欧洲;匈牙利,布达佩斯,欧洲;美国,华盛顿,北美洲;加拿大,渥太华,北美洲;墨西哥,墨西哥城,北美洲;古巴,哈瓦那,北美洲;巴西,巴西利亚,南美洲;阿根廷,布宜诺斯艾利斯,南美洲;智利,圣地亚哥,南美洲;秘鲁,利马,南美洲;哥伦比亚,波哥大,南美洲;埃及,开罗,非洲;南非,比勒陀利亚,非洲;尼日利亚,阿布贾,非洲;肯尼亚,内罗毕,非洲;埃塞俄比亚,亚的斯亚贝巴,非洲;摩洛哥,拉巴特,非洲;澳大利亚,堪培拉,大洋洲;新西兰,惠灵顿,大洋洲";
+function __xfCapitalList(kw) {
+  var k = String(kw || "").trim().toLowerCase();
+  var arr = CAP_RAW.split(";").map(function (x) {
+    var p = x.split(",");
+    return { country: p[0], capital: p[1], continent: p[2] };
+  });
+  if (!k) return arr;
+  return arr.filter(function (c) {
+    return c.country.toLowerCase().indexOf(k) >= 0 || c.capital.toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfCapital(country) {
+  var n = String(country).trim();
+  var hit = __xfCapitalList('').filter(function (c) { return c.country === n; });
+  return hit.length ? hit[0].capital : null;
+}
+function __xfContinentList(cont) {
+  return __xfCapitalList('').filter(function (c) { return c.continent === cont; });
+}
+window.__xfCapitalList = __xfCapitalList;
+window.__xfCapital = __xfCapital;
+window.__xfContinentList = __xfContinentList;
+function run() {
+  var list = __xfCapitalList($("kw").value);
+  if ($("sort").value === "continent") {
+    list = list.slice().sort(function (a, b) { return a.continent < b.continent ? -1 : a.continent > b.continent ? 1 : (a.country < b.country ? -1 : 1); });
+  }
+  $("res").value = list.map(function (c) { return c.country + "\t" + c.capital + "\t" + c.continent; }).join("\n");
+  $("state").textContent = list.length + " 条";
+  $("tip").textContent = "✅ 共 " + __xfCapitalList('').length + " 个国家";
+  return list;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

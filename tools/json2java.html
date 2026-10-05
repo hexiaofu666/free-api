@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON转Java实体类 - 词海工具箱</title>
+<meta name="description" content="JSON 转 Java 实体类工具：根据 JSON 样例自动生成带嵌套内部类与 Getter/Setter 的 Java 实体代码，支持 Lombok。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/json2java.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="json2java" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>根类名</label><input type="text" id="cls" value="Root"></div>
+      <div class="fitem"><label>包名</label><input type="text" id="pkg" value="com.example.entity"></div>
+      <div class="fitem"><label>风格</label>
+        <select id="style"><option value="lombok" selected>Lombok @Data</option><option value="getset">完整 Getter/Setter</option><option value="field">仅字段</option></select>
+      </div>
+      <div class="fitem"><label>数组元素</label>
+        <select id="arr"><option value="list" selected>List&lt;T&gt;</option><option value="array">T[]</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成实体类</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">JSON 样例</div>
+      <textarea id="src" style="min-height:170px;">{
+  "id": 1001,
+  "userName": "heixiaofu",
+  "vip": true,
+  "balance": 128.5,
+  "bigNumber": 99999999999,
+  "tags": ["工具", "SEO"],
+  "profile": { "city": "西安", "age": 30 },
+  "orders": [ { "orderNo": "A1", "amount": 9.9 } ]
+}</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">生成结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:280px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JSON转Java实体类介绍：</h4>
+    <ol>
+      <li>把接口返回的 JSON 粘贴进来即可生成对应的 Java 实体类，嵌套对象会自动生成静态内部类。</li>
+      <li>类型推断规则：整数→Integer（超过 21 亿转 Long）、小数→Double、true/false→Boolean、字符串→String、数组→List<T>。</li>
+      <li>对象数组会按第一个元素的字段结构生成模板类，因此建议样例中包含完整的字段，避免漏字段。</li>
+      <li>JSON 字段名会转成小驼峰（user_name / user-name → userName）；数字开头的字段名建议手动调整。</li>
+      <li>配合 Jackson / FastJSON 使用时，若字段名与 JSON key 不一致，需要额外加 @JsonProperty 注解。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfPascal(s) {
+  return String(s).replace(/[^a-zA-Z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; })
+    .replace(/^(.)/, function (m) { return m.toUpperCase(); });
+}
+function __xfCamelProp(s) { var p = __xfPascal(s); return p.charAt(0).toLowerCase() + p.slice(1); }
+/* 依据值推断 Java 类型 */
+function __xfJavaType(v) {
+  if (v === null) return "Object";
+  if (typeof v === "boolean") return "Boolean";
+  if (typeof v === "number") return Number.isInteger(v) ? (Math.abs(v) > 2147483647 ? "Long" : "Integer") : "Double";
+  return "String";
+}
+function __xfJson2Java(json, rootName, pkg, style, arrMode) {
+  var data;
+  try { data = typeof json === "string" ? JSON.parse(json) : json; }
+  catch (e) { return { ok: false, error: "JSON 解析失败：" + e.message }; }
+  if (data === null || typeof data !== "object") return { ok: false, error: "根节点必须是对象或数组" };
+  var classes = [], used = {};
+  var cls = function (name) {
+    var n = name || "Item", i = 1, base = n;
+    while (used[n]) n = base + (i++);
+    used[n] = true;
+    return n;
+  };
+  function build(obj, name) {
+    var fields = [];
+    Object.keys(obj).forEach(function (k) {
+      var v = obj[k], type;
+      if (Array.isArray(v)) {
+        if (v.length && v[0] !== null && typeof v[0] === "object" && !Array.isArray(v[0])) {
+          var inner = cls(__xfPascal(k) + "Item");
+          fields.push({ name: __xfCamelProp(k), type: (arrMode === "array" ? inner + "[]" : "List<" + inner + ">"), key: k, list: true });
+          build(v[0], inner);
+          return;
+        }
+        var el = v.length ? __xfJavaType(v[0]) : "Object";
+        fields.push({ name: __xfCamelProp(k), type: (arrMode === "array" ? el + "[]" : "List<" + el + ">"), key: k, list: true });
+        return;
+      }
+      if (v !== null && typeof v === "object") {
+        var sub = cls(__xfPascal(k));
+        fields.push({ name: __xfCamelProp(k), type: sub, key: k });
+        build(v, sub);
+        return;
+      }
+      fields.push({ name: __xfCamelProp(k), type: __xfJavaType(v), key: k });
+    });
+    classes.push({ name: name, fields: fields, raw: obj });
+    return name;
+  }
+  if (Array.isArray(data)) {
+    var cn0 = cls(rootName || "Root");
+    if (data.length && typeof data[0] === "object") build(data[0], cn0 + "Item");
+    else classes.push({ name: cn0, fields: [{ name: "list", type: "List<" + __xfJavaType(data[0]) + ">" }], raw: data });
+  } else {
+    build(data, cls(rootName || "Root"));
+  }
+  var imports = [];
+  if (style === "lombok") imports.push("lombok.Data");
+  if (classes.some(function (c) { return c.fields.some(function (f) { return f.list; }); })) imports.push("java.util.List");
+  var L = [];
+  if (pkg) L.push("package " + pkg + ";\n");
+  if (imports.length) L.push(imports.map(function (i) { return "import " + i + ";"; }).join("\n") + "\n");
+  classes.forEach(function (c, ci) {
+    if (style === "lombok") L.push("@Data");
+    L.push("public " + (ci === 0 ? "" : "static ") + "class " + c.name + " {");
+    var body = [];
+    c.fields.forEach(function (f) {
+      body.push("    /** " + (f.key || f.name) + " */");
+      body.push("    private " + f.type + " " + f.name + ";");
+    });
+    if (style === "getset") {
+      c.fields.forEach(function (f) {
+        var P = f.name.charAt(0).toUpperCase() + f.name.slice(1);
+        body.push("");
+        body.push("    public " + f.type + " get" + P + "() {");
+        body.push("        return " + f.name + ";");
+        body.push("    }");
+        body.push("");
+        body.push("    public void set" + P + "(" + f.type + " " + f.name + ") {");
+        body.push("        this." + f.name + " = " + f.name + ";");
+        body.push("    }");
+      });
+    }
+    L.push(body.join("\n"));
+    L.push("}");
+    if (ci < classes.length - 1) L.push("");
+  });
+  return { ok: true, code: L.join("\n"), classes: classes.length, fields: classes.reduce(function (a, c) { return a + c.fields.length; }, 0) };
+}
+window.__xfJson2Java = __xfJson2Java;
+window.__xfJavaType = __xfJavaType;
+window.__xfPascal = __xfPascal;
+window.__xfCamelProp = __xfCamelProp;
+
+var $ = function (id) { return document.getElementById(id); };
+$("runBtn").onclick = function () {
+  var r = __xfJson2Java($("src").value, $("cls").value.trim() || "Root", $("pkg").value.trim(), $("style").value, $("arr").value);
+  if (!r.ok) { $("res").value = "❌ " + r.error; $("tip").textContent = "❌ 生成失败"; $("state").textContent = ""; return; }
+  $("res").value = r.code;
+  $("state").textContent = r.classes + " 个类 / " + r.fields + " 个字段";
+  $("tip").textContent = "✅ 已生成 Java 实体类";
+};
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("runBtn").click();
+</script>
+</body>
+</html>

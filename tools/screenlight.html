@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕补光灯 - 词海工具箱</title>
+<meta name="description" content="屏幕补光灯：把手机或电脑屏幕变成补光灯，支持白光、暖光、冷光与自定义颜色，可调亮度，用于自拍与应急照明。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/screenlight.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="screenlight" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>光源模式</label>
+        <select id="mode">
+          <option value="warm" selected>暖光（2700K）</option>
+          <option value="soft">柔光（4000K）</option>
+          <option value="day">日光（5600K）</option>
+          <option value="cool">冷光（7000K）</option>
+          <option value="custom">自定义颜色</option>
+        </select>
+      </div>
+      <div class="fitem"><label>自定义色</label><input type="color" id="color" value="#ffffff"></div>
+      <div class="fitem"><label>亮度(%)</label><input type="range" id="bright" min="10" max="100" value="100"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="onBtn">全屏补光</button>
+      <button class="fbtn gray" id="copyBtn">复制色值</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">预览</strong></div>
+      <div id="preview" style="height:120px;border-radius:4px;border:1px solid #eee;display:flex;align-items:center;justify-content:center;color:#666;font-size:13px;">颜色预览</div>
+      <p style="margin-top:8px;font-size:12px;color:#999;">点击「全屏补光」后可用 ESC 或轻触屏幕退出</p>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于屏幕补光灯介绍：</h4>
+    <ol>
+      <li>自拍补光选暖光（2700K）肤色更自然，拍证件照或视频会议用日光（5600K）更接近自然光。</li>
+      <li>冷光（7000K）偏蓝、显冷调，适合拍摄白色物体或需要高对比的场景。</li>
+      <li>亮度不宜长期开满：既耗电又容易刺眼，一般 60%-80% 已经足够补光。</li>
+      <li>进入全屏补光后，点击屏幕任意位置或按 ESC 键即可退出，不会锁住页面。</li>
+      <li>屏幕长时间高亮度发光会明显发热并加速耗电，作为应急光源使用即可。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+/* 色温（开尔文）→ RGB 近似换算 */
+function __xfKelvinToRgb(k) {
+  var t = Number(k) / 100;
+  var r, g, b;
+  if (t <= 66) { r = 255; g = 99.4708025861 * Math.log(t) - 161.1195681661; }
+  else { r = 329.698727446 * Math.pow(t - 60, -0.1332047592); g = 288.1221695283 * Math.pow(t - 60, -0.0755148492); }
+  if (t >= 66) b = 255;
+  else if (t <= 19) b = 0;
+  else b = 138.5177312231 * Math.log(t - 10) - 305.0447927307;
+  var cl = function (x) { return Math.max(0, Math.min(255, Math.round(x))); };
+  return { r: cl(r), g: cl(g), b: cl(b) };
+}
+function __xfRgbToHex(r, g, b) {
+  var h = function (x) { var s = Math.max(0, Math.min(255, Math.round(x))).toString(16); return s.length < 2 ? "0" + s : s; };
+  return "#" + h(r) + h(g) + h(b);
+}
+/* 亮度百分比 → 实际 RGB（按比例压暗） */
+function __xfDim(hex, pct) {
+  var p = String(hex).replace("#", "");
+  var r = parseInt(p.substr(0, 2), 16), g = parseInt(p.substr(2, 2), 16), b = parseInt(p.substr(4, 2), 16);
+  var k = Math.max(0, Math.min(100, Number(pct))) / 100;
+  return __xfRgbToHex(r * k, g * k, b * k);
+}
+function __xfModeColor(mode) {
+  return { warm: 2700, soft: 4000, day: 5600, cool: 7000 }[mode] ? __xfRgbToHex.apply(null, (function (c) { return [c.r, c.g, c.b]; })(__xfKelvinToRgb({ warm: 2700, soft: 4000, day: 5600, cool: 7000 }[mode]))) : null;
+}
+window.__xfKelvinToRgb = __xfKelvinToRgb;
+window.__xfRgbToHex = __xfRgbToHex;
+window.__xfDim = __xfDim;
+window.__xfModeColor = __xfModeColor;
+
+var $ = function (id) { return document.getElementById(id); };
+function currentColor() {
+  if ($("mode").value === "custom") return $("color").value;
+  var c = __xfModeColor($("mode").value);
+  return c || "#ffffff";
+}
+function paint() {
+  var hex = currentColor();
+  var dim = __xfDim(hex, $("bright").value);
+  $("preview").style.background = dim;
+  var rgb = __xfKelvinToRgb($("mode").value === "custom" ? 5600 : { warm: 2700, soft: 4000, day: 5600, cool: 7000 }[$("mode").value]);
+  var txt = $("mode").value === "custom" ? "" : "　色温 RGB：" + rgb.r + "," + rgb.g + "," + rgb.b;
+  $("tip").textContent = "颜色 " + dim + txt;
+}
+function fullscreen() {
+  var hex = __xfDim(currentColor(), $("bright").value);
+  var box = document.createElement("div");
+  box.style.cssText = "position:fixed;inset:0;z-index:99999;background:" + hex + ";cursor:pointer;";
+  box.title = "点击退出";
+  box.onclick = function () { document.body.removeChild(box); document.removeEventListener("keydown", esc); };
+  function esc(e) { if (e.key === "Escape") box.onclick(); }
+  document.body.appendChild(box);
+  document.addEventListener("keydown", esc);
+}
+$("onBtn").onclick = fullscreen;
+$("copyBtn").onclick = function () { navigator.clipboard.writeText(__xfDim(currentColor(), $("bright").value)).then(function () { alert("✅ 已复制色值"); }); };
+$("mode").onchange = paint;
+$("color").oninput = paint;
+$("bright").oninput = paint;
+paint();
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RC4加密解密 - 词海工具箱</title>
+<meta name="description" content="RC4加密解密工具：在线进行 RC4 流密码加解密，密钥长度不限，支持明文与 Hex/Base64 结果互转，纯本地运算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/rc4.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="rc4" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>操作</label>
+        <select id="op"><option value="enc" selected>加密</option><option value="dec">解密</option></select>
+      </div>
+      <div class="fitem"><label>密钥</label><input type="text" id="key" value="wordhai-toolbox" placeholder="任意长度的密钥"></div>
+      <div class="fitem"><label>输出格式</label>
+        <select id="fmt"><option value="hex" selected>十六进制 Hex</option><option value="base64">Base64</option><option value="latin">原始字节</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始处理</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">输入内容</div>
+      <textarea id="src" placeholder="请输入需要加密或解密的内容">Hello 词海工具箱</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">处理结果</strong></div>
+      <textarea id="res" readonly style="height:160px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于RC4加密解密介绍：</h4>
+    <ol>
+      <li>RC4 是一种流密码，密钥长度任意；加密与解密使用完全相同的算法，因此「解密」就是把密文再异或一次。</li>
+      <li>加密结果可输出为十六进制或 Base64；解密时请先把密文转成同样的格式再粘贴进来。</li>
+      <li>RC4 已被发现有统计偏差，不适合用于高安全场景，本工具主要用于编码转换、老旧系统兼容与学习演示。</li>
+      <li>密钥必须完全一致才能还原明文，包含大小写、空格与标点，建议粘贴而非手打。</li>
+      <li>所有运算都在你的浏览器本地完成，密钥与内容不会上传到任何服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+function __xfRc4Bytes(inBytes, key) {
+  var s = [], k = [], i, j = 0, out = [];
+  var kb = __xfStrBytes(String(key));
+  if (!kb.length) return null;
+  for (i = 0; i < 256; i++) { s[i] = i; k[i] = kb[i % kb.length]; }
+  for (i = 0; i < 256; i++) {
+    j = (j + s[i] + k[i]) & 255;
+    var t = s[i]; s[i] = s[j]; s[j] = t;
+  }
+  i = 0; j = 0;
+  for (var n = 0; n < inBytes.length; n++) {
+    i = (i + 1) & 255;
+    j = (j + s[i]) & 255;
+    var t2 = s[i]; s[i] = s[j]; s[j] = t2;
+    out.push(inBytes[n] ^ s[(s[i] + s[j]) & 255]);
+  }
+  return out;
+}
+function __xfRc4(data, key) { return __xfRc4Bytes(__xfStrBytes(String(data)), key); }
+function __xfStrBytes(str) {
+  var b = [];
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    if (c < 128) b.push(c);
+    else if (c < 2048) { b.push(192 | (c >> 6), 128 | (c & 63)); }
+    else { b.push(224 | (c >> 12), 128 | ((c >> 6) & 63), 128 | (c & 63)); }
+  }
+  return b;
+}
+function __xfBytesStr(b) {
+  var s = "", i = 0;
+  while (i < b.length) {
+    var c = b[i++];
+    if (c < 128) s += String.fromCharCode(c);
+    else if (c < 224) s += String.fromCharCode(((c & 31) << 6) | (b[i++] & 63));
+    else s += String.fromCharCode(((c & 15) << 12) | ((b[i++] & 63) << 6) | (b[i++] & 63));
+  }
+  return s;
+}
+function __xfToHex(bytes) { return bytes.map(function (x) { return ("0" + (x & 255).toString(16)).slice(-2); }).join(""); }
+function __xfFromHex(hex) {
+  var h = String(hex).replace(/[^0-9a-fA-F]/g, "");
+  if (h.length % 2) h = "0" + h;
+  var out = [];
+  for (var i = 0; i < h.length; i += 2) out.push(parseInt(h.substr(i, 2), 16));
+  return out;
+}
+function __xfToB64(bytes) { return btoa(String.fromCharCode.apply(null, bytes)); }
+function __xfFromB64(s) { return Array.prototype.map.call(atob(String(s).trim()), function (c) { return c.charCodeAt(0); }); }
+function __xfRc4Text(text, key, enc, fmt) {
+  var out = __xfRc4(text, key);
+  if (out === null) return "密钥不能为空";
+  if (enc) return fmt === "hex" ? __xfToHex(out) : (fmt === "base64" ? __xfToB64(out) : __xfBytesStr(out));
+  return __xfBytesStr(out);
+}
+window.__xfRc4 = __xfRc4;
+window.__xfRc4Bytes = __xfRc4Bytes;
+window.__xfRc4Text = __xfRc4Text;
+window.__xfStrBytes = __xfStrBytes;
+window.__xfBytesStr = __xfBytesStr;
+window.__xfToHex = __xfToHex;
+window.__xfFromHex = __xfFromHex;
+
+var $ = function (id) { return document.getElementById(id); };
+function run() {
+  var enc = $("op").value === "enc";
+  var src = $("src").value;
+  var out;
+  if (enc) out = __xfRc4Text(src, $("key").value, true, $("fmt").value);
+  else out = __xfRc4Text(__xfBytesStr($("fmt").value === "base64" ? __xfFromB64(src) : __xfFromHex(src)), $("key").value, false);
+  $("res").value = out;
+  $("tip").textContent = (enc ? "✅ 加密完成" : "✅ 解密完成");
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+["op", "key", "fmt"].forEach(function (id) { $(id).addEventListener("change", function () { if ($("src").value) run(); }); });
+run();
+</script>
+</body>
+</html>

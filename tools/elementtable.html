@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>化学元素查询 - 词海工具箱</title>
+<meta name="description" content="查询 118 种化学元素的原子序数、元素符号、中文名称与相对原子质量，支持按序号、符号或中文名检索。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/elementtable.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="elementtable" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" value="" placeholder="输入序号、符号或中文名，如 26 或 Fe 或 铁"></div>
+      <div class="fitem"><label>范围</label>
+        <select id="rng"><option value="all" selected>1 - 118</option><option value="first20">1 - 20（前二十号）</option><option value="metal">金属元素</option><option value="nonmetal">非金属元素</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查询</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">查询结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:300px;font-family:monospace;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于化学元素查询介绍：</h4>
+    <ol>
+      <li>原子序数即质子数，决定了元素在周期表中的位置，也决定了它的化学性质。</li>
+      <li>相对原子质量是该元素各天然同位素质量的加权平均值，单位为一。</li>
+      <li>前二十号元素是中学化学的重点，包含氢、氦、锂一直到钙。</li>
+      <li>金属元素占已知元素的大多数，非金属元素只有二十余种。</li>
+      <li>超重元素的名称与符号以国际纯粹与应用化学联合会的正式定名为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var ELEM_RAW = "H,氢,1.008,0;He,氦,4.003,0;Li,锂,6.94,1;Be,铍,9.012,1;B,硼,10.81,0;C,碳,12.011,0;N,氮,14.007,0;O,氧,15.999,0;F,氟,18.998,0;Ne,氖,20.180,0;Na,钠,22.990,1;Mg,镁,24.305,1;Al,铝,26.982,1;Si,硅,28.085,0;P,磷,30.974,0;S,硫,32.06,0;Cl,氯,35.45,0;Ar,氩,39.948,0;K,钾,39.098,1;Ca,钙,40.078,1;Sc,钪,44.956,1;Ti,钛,47.867,1;V,钒,50.942,1;Cr,铬,51.996,1;Mn,锰,54.938,1;Fe,铁,55.845,1;Co,钴,58.933,1;Ni,镍,58.693,1;Cu,铜,63.546,1;Zn,锌,65.38,1;Ga,镓,69.723,1;Ge,锗,72.630,1;As,砷,74.922,0;Se,硒,78.971,0;Br,溴,79.904,0;Kr,氪,83.798,0;Rb,铷,85.468,1;Sr,锶,87.62,1;Y,钇,88.906,1;Zr,锆,91.224,1;Nb,铌,92.906,1;Mo,钼,95.95,1;Tc,锝,98,1;Ru,钌,101.07,1;Rh,铑,102.91,1;Pd,钯,106.42,1;Ag,银,107.87,1;Cd,镉,112.41,1;In,铟,114.82,1;Sn,锡,118.71,1;Sb,锑,121.76,1;Te,碲,127.60,0;I,碘,126.90,0;Xe,氙,131.29,0;Cs,铯,132.91,1;Ba,钡,137.33,1;La,镧,138.91,1;Ce,铈,140.12,1;Pr,镨,140.91,1;Nd,钕,144.24,1;Pm,钷,145,1;Sm,钐,150.36,1;Eu,铕,151.96,1;Gd,钆,157.25,1;Tb,铽,158.93,1;Dy,镝,162.50,1;Ho,钬,164.93,1;Er,铒,167.26,1;Tm,铥,168.93,1;Yb,镱,173.05,1;Lu,镥,174.97,1;Hf,铪,178.49,1;Ta,钽,180.95,1;W,钨,183.84,1;Re,铼,186.21,1;Os,锇,190.23,1;Ir,铱,192.22,1;Pt,铂,195.08,1;Au,金,196.97,1;Hg,汞,200.59,1;Tl,铊,204.38,1;Pb,铅,207.2,1;Bi,铋,208.98,1;Po,钋,209,1;At,砹,210,0;Rn,氡,222,0;Fr,钫,223,1;Ra,镭,226,1;Ac,锕,227,1;Th,钍,232.04,1;Pa,镤,231.04,1;U,铀,238.03,1;Np,镎,237,1;Pu,钚,244,1;Am,镅,243,1;Cm,锔,247,1;Bk,锫,247,1;Cf,锎,251,1;Es,锿,252,1;Fm,镄,257,1;Md,钔,258,1;No,锘,259,1;Lr,铹,266,1;Rf,钅卢,267,1;Db,钅杜,268,1;Sg,钅喜,269,1;Bh,钅波,270,1;Hs,钅黑,269,1;Mt,钅麦,278,1;Ds,钅达,281,1;Rg,钅仑,282,1;Cn,鎶,285,1;Nh,鉨,286,1;Fl,鈇,289,1;Mc,镆,290,1;Lv,鉝,293,1;Ts,鿬,294,1;Og,鿫,294,1";
+function __xfElements() {
+  return ELEM_RAW.split(";").map(function (x, i) {
+    var p = x.split(",");
+    return { z: i + 1, sym: p[0], cn: p[1], mass: parseFloat(p[2]), metal: p[3] === "1" };
+  });
+}
+function __xfElementList(kw) {
+  var k = String(kw || "").trim().toLowerCase();
+  if (!k) return __xfElements();
+  return __xfElements().filter(function (e) {
+    return String(e.z) === k || e.sym.toLowerCase() === k || e.cn.indexOf(k) >= 0 || e.sym.toLowerCase().indexOf(k) === 0;
+  });
+}
+function __xfElement(z) {
+  var n = parseInt(z, 10);
+  if (!n || n < 1 || n > 118) return null;
+  return __xfElements()[n - 1];
+}
+function __xfElementBySymbol(sym) {
+  var s = String(sym).trim().toLowerCase();
+  var hit = __xfElements().filter(function (e) { return e.sym.toLowerCase() === s; });
+  return hit.length ? hit[0] : null;
+}
+function __xfElementRange(mode) {
+  var all = __xfElements();
+  if (mode === "first20") return all.slice(0, 20);
+  if (mode === "metal") return all.filter(function (e) { return e.metal; });
+  if (mode === "nonmetal") return all.filter(function (e) { return !e.metal; });
+  return all;
+}
+window.__xfElements = __xfElements;
+window.__xfElementList = __xfElementList;
+window.__xfElement = __xfElement;
+window.__xfElementBySymbol = __xfElementBySymbol;
+window.__xfElementRange = __xfElementRange;
+function run() {
+  var base = __xfElementRange($("rng").value);
+  var k = String($("kw").value).trim().toLowerCase();
+  var list = k ? base.filter(function (e) {
+    return String(e.z) === k || e.sym.toLowerCase() === k || e.cn.indexOf(k) >= 0 || e.sym.toLowerCase().indexOf(k) === 0;
+  }) : base;
+  $("res").value = ["序号  符号  名称    原子量", "-------------------------"].concat(list.map(function (e) {
+    var pad = e.cn + "    ";
+    return String(e.z).padStart(3, " ") + "   " + (e.sym + "  ").slice(0, 4).padEnd(4, " ") + "  " + pad.slice(0, 4) + "  " + e.mass;
+  })).join("\n");
+  $("state").textContent = list.length + " 个元素";
+  $("tip").textContent = "✅ 共 118 个元素";
+  return list;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

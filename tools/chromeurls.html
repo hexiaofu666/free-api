@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chrome内部页面大全 - 词海工具箱</title>
+<meta name="description" content="Chrome 内部页面大全：收录 chrome:// 开头的调试与管理页面地址，如版本信息、GPU 状态、网络日志、书签管理等。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/chromeurls.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="chromeurls" data-cat="seo">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="如：gpu、网络、下载、缓存"></div>
+      <div class="fitem"><label>分类</label><select id="cat"></select></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">筛选</button>
+      <button class="fbtn gray" id="allBtn">全部页面</button>
+      <button class="fbtn brown" id="copyBtn">复制地址</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">内部页面列表</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:260px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Chrome内部页面大全介绍：</h4>
+    <ol>
+      <li>chrome:// 开头的地址是浏览器内部页面，只能在地址栏直接输入访问，无法通过网页链接跳转。</li>
+      <li>chrome://gpu 是排查「视频黑屏、网页卡顿、显卡加速失效」的首选页面，可确认硬件加速是否被禁用。</li>
+      <li>chrome://net-internals 能查看 DNS 缓存、连接状态、代理配置与 HSTS 记录，是网络问题的万能入口。</li>
+      <li>chrome://tracing 与 chrome://histograms 用于性能分析；chrome://restart 可一键重启浏览器并恢复标签页。</li>
+      <li>Edge、Brave 等 Chromium 内核浏览器同样支持大部分上述地址，把 chrome:// 换成 edge:// 即可。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var PAGES = [
+  ["chrome://version", "版本信息", "查看 Chrome 版本、内核版本、命令行参数与配置文件路径"],
+  ["chrome://settings", "设置", "浏览器基础设置入口"],
+  ["chrome://flags", "实验功能", "开启或关闭尚未正式发布的实验性功能"],
+  ["chrome://gpu", "GPU 状态", "查看显卡加速是否启用、驱动信息与硬件加速问题诊断"],
+  ["chrome://system", "系统信息", "汇总操作系统与硬件的详细信息"],
+  ["chrome://net-internals", "网络诊断", "查看连接、DNS、代理、缓存与 HSTS 状态，可导出网络日志"],
+  ["chrome://net-export", "网络日志导出", "捕获一段时间内的完整网络事件日志"],
+  ["chrome://histograms", "性能直方图", "查看内部各项性能统计分布"],
+  ["chrome://tracing", "性能追踪", "录制页面加载与渲染的时间线，用于性能分析"],
+  ["chrome://memory", "内存占用", "查看各进程的内存使用情况"],
+  ["chrome://performance", "性能", "内存节省与性能相关设置"],
+  ["chrome://task-manager", "任务管理器", "查看每个标签页与扩展的 CPU、内存占用"],
+  ["chrome://crashes", "崩溃记录", "查看浏览器崩溃历史（需开启崩溃上报）"],
+  ["chrome://downloads", "下载内容", "下载记录管理"],
+  ["chrome://history", "历史记录", "浏览历史管理"],
+  ["chrome://bookmarks", "书签管理", "收藏夹管理入口"],
+  ["chrome://extensions", "扩展程序", "安装、启停与调试浏览器扩展"],
+  ["chrome://components", "组件", "查看并更新内置组件"],
+  ["chrome://policy", "策略", "查看企业策略下发情况"],
+  ["chrome://serviceworker-internals", "Service Worker", "查看已注册的 Service Worker 与缓存"],
+  ["chrome://dino", "断网小恐龙", "断网时的彩蛋小游戏"],
+  ["chrome://password-manager", "密码管理", "查看已保存的账号密码"],
+  ["chrome://settings/passwords", "密码设置", "密码检查与保存设置"],
+  ["chrome://settings/clearBrowserData", "清除浏览数据", "清理缓存、Cookie 与历史记录"],
+  ["chrome://settings/content", "内容设置", "摄像头、麦克风、位置等权限管理"],
+  ["chrome://settings/privacy", "隐私设置", "跟踪保护、Cookie 与安全设置"],
+  ["chrome://settings/languages", "语言设置", "界面语言与拼写检查"],
+  ["chrome://settings/fonts", "字体设置", "网页默认字体与字号"],
+  ["chrome://media-internals", "媒体调试", "查看音视频播放状态与解码器信息"],
+  ["chrome://webrtc-internals", "WebRTC 调试", "查看实时音视频通话的连接与统计"],
+  ["chrome://bluetooth-internals", "蓝牙调试", "扫描与连接蓝牙设备"],
+  ["chrome://usb-internals", "USB 调试", "查看 USB 设备描述符"],
+  ["chrome://device-log", "设备日志", "查看设备相关事件日志"],
+  ["chrome://accessibility", "无障碍调试", "查看无障碍树结构"],
+  ["chrome://inspect", "远程调试", "调试手机上的网页或 Android 应用"],
+  ["chrome://quota-internals", "存储配额", "查看各站点的存储配额使用情况"],
+  ["chrome://indexeddb-internals", "IndexedDB", "查看 IndexedDB 数据库"],
+  ["chrome://sync-internals", "同步调试", "查看账号同步状态与细节"],
+  ["chrome://signin-internals", "登录调试", "查看账号登录状态"],
+  ["chrome://translate-internals", "翻译调试", "查看翻译功能状态与语言包"],
+  ["chrome://sandbox", "沙箱状态", "查看渲染进程沙箱与安全状态"],
+  ["chrome://site-engagement", "站点参与度", "查看各站点使用频率评分"],
+  ["chrome://interstitials", "安全警告页", "预览各类安全警告页面样式"],
+  ["chrome://network-errors", "网络错误页", "预览网络错误页面样式"],
+  ["chrome://omnibox", "地址栏调试", "调试地址栏搜索建议生成过程"],
+  ["chrome://autofill-internals", "自动填充调试", "查看表单自动填充的判定过程"],
+  ["chrome://predictors", "预加载预测", "查看地址栏与网络预连接预测数据"],
+  ["chrome://local-state", "本地状态", "查看本地状态文件内容（只读）"],
+  ["chrome://kill", "结束标签页", "立即结束当前标签页进程（用于测试崩溃恢复）"],
+  ["chrome://hang", "卡住标签页", "让当前标签页挂起 10 秒（用于测试）"],
+  ["chrome://restart", "重启浏览器", "重启 Chrome 并恢复之前的标签页"],
+  ["chrome://print", "打印预览", "打开打印预览面板"],
+  ["chrome://view-http-cache", "HTTP 缓存", "浏览已缓存的资源条目"],
+  ["chrome://superduper", "超级设置页", "把设置项全部展开显示在一个长页面"]
+];
+var CATS = ["全部", "调试诊断", "设置管理", "数据存储", "网络", "其他"];
+var TAG = {
+  "chrome://version": "调试诊断", "chrome://gpu": "调试诊断", "chrome://system": "调试诊断",
+  "chrome://histograms": "调试诊断", "chrome://tracing": "调试诊断", "chrome://memory": "调试诊断",
+  "chrome://task-manager": "调试诊断", "chrome://crashes": "调试诊断", "chrome://media-internals": "调试诊断",
+  "chrome://webrtc-internals": "调试诊断", "chrome://bluetooth-internals": "调试诊断", "chrome://usb-internals": "调试诊断",
+  "chrome://device-log": "调试诊断", "chrome://accessibility": "调试诊断", "chrome://inspect": "调试诊断",
+  "chrome://sandbox": "调试诊断", "chrome://omnibox": "调试诊断", "chrome://autofill-internals": "调试诊断",
+  "chrome://predictors": "调试诊断", "chrome://interstitials": "调试诊断", "chrome://network-errors": "调试诊断",
+  "chrome://settings": "设置管理", "chrome://flags": "设置管理", "chrome://performance": "设置管理",
+  "chrome://extensions": "设置管理", "chrome://components": "设置管理", "chrome://policy": "设置管理",
+  "chrome://password-manager": "设置管理", "chrome://settings/passwords": "设置管理", "chrome://settings/content": "设置管理",
+  "chrome://settings/privacy": "设置管理", "chrome://settings/languages": "设置管理", "chrome://settings/fonts": "设置管理",
+  "chrome://superduper": "设置管理",
+  "chrome://downloads": "数据存储", "chrome://history": "数据存储", "chrome://bookmarks": "数据存储",
+  "chrome://quota-internals": "数据存储", "chrome://indexeddb-internals": "数据存储", "chrome://view-http-cache": "数据存储",
+  "chrome://local-state": "数据存储",
+  "chrome://net-internals": "网络", "chrome://net-export": "网络", "chrome://serviceworker-internals": "网络",
+  "chrome://net-internals/#dns": "网络",
+  "chrome://dino": "其他", "chrome://kill": "其他", "chrome://hang": "其他", "chrome://restart": "其他",
+  "chrome://print": "其他", "chrome://signin-internals": "其他", "chrome://sync-internals": "其他",
+  "chrome://translate-internals": "其他", "chrome://site-engagement": "其他", "chrome://settings/clearBrowserData": "设置管理"
+};
+function __xfChromeList() {
+  return PAGES.map(function (p) { return { url: p[0], name: p[1], desc: p[2], cat: TAG[p[0]] || "其他" }; });
+}
+function __xfChromeSearch(kw, cat) {
+  var k = String(kw || "").trim().toLowerCase(), c = cat && cat !== "全部" ? cat : "";
+  return __xfChromeList().filter(function (x) {
+    var hitK = !k || x.url.toLowerCase().indexOf(k) >= 0 || x.name.indexOf(k) >= 0 || x.desc.indexOf(k) >= 0;
+    var hitC = !c || x.cat === c;
+    return hitK && hitC;
+  });
+}
+function __xfChromeCats() { return CATS; }
+window.__xfChromeList = __xfChromeList;
+window.__xfChromeSearch = __xfChromeSearch;
+window.__xfChromeCats = __xfChromeCats;
+
+var $ = function (id) { return document.getElementById(id); };
+function paint(list, title) {
+  if (!list.length) { $("res").value = "没有匹配的内部页面，换个关键词试试。"; $("state").textContent = "0 项"; return; }
+  $("res").value = list.map(function (x) { return x.url + "　【" + x.name + "】\n    " + x.desc; }).join("\n\n");
+  $("tip").textContent = title;
+  $("state").textContent = list.length + " 项";
+}
+$("cat").innerHTML = CATS.map(function (c) { return "<option value='" + c + "'>" + c + "</option>"; }).join("");
+$("runBtn").onclick = function () { paint(__xfChromeSearch($("kw").value, $("cat").value), "筛选结果"); };
+$("allBtn").onclick = function () { $("kw").value = ""; $("cat").value = "全部"; paint(__xfChromeList(), "全部内部页面"); };
+$("kw").addEventListener("input", function () { paint(__xfChromeSearch(this.value, $("cat").value), "搜索中…"); });
+$("cat").onchange = function () { paint(__xfChromeSearch($("kw").value, this.value), "筛选结果"); };
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无内容"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+paint(__xfChromeList(), "全部内部页面");
+</script>
+</body>
+</html>

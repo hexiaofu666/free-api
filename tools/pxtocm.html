@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素尺寸换算 - 词海工具箱</title>
+<meta name="description" content="按指定 DPI 在像素、厘米、毫米与英寸之间互相换算，常用于印刷稿尺寸核对、图片缩放与屏幕适配计算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/pxtocm.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="pxtocm" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>DPI（每英寸点数）</label><input type="number" id="dpi" value="96" min="1"></div>
+      <div class="fitem"><label>像素值</label><input type="text" id="px" value="1920x1080" placeholder="960 或 1920x1080"></div>
+      <div class="fitem"><label>小数位数</label><input type="number" id="dec" value="2" min="0" max="6"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始换算</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">换算结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:180px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于像素尺寸换算介绍：</h4>
+    <ol>
+      <li>DPI 是最常用的分辨率单位，网页设计默认按 96 DPI，印刷常用 300 DPI。</li>
+      <li>1 英寸等于 25.4 毫米、2.54 厘米，这是换算的核心比例。</li>
+      <li>输入支持单个数字或宽乘高形式，乘号可以用 x、星号或中文叉号。</li>
+      <li>同样像素值在 300 DPI 下的物理尺寸只有 96 DPI 下的约三分之一，印刷前务必核对。</li>
+      <li>换算结果为四舍五入近似值，交付印刷厂时建议预留 2 到 3 毫米出血。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { dec = dec === undefined ? 2 : dec; var p = Math.pow(10, dec); return Math.round(v * p) / p; }
+function __xfPx2In(px, dpi) { return Number(px) / (Number(dpi) || 96); }
+function __xfPx2Cm(px, dpi) { return __xfRound(__xfPx2In(px, dpi) * 2.54, 2); }
+function __xfPx2Mm(px, dpi) { return __xfRound(__xfPx2In(px, dpi) * 25.4, 2); }
+function __xfCm2Px(cm, dpi) { return Math.round(Number(cm) / 2.54 * (Number(dpi) || 96)); }
+function __xfIn2Px(inch, dpi) { return Math.round(Number(inch) * (Number(dpi) || 96)); }
+function __xfPxSize(text) {
+  var s = String(text).trim().toLowerCase();
+  var m = s.match(/^(\d+(?:\.\d+)?)\s*[x*×]\s*(\d+(?:\.\d+)?)$/);
+  if (m) return { w: parseFloat(m[1]), h: parseFloat(m[2]), two: true };
+  var n = parseFloat(s);
+  return isNaN(n) ? null : { w: n, h: n, two: false };
+}
+window.__xfRound = __xfRound;
+window.__xfPx2Cm = __xfPx2Cm;
+window.__xfPx2Mm = __xfPx2Mm;
+window.__xfPx2In = __xfPx2In;
+window.__xfCm2Px = __xfCm2Px;
+window.__xfPxSize = __xfPxSize;
+function run() {
+  var dpi = parseFloat($("dpi").value) || 96;
+  var dec = parseInt($("dec").value, 10); if (isNaN(dec)) dec = 2;
+  var size = __xfPxSize($("px").value);
+  if (!size) { $("res").value = "请输入形如 960 或 1920x1080 的像素值"; $("tip").textContent = "⚠️ 输入无法识别"; return null; }
+  var lines = [];
+  lines.push("DPI：" + dpi);
+  lines.push("");
+  if (size.two) {
+    lines.push("像素：" + size.w + " x " + size.h + " px");
+    lines.push("厘米：" + __xfRound(__xfPx2In(size.w, dpi) * 2.54, dec) + " x " + __xfRound(__xfPx2In(size.h, dpi) * 2.54, dec) + " cm");
+    lines.push("毫米：" + __xfRound(__xfPx2In(size.w, dpi) * 25.4, dec) + " x " + __xfRound(__xfPx2In(size.h, dpi) * 25.4, dec) + " mm");
+    lines.push("英寸：" + __xfRound(__xfPx2In(size.w, dpi), dec) + " x " + __xfRound(__xfPx2In(size.h, dpi), dec) + " in");
+  } else {
+    lines.push("像素：" + size.w + " px");
+    lines.push("厘米：" + __xfRound(__xfPx2In(size.w, dpi) * 2.54, dec) + " cm");
+    lines.push("毫米：" + __xfRound(__xfPx2In(size.w, dpi) * 25.4, dec) + " mm");
+    lines.push("英寸：" + __xfRound(__xfPx2In(size.w, dpi), dec) + " in");
+  }
+  lines.push("");
+  lines.push("反向参考：1 厘米 = " + __xfCm2Px(1, dpi) + " px，1 英寸 = " + Math.round(dpi) + " px");
+  $("res").value = lines.join("\n");
+  $("state").textContent = "DPI " + dpi;
+  $("tip").textContent = "✅ 换算完成";
+  return size;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

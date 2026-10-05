@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>彩虹屁生成器 - 词海工具箱</title>
+<meta name="description" content="一键生成花式赞美文案，随机组合形容词、比喻与夸赞句式，适合聊天斗图、社交互动与活跃气氛的轻松场景。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/rainbowfart.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="rainbowfart" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>被夸对象</label><input type="text" id="who" value="你"></div>
+      <div class="fitem"><label>生成条数</label><input type="number" id="n" value="5" min="1" max="30"></div>
+      <div class="fitem"><label>夸张程度</label>
+        <select id="lv"><option value="1">委婉</option><option value="2" selected>正常</option><option value="3">浮夸</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">再夸一次</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">赞美文案</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:250px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于彩虹屁生成器介绍：</h4>
+    <ol>
+      <li>生成结果由模板与修饰语随机组合而成，每次点击都会得到不同的组合。</li>
+      <li>同一次生成内不会出现重复的模板，条数超过模板总数时才会循环使用。</li>
+      <li>被夸对象可以填昵称或姓名，模板中的占位会全部替换为该名称。</li>
+      <li>夸张程度分为委婉、正常与浮夸三档，浮夸档会追加更戏剧化的收尾。</li>
+      <li>文案仅供娱乐与社交互动使用，真实场合还是真诚表达更打动人。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var FART_TEMPLATES = [
+  "{who}的气质就像清晨第一缕阳光，让人看一眼就精神百倍。",
+  "认识{who}之后，我才知道什么叫做人间理想。",
+  "{who}一开口，连空气都变得温柔了几分。",
+  "如果优秀有名字，那一定就是{who}。",
+  "{who}站在那里不用说话，就已经赢麻了。",
+  "别人是万里挑一，{who}是百万里挑一。",
+  "{who}的存在本身就是对这个世界最大的善意。",
+  "看了{who}之后，我决定重新审视一下我的审美。",
+  "{who}把普通的日子过成了诗。",
+  "论起品味，{who}说第二，没人敢说第一。",
+  "{who}笑起来的时候，天上的云都散开了。",
+  "跟{who}聊天就像在做心灵按摩，太舒服了。",
+  "世界上有两种人，一种是别人，一种是{who}。",
+  "{who}随手一做就是别人努力很久的结果。",
+  "能遇到{who}，是我今年最大的幸运。"
+];
+var FART_EXTRA = {
+  "1": ["", "", ""],
+  "2": ["这一点真让人佩服。", "实在是难得。", ""],
+  "3": ["简直惊为天人！", "我等凡人只能仰望！", "请收下我的膝盖！", "这波操作封神了！"]
+};
+function __xfPick(list, rnd) {
+  rnd = rnd || Math.random;
+  if (!list.length) return null;
+  return list[Math.min(list.length - 1, Math.floor(rnd() * list.length))];
+}
+function __xfRainbowFart(who, count, level, rnd) {
+  rnd = rnd || Math.random;
+  var n = Math.max(1, parseInt(count, 10) || 1);
+  var name = who || "你";
+  var extra = FART_EXTRA[String(level || "2")] || FART_EXTRA["2"];
+  var out = [], used = {};
+  for (var i = 0; i < n; i++) {
+    var t = null;
+    for (var tries = 0; tries < 30; tries++) {
+      var cand = __xfPick(FART_TEMPLATES, rnd);
+      if (!used[cand] || Object.keys(used).length >= FART_TEMPLATES.length) { t = cand; break; }
+    }
+    if (t === null) t = __xfPick(FART_TEMPLATES, rnd);
+    used[t] = 1;
+    var e = __xfPick(extra, rnd);
+    out.push(t.replace(/\{who\}/g, name) + (e ? " " + e : ""));
+  }
+  return out;
+}
+window.__xfPick = __xfPick;
+window.__xfRainbowFart = __xfRainbowFart;
+window.FART_TEMPLATES = FART_TEMPLATES;
+function run() {
+  var list = __xfRainbowFart($("who").value, $("n").value, $("lv").value);
+  $("res").value = list.map(function (s, i) { return (i + 1) + ". " + s; }).join("\n\n");
+  $("state").textContent = list.length + " 条";
+  $("tip").textContent = "✅ 已生成 " + list.length + " 条赞美";
+  return list;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

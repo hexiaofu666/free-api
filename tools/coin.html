@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线抛硬币 - 词海工具箱</title>
+<meta name="description" content="在线抛硬币做随机决策，可一次抛出多枚并统计正反面次数与序列，结果实时显示适合小游戏与选择困难场景。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/coin.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="coin" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>抛掷次数</label><input type="number" id="n" value="10" min="1" max="1000"></div>
+      <div class="fitem"><label>正面名称</label><input type="text" id="hn" value="正面"></div>
+      <div class="fitem"><label>反面名称</label><input type="text" id="tn" value="反面"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">抛硬币</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">抛掷结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:240px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线抛硬币介绍：</h4>
+    <ol>
+      <li>每次抛掷的结果相互独立，前一次的结果不会影响下一次，这是典型的独立随机事件。</li>
+      <li>抛掷次数越多正面占比越接近百分之五十，这就是大数定律的直观体现。</li>
+      <li>最长连号反映随机序列里出现连续相同结果的长度，出现四五连号也很正常。</li>
+      <li>可以把正反面名称改成选项名称，用它来做二选一的随机决策。</li>
+      <li>结果仅供娱乐与辅助决策，重要事项请结合实际信息判断。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfFlipCoins(n, rnd) {
+  rnd = rnd || Math.random;
+  var count = Math.max(1, parseInt(n, 10) || 1);
+  var heads = 0, seq = [];
+  for (var i = 0; i < count; i++) {
+    var h = rnd() < 0.5;
+    if (h) heads++;
+    seq.push(h ? "H" : "T");
+  }
+  return { total: count, heads: heads, tails: count - heads, seq: seq };
+}
+function __xfFlipRatio(res) {
+  if (!res || !res.total) return 0;
+  return Math.round(res.heads / res.total * 1000) / 10;
+}
+function __xfFlipStreak(seq) {
+  var best = 0, cur = 1;
+  for (var i = 1; i < seq.length; i++) {
+    if (seq[i] === seq[i - 1]) { cur++; if (cur > best) best = cur; }
+    else cur = 1;
+  }
+  return seq.length ? Math.max(best, cur) : 0;
+}
+window.__xfFlipCoins = __xfFlipCoins;
+window.__xfFlipRatio = __xfFlipRatio;
+window.__xfFlipStreak = __xfFlipStreak;
+function run() {
+  var res = __xfFlipCoins($("n").value);
+  var hn = $("hn").value || "正面", tn = $("tn").value || "反面";
+  var lines = ["抛掷 " + res.total + " 次", ""];
+  lines.push(hn + "：" + res.heads + " 次");
+  lines.push(tn + "：" + res.tails + " 次");
+  lines.push("正面占比：" + __xfFlipRatio(res) + "%");
+  lines.push("最长连号：" + __xfFlipStreak(res.seq) + " 次");
+  lines.push("");
+  lines.push("序列：" + res.seq.map(function (s) { return s === "H" ? hn : tn; }).join(" "));
+  $("res").value = lines.join("\n");
+  $("state").textContent = res.heads + " 正 / " + res.tails + " 反";
+  $("tip").textContent = "✅ 已抛出 " + res.total + " 次";
+  return res;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

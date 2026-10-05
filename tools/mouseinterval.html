@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鼠标点击间隔测试 - 词海工具箱</title>
+<meta name="description" content="鼠标点击间隔测试：统计连续点击的间隔时间与点击速度（CPS），用于检测鼠标双击故障与手速测试。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/mouseinterval.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="mouseinterval" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>判定阈值(ms)</label><input type="number" id="thr" value="80" min="10" max="500">
+      </div>
+      <div class="fitem"><label>说明</label><input type="text" readonly value="间隔小于阈值视为疑似双击连击">
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="resetBtn">重新开始</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击测试区</strong><span id="cps">CPS 0</span></div>
+      <div id="pad" style="height:180px;border:2px dashed #ffcc80;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#ffb74d;font-size:15px;user-select:none;cursor:pointer;">连续快速点击这里</div>
+      <textarea id="res" readonly style="height:140px;margin-top:10px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于鼠标点击间隔测试介绍：</h4>
+    <ol>
+      <li>CPS（Clicks Per Second）是每秒点击次数，普通用户约 5-8，熟练玩家可达 10 以上。</li>
+      <li>「疑似连击」判定的默认阈值是 80 毫秒：单次正常点击的间隔一般不短于这个值。</li>
+      <li>如果单次按下却出现两次相隔几毫秒的点击记录，通常说明鼠标微动开关老化或存在双击故障。</li>
+      <li>间隔忽大忽小（如 30ms 与 300ms 交替）也可能是接触不良的信号，建议换一个鼠标口或换鼠标对比测试。</li>
+      <li>测试时请保持手部放松、点击节奏尽量均匀，短时间内的结果才有可比性。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+/* 点击间隔统计 */
+function __xfClickStats(times) {
+  var t = (times || []).slice().sort(function (a, b) { return a - b; });
+  if (t.length < 2) return { count: t.length, intervals: [], avg: 0, min: 0, max: 0, cps: 0 };
+  var d = [];
+  for (var i = 1; i < t.length; i++) d.push(Math.round(t[i] - t[i - 1]));
+  var sum = d.reduce(function (a, b) { return a + b; }, 0);
+  var span = (t[t.length - 1] - t[0]) / 1000;
+  return {
+    count: t.length,
+    intervals: d,
+    avg: Math.round(sum / d.length),
+    min: Math.min.apply(null, d),
+    max: Math.max.apply(null, d),
+    cps: span > 0 ? Math.round((t.length - 1) / span * 10) / 10 : 0
+  };
+}
+/* 找出疑似双击连击（间隔小于阈值）的次数 */
+function __xfSuspects(times, thr) {
+  var s = __xfClickStats(times), th = Number(thr) || 80;
+  return s.intervals.filter(function (x) { return x < th; }).length;
+}
+window.__xfClickStats = __xfClickStats;
+window.__xfSuspects = __xfSuspects;
+
+var $ = function (id) { return document.getElementById(id); };
+var times = [];
+function render() {
+  var s = __xfClickStats(times), bad = __xfSuspects(times, $("thr").value);
+  $("cps").textContent = "CPS " + s.cps;
+  if (s.count < 2) { $("res").value = "已点击 " + s.count + " 次，继续点击以计算间隔…"; $("tip").textContent = "点击测试区"; return; }
+  $("res").value = [
+    "点击总次数：" + s.count,
+    "平均间隔：" + s.avg + " ms",
+    "最短间隔：" + s.min + " ms",
+    "最长间隔：" + s.max + " ms",
+    "点击速度：" + s.cps + " 次/秒（CPS）",
+    "疑似连击（<" + $("thr").value + " ms）：" + bad + " 次",
+    "",
+    "最近 10 次间隔：" + s.intervals.slice(-10).join(", ") + " ms"
+  ].join("\n");
+  $("tip").textContent = bad > 0 ? "⚠️ 检出疑似双击连击 " + bad + " 次" : "✅ 间隔正常";
+}
+$("pad").addEventListener("mousedown", function (e) { e.preventDefault(); times.push(performance.now()); render(); });
+$("pad").addEventListener("contextmenu", function (e) { e.preventDefault(); });
+$("resetBtn").onclick = function () { times = []; $("res").value = ""; $("cps").textContent = "CPS 0"; $("tip").textContent = "点击测试区"; };
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+$("res").value = "连续快速点击上方虚线框，即可统计每次点击的间隔时间与 CPS。\n\nCPS 越高说明点击越快，间隔忽大忽小则可能是微动开关老化。";
+$("tip").textContent = "点击测试区";
+</script>
+</body>
+</html>

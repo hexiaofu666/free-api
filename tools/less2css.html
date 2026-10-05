@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LESS/SCSS转CSS - 词海工具箱</title>
+<meta name="description" content="把 LESS 或 SCSS 的变量与嵌套规则编译为原生 CSS，支持变量替换、选择器嵌套、父选择器写法与注释清理。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.7.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.7.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/less2css.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="less2css" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>语法</label>
+        <select id="mode"><option value="less" selected>LESS（@变量）</option><option value="scss">SCSS（$变量）</option></select>
+      </div>
+      <div class="fitem"><label>压缩输出</label>
+        <select id="min"><option value="no" selected>否</option><option value="yes">是</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">编译为 CSS</button>
+      <button class="fbtn brown" id="copyBtn">复制结果</button>
+    </div>
+    <div class="vin" style="margin-top:15px;">
+      <div class="vhead" style="padding:6px 2px;font-size:12px;">LESS / SCSS 源码</div>
+      <textarea id="src" style="min-height:200px;">@main: #ff6500;
+
+.card {
+  color: @main;
+  padding: 10px;
+  .title {
+    font-weight: bold;
+  }
+  &:hover {
+    color: #333;
+  }
+}</textarea>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">编译结果</strong><span id="state"></span></div>
+      <textarea id="res" readonly style="height:240px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于LESS/SCSS转CSS介绍：</h4>
+    <ol>
+      <li>变量替换会把源码中的变量名直接展开为对应值，输出的 CSS 不依赖任何预处理器。</li>
+      <li>嵌套选择器会展开成后代选择器，多个父级与多个子级会自动做笛卡尔积组合。</li>
+      <li>父选择器符号会替换为最近一层父选择器，常用于写悬停与状态类样式。</li>
+      <li>支持块注释与行注释的清理，行注释在 CSS 中不合法，编译时会被直接删除。</li>
+      <li>开启压缩输出会去掉选择器与声明之间的多余空白，适合部署到线上环境。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.7.0"></script>
+<script src="../assets/chrome.js?v=1.7.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfStripCssComment(s) {
+  return String(s).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+}
+function __xfNest2Css(src) {
+  var s = __xfStripCssComment(src);
+  var vars = {};
+  s = s.replace(/(?:^|\n)[ \t]*[@$]([A-Za-z_][\w-]*)[ \t]*:[ \t]*([^;{}]+);/g, function (m, n, v) { vars[n] = v.trim(); return "\n"; });
+  s = s.replace(/[@$]([A-Za-z_][\w-]*)/g, function (m, n) { return vars.hasOwnProperty(n) ? vars[n] : m; });
+  var result = [];
+  function walk(block, parents) {
+    var decls = [], parts = [], buf = "", i = 0;
+    while (i < block.length) {
+      var c = block.charAt(i);
+      if (c === "{") {
+        var depth = 1, j = i + 1;
+        while (j < block.length) { var d = block.charAt(j); if (d === "{") depth++; else if (d === "}") { depth--; if (depth === 0) break; } j++; }
+        parts.push({ sel: buf.trim(), inner: block.slice(i + 1, j) });
+        buf = ""; i = j + 1; continue;
+      }
+      if (c === ";") { var dd = buf.trim(); if (dd) decls.push(dd); buf = ""; i++; continue; }
+      buf += c; i++;
+    }
+    var tail = buf.trim(); if (tail) decls.push(tail);
+    if (parents.length && decls.length) {
+      result.push(parents.join(", ") + " {\n" + decls.map(function (x) { return "  " + x + ";"; }).join("\n") + "\n}");
+    }
+    parts.forEach(function (p) {
+      var sels = p.sel.split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+      var full = [];
+      if (!parents.length) full = sels;
+      else parents.forEach(function (pp) { sels.forEach(function (x) { full.push(x.indexOf("&") >= 0 ? x.replace(/&/g, pp) : (pp + " " + x)); }); });
+      walk(p.inner, full);
+    });
+  }
+  walk(s, []);
+  return result.join("\n\n");
+}
+function __xfMinCss(css) {
+  return String(css).replace(/\s*\{\s*/g, "{").replace(/\s*\}\s*/g, "}").replace(/\s*;\s*/g, ";").replace(/\s*,\s*/g, ",").replace(/\s*:\s*/g, ":").replace(/;}/g, "}").trim();
+}
+function __xfCssRuleCount(css) { var m = String(css).match(/\{/g); return m ? m.length : 0; }
+window.__xfNest2Css = __xfNest2Css;
+window.__xfMinCss = __xfMinCss;
+window.__xfCssRuleCount = __xfCssRuleCount;
+function run() {
+  var css = __xfNest2Css($("src").value);
+  var out = $("min").value === "yes" ? __xfMinCss(css) : css;
+  $("res").value = out;
+  $("state").textContent = __xfCssRuleCount(css) + " 条规则";
+  $("tip").textContent = "✅ 编译完成";
+  return out;
+}
+$("runBtn").onclick = run;
+$("copyBtn").onclick = function () { if (!$("res").value) return alert("暂无结果"); navigator.clipboard.writeText($("res").value).then(function () { alert("✅ 已复制"); }); };
+run();
+</script>
+</body>
+</html>

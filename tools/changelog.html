@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.8.0"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script src="../assets/theme.js?v=1.8.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.1">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -68,13 +68,23 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.8.0"></script>
-<script src="../assets/chrome.js?v=1.8.0"></script>
+<script src="../assets/tools-data.js?v=1.8.1"></script>
+<script src="../assets/chrome.js?v=1.8.1"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.8.1", date: "2026-10-06",
+    items: [
+      ["fix", "合并两组功能重复的工具页面：随机数生成器与时间进度条各保留功能更完整的一版，旧地址通过 301 永久重定向跳转，消除同功能多页面带来的重复内容问题"],
+      ["opt", "全站 69 款工具页面的 meta description 由原来的十数字补齐至 54~81 字，补充核心功能与使用场景说明，提升搜索结果摘要的可读性"],
+      ["fix", "补齐 10 款图片工具页缺失的访问统计代码（纯色背景图、图片翻转、黑白、反色、拼接、像素化、缩放、旋转、分割、占位图），全站统计口径恢复一致"],
+      ["fix", "修正站内结构自查脚本的三处误判（图标类名判定、canonical 计数口径、列表页骨架检查），使健康检查结果更加准确"],
+      ["opt", "全站资源版本号由 v1.8.0 升级至 v1.8.1，被合并页面的入口已从首页与分类列表中移除，旧缓存自动失效"],
+    ]
+  },
   {
     ver: "v1.8.0", date: "2026-10-05",
     items: [

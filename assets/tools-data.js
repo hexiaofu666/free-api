@@ -13,7 +13,6 @@ const TOOLS = [
   { id: "lottery",     name: "号码抽奖工具",     desc: "从号码池随机抽取幸运号码",                   ico: "layui-icon-gift",         cat: "life",   color: "linear-gradient(45deg,#f3892d,#fb664e)" },
   { id: "scoreboard",  name: "在线记分板",       desc: "比赛记分板，可加减双方比分",                 ico: "layui-icon-chart",        cat: "life",   color: "#656599" },
   { id: "gaokao",      name: "高考倒计时",       desc: "距离高考还有多少天",                         ico: "layui-icon-fire",         cat: "life",   color: "#f44336" },
-  { id: "progresstime",name: "时间进度条",       desc: "实时查看日/周/月/年时间进度",                ico: "layui-icon-chart-screen", cat: "life",   color: "#52859d" },
   { id: "shichen",     name: "十二时辰转换",     desc: "在线将时间转换为十二时辰",                   ico: "layui-icon-theme",        cat: "life",   color: "#7a5cf0" },
   { id: "babyage",     name: "大龄宝宝计算器",   desc: "在线计算你是多少个月的宝宝",                 ico: "layui-icon-face-smile",   cat: "life",   color: "#fc7697" },
   { id: "fakeupdate",  name: "假装系统在升级",   desc: "上班摸鱼神器，让电脑伪装成正在更新",         ico: "layui-icon-refresh-3",    cat: "life",   color: "#34495e" },
@@ -38,7 +37,6 @@ const TOOLS = [
   /* 编程开发 */
   { id: "timestamp",   name: "时间戳转换",       desc: "Unix 时间戳与日期时间互相转换",              ico: "layui-icon-transfer",     cat: "dev",    color: "#656599" },
   { id: "json",        name: "JSON格式化",       desc: "JSON 在线压缩 / 格式化 / 校验",              ico: "layui-icon-fonts-code",   cat: "dev",    color: "#e777af" },
-  { id: "random",      name: "随机数生成器",     desc: "自定义范围批量生成随机数，可去重",           ico: "layui-icon-slider",       cat: "dev",    color: "#ec5514" },
   { id: "urlcodec",    name: "URL编码/解码",     desc: "URL 在线编码与解码工具",                     ico: "layui-icon-link",         cat: "dev",    color: "#5b9df9" },
   { id: "base64text",  name: "Base64编码/解码",  desc: "文本与 Base64 互相转换工具",                 ico: "layui-icon-key",          cat: "dev",    color: "#8c76ea" },
   { id: "unicode",     name: "Unicode转中文",    desc: "Unicode 与中文互相转换工具",                 ico: "layui-icon-read",         cat: "dev",    color: "#16a34a" },

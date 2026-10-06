@@ -199,6 +199,16 @@ const server = http.createServer(async (req, res) => {
     return res.end(buildSitemap());
   }
 
+  /* ---- 已合并下线页的 301 永久重定向（同一功能只保留一个页面，避免重复内容） ---- */
+  const MERGED = {
+    "/tools/random.html": "/tools/randnum.html",
+    "/tools/progresstime.html": "/tools/timeprogress.html",
+  };
+  if (MERGED[u.pathname]) {
+    res.writeHead(301, { Location: MERGED[u.pathname], "Cache-Control": "public, max-age=86400" });
+    return res.end();
+  }
+
   /* ---- 静态文件 ---- */
   let fp = decodeURIComponent(u.pathname);
   if (fp.endsWith("/")) fp += "index.html";

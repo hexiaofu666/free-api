@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小数转分数工具 - 词海工具箱</title>
+<meta name="description" content="在线小数转分数工具，普通小数与循环小数都能化成最简分数，并展示推导过程。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/decimal2fraction.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="decimal2fraction" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>小数</label><input type="text" id="src" value="0.75, 0.333333, 0.125" placeholder="如 0.75，循环小数写 0.333333"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">转分数</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">有限小数与纯循环小数皆可转换</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于小数转分数工具介绍：</h4>
+    <ol>
+      <li>有限小数按小数点后位数换算，如 0.75 = 75/100 再约分得 3/4。</li>
+      <li>小数部分为同一位数字重复 3 次以上时，按纯循环小数处理，如 0.333333 = 1/3。</li>
+      <li>循环小数换算依据分母为 9、99、999 的规则，可自行验算。</li>
+      <li>结果保留推导过程，便于理解小数与分数的换算原理。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfGcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a || 1; }
+function __xfReduce(n, d) {
+  if (d === 0) return null;
+  if (d < 0) { n = -n; d = -d; }
+  var g = __xfGcd(n, d);
+  return { n: n / g, d: d / g, gcd: g };
+}
+function __xfFracText(f) { return f.d === 1 ? String(f.n) : f.n + "/" + f.d; }
+function __xfRepeatPattern(frac) {
+  for (var len = 1; len <= 3; len++) {
+    if (frac.length < len * 3) continue;
+    var p = frac.slice(0, len), ok = true;
+    for (var i = 0; i < frac.length; i += len) {
+      if (frac.slice(i, i + len) !== p) { ok = false; break; }
+    }
+    if (ok) return p;
+  }
+  return null;
+}
+function __xfDecimalToFraction(text) {
+  var s = String(text).trim().replace(/[…]+$/, "");
+  var m = s.match(/^(-?)(\d*)\.?(\d*)$/);
+  if (!m || (m[2] === "" && m[3] === "")) return null;
+  var sign = m[1] === "-" ? -1 : 1;
+  var ip = m[2] || "0", fp = m[3] || "";
+  if (!fp) return { n: sign * Number(ip), d: 1, gcd: 1, kind: "整数", from: ip };
+  var rep = __xfRepeatPattern(fp);
+  if (rep && fp.length % rep.length === 0) {
+    var den = Number(new Array(rep.length + 1).join("9"));
+    var whole = Number(ip);
+    var f = __xfReduce(sign * (whole * den + Number(rep)), den);
+    return { n: f.n, d: f.d, gcd: f.gcd, kind: "循环小数", from: text, cycle: rep };
+  }
+  var den2 = Math.pow(10, fp.length);
+  var num2 = sign * (Number(ip) * den2 + Number(fp));
+  var f2 = __xfReduce(num2, den2);
+  return { n: f2.n, d: f2.d, gcd: f2.gcd, kind: "有限小数", from: text };
+}
+function run() {
+  var parts = String($("src").value).split(/[,\s]+/).filter(function (s) { return s !== ""; });
+  if (!parts.length) { $("tip").textContent = "⚠️ 请输入小数"; $("res").innerHTML = ""; return; }
+  $("res").innerHTML = parts.map(function (p) {
+    var f = __xfDecimalToFraction(p);
+    if (!f) return "<div style='color:#c00;'>" + p + " 格式不正确</div>";
+    return "<div>" + p + " = <b style='color:#4d8bb8;'>" + __xfFracText(f) + "</b>" +
+      "<span style='color:#888;'>（" + f.kind + (f.gcd > 1 ? "，约分倍数 " + f.gcd : "") + (f.cycle ? "，循环节 " + f.cycle : "") + "）</span></div>";
+  }).join("");
+  $("tip").textContent = "✅ 转换完成";
+  return parts;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

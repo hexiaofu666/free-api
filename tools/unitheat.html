@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>热量单位换算 - 词海工具箱</title>
+<meta name="description" content="在线热量单位换算器，焦耳、千焦、卡路里、千卡、瓦时、千瓦时、英热单位等能量单位互相换算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/unitheat.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="unitheat" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="1"></div>
+      <div class="fitem"><label>源单位</label><select id="from"></select></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn green" id="runBtn">换算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">以焦耳为基准换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于热量单位换算介绍：</h4>
+    <ol>
+      <li>以焦耳为基准，覆盖热量与电能常用单位。</li>
+      <li>1 卡 = 4.184 焦耳，1 千卡（大卡）= 4184 焦耳，是食物热量的常用单位。</li>
+      <li>1 瓦时 = 3600 焦耳，1 千瓦时（度）= 3.6 兆焦，即电表计费单位。</li>
+      <li>1 英热单位 BTU ≈ 1055.06 焦耳，常用于空调制冷量标注。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+var HEAT = [
+  { k: "j", n: "焦耳 J", f: 1 }, { k: "kj", n: "千焦 kJ", f: 1000 }, { k: "mj", n: "兆焦 MJ", f: 1e6 },
+  { k: "cal", n: "卡 cal", f: 4.184 }, { k: "kcal", n: "千卡 kcal（大卡）", f: 4184 },
+  { k: "wh", n: "瓦时 Wh", f: 3600 }, { k: "kwh", n: "千瓦时 kWh（度）", f: 3.6e6 },
+  { k: "btu", n: "英热单位 BTU", f: 1055.05585262 }, { k: "ftlb", n: "英尺磅 ft·lb", f: 1.3558179483314004 },
+  { k: "erg", n: "尔格 erg", f: 1e-7 }
+];
+function __xfHeatUnit(key) { for (var i = 0; i < HEAT.length; i++) if (HEAT[i].k === key) return HEAT[i]; return null; }
+function __xfHeatConvert(v, from) {
+  var u = __xfHeatUnit(from), n = Number(v);
+  if (!u || !isFinite(n)) return null;
+  var base = n * u.f, out = {};
+  HEAT.forEach(function (x) { out[x.k] = base / x.f; });
+  return out;
+}
+function __xfHeatList() { return HEAT; }
+function run() {
+  var dec = Number($("dec").value) || 0;
+  var o = __xfHeatConvert($("val").value, $("from").value);
+  if (!o) { $("tip").textContent = "⚠️ 请输入合法数值"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = HEAT.map(function (u) {
+    return "<div>" + u.n + "：" + __xfRound(o[u.k], dec) + "</div>";
+  }).join("");
+  return o;
+}
+(function init() {
+  var sel = $("from");
+  HEAT.forEach(function (u) { var op = document.createElement("option"); op.value = u.k; op.textContent = u.n; sel.appendChild(op); });
+  sel.value = "kcal";
+})();
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

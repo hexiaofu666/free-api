@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>不锈钢板重量计算器 - 词海工具箱</title>
+<meta name="description" content="在线不锈钢板重量计算器，按厚度、宽度、长度与材质密度换算单张及多张钢板的理算重量，支持 304 与 316 等常用密度。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/steelplatecalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="steelplatecalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>厚度（毫米）</label><input type="number" id="thk" value="2" step="0.1"></div>
+      <div class="fitem"><label>宽度（米）</label><input type="number" id="wid" value="1.22" step="0.01"></div>
+      <div class="fitem"><label>长度（米）</label><input type="number" id="len" value="2.44" step="0.01"></div>
+      <div class="fitem"><label>密度（g/cm³）</label><input type="number" id="rho" value="7.93" step="0.01"></div>
+      <div class="fitem"><label>数量（张）</label><input type="number" id="qty" value="1" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算重量</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">不锈钢板理算重量（厚度 × 宽 × 长 × 密度）</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于不锈钢板重量计算器介绍：</h4>
+    <ol>
+      <li>计算公式为 厚度（毫米）× 宽度（米）× 长度（米）× 密度，结果为公斤。</li>
+      <li>304 不锈钢密度取 7.93 g/cm³，316 取 7.98，430 取 7.70，201 取 7.93。</li>
+      <li>每平方米重量等于厚度乘密度，例如 1 毫米厚 304 板每平方米约 7.93 公斤。</li>
+      <li>理算重量为理论值，实际过磅受公差与表面处理影响，通常有百分之三以内偏差。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfSteelPlatePerM2(thk, rho) {
+  if (!(thk > 0)) return 0;
+  return thk * (rho || 7.93);
+}
+function __xfSteelPlateWeight(thk, wid, len, rho) {
+  if (!(thk > 0) || !(wid > 0) || !(len > 0)) return 0;
+  return thk * wid * len * (rho || 7.93);
+}
+function __xfSteelPlateSum(per, qty) {
+  if (!(per > 0) || !(qty > 0)) return 0;
+  return per * qty;
+}
+function __xfSteelPlateArea(wid, len) {
+  if (!(wid > 0) || !(len > 0)) return 0;
+  return wid * len;
+}
+function run() {
+  var thk = Number($("thk").value), wid = Number($("wid").value), len = Number($("len").value);
+  var rho = Number($("rho").value) || 7.93;
+  var qty = Math.max(1, Math.floor(Number($("qty").value) || 1));
+  if (!(thk > 0) || !(wid > 0) || !(len > 0)) {
+    $("tip").textContent = "⚠️ 厚度、宽度、长度必须为正数"; $("res").innerHTML = ""; return null;
+  }
+  var per = __xfSteelPlateWeight(thk, wid, len, rho);
+  var total = __xfSteelPlateSum(per, qty);
+  var area = __xfSteelPlateArea(wid, len);
+  $("tip").textContent = "✅ 单张重量 " + __xfRound(per, 2) + " kg";
+  $("res").innerHTML =
+    "<div>单张面积：<b>" + __xfRound(area, 4) + "</b> ㎡</div>" +
+    "<div>每平方米重量：<b>" + __xfRound(__xfSteelPlatePerM2(thk, rho), 3) + "</b> kg</div>" +
+    "<div style='color:#c0392b;'>单张重量：<b>" + __xfRound(per, 2) + "</b> kg</div>" +
+    "<div>" + qty + " 张合计：<b>" + __xfRound(total, 2) + "</b> kg（约 " + __xfRound(total / 1000, 3) + " 吨）</div>" +
+    "<div style='color:#888;'>计算公式：" + thk + " × " + wid + " × " + len + " × " + rho + " = " + __xfRound(per, 2) + " kg。</div>";
+  return { per: per, total: total, area: area };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

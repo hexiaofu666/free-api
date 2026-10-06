@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>原码反码补码计算器 - 词海工具箱</title>
+<meta name="description" content="在线原码反码补码计算器，输入整数与位宽同时给出原码、反码、补码二进制形式与十六进制值。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/complement.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="complement" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>十进制整数</label><input type="text" id="n" value="-5"></div>
+      <div class="fitem"><label>位宽</label>
+        <select id="w"><option value="8">8 位</option><option value="16" selected>16 位</option><option value="32">32 位</option></select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button><button class="fbtn blue" id="demoBtn">示例演示</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">原码 / 反码 / 补码</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;font-family:Consolas,monospace;word-break:break-all;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于原码反码补码计算器介绍：</h4>
+    <ol>
+      <li>原码：最高位为符号位（0 正 1 负），其余位是绝对值的二进制。</li>
+      <li>反码：正数与原码相同；负数符号位不变，数值位逐位取反。</li>
+      <li>补码：正数与原码相同；负数在反码基础上末位加 1，是计算机实际存储形式。</li>
+      <li>补码还能把减法变为加法，这是现代 CPU 用补码表示有符号整数的原因。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfPad(s, n) { s = String(s); while (s.length < n) s = "0" + s; return s; }
+function __xfComplement(n, width) {
+  var w = Number(width) || 8;
+  var x = Math.trunc(Number(n));
+  if (!isFinite(x)) return null;
+  var max = Math.pow(2, w - 1) - 1, min = -Math.pow(2, w - 1);
+  if (x > max || x < min) return null;
+  var sign = x < 0 ? "1" : "0", mag = __xfPad(Math.abs(x).toString(2), w - 1);
+  var orig = sign + mag;
+  var ones = x < 0 ? "1" + mag.split("").map(function (c) { return c === "0" ? "1" : "0"; }).join("") : orig;
+  var twosVal = x < 0 ? (Math.pow(2, w) + x) : x;
+  var twos = __xfPad(twosVal.toString(2), w);
+  function hex(s) { var v = parseInt(s, 2).toString(16).toUpperCase(); return "0x" + __xfPad(v, w / 4); }
+  return { n: x, width: w, orig: orig, ones: ones, twos: twos, hexOrig: hex(orig), hexOnes: hex(ones), hexTwos: hex(twos), min: min, max: max };
+}
+function run() {
+  var w = Number($("w").value);
+  var o = __xfComplement($("n").value, w);
+  if (!o) { $("tip").textContent = "⚠️ 数值超出 " + w + " 位有符号整数范围"; $("res").innerHTML = ""; return null; }
+  $("tip").textContent = "✅ " + w + " 位有符号整数（范围 " + o.min + " ~ " + o.max + "）";
+  $("res").innerHTML =
+    "<div>十进制：" + o.n + "</div>" +
+    "<div>原码：" + o.orig + "　" + o.hexOrig + "</div>" +
+    "<div>反码：" + o.ones + "　" + o.hexOnes + "</div>" +
+    "<div>补码：<b style='color:#607d8b;'>" + o.twos + "　" + o.hexTwos + "</b></div>";
+  return o;
+}
+function runDemo() {
+  var w = 8, lines = [];
+  [5, -5, 0, 127, -128].forEach(function (v) {
+    var o = __xfComplement(v, w);
+    if (o) lines.push(v + " → 原码 " + o.orig + "，补码 " + o.twos);
+  });
+  $("tip").textContent = "✅ 8 位示例";
+  $("res").innerHTML = lines.map(function (l) { return "<div>" + l + "</div>"; }).join("");
+  return lines;
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = runDemo;
+run();
+</script>
+</body>
+</html>

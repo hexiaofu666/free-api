@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24点计算器 - 词海工具箱</title>
+<meta name="description" content="在线 24 点计算器，输入 4 个数字自动求解加减乘除运算得到 24 的表达式，无解时会明确提示。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/game24.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="game24" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>四个数字</label><input type="text" id="src" placeholder="例如：3, 3, 8, 8" value="3, 3, 8, 8"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">求解</button>
+      <button class="fbtn brown" id="randBtn">随机出题</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入 4 个 1~13 的整数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;word-break:break-all;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于24点计算器介绍：</h4>
+    <ol>
+      <li>输入 4 个数字，程序穷举全部运算顺序与括号组合，给出一个可行解。</li>
+      <li>每张数字只能使用一次，允许加、减、乘、除与括号，除法结果允许为分数。</li>
+      <li>无解的组合会明确提示，例如 1、1、1、1 无法算出 24。</li>
+      <li>随机出题会生成一组保证有解的数字，适合当口算练习题目。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var EPS = 1e-6;
+function __xfSolve24(nums) {
+  var list = nums.map(function (n) { return { v: Number(n), e: String(n) }; });
+  return __xfSearch24(list);
+}
+function __xfSearch24(list) {
+  if (list.length === 1) return Math.abs(list[0].v - 24) < EPS ? list[0].e : null;
+  for (var i = 0; i < list.length; i++) {
+    for (var j = 0; j < list.length; j++) {
+      if (i === j) continue;
+      var rest = [];
+      for (var k = 0; k < list.length; k++) if (k !== i && k !== j) rest.push(list[k]);
+      var a = list[i], b = list[j];
+      var cands = [
+        { v: a.v + b.v, e: "(" + a.e + "+" + b.e + ")" },
+        { v: a.v - b.v, e: "(" + a.e + "-" + b.e + ")" },
+        { v: a.v * b.v, e: "(" + a.e + "×" + b.e + ")" }
+      ];
+      if (Math.abs(b.v) > EPS) cands.push({ v: a.v / b.v, e: "(" + a.e + "÷" + b.e + ")" });
+      for (var c = 0; c < cands.length; c++) {
+        var r = __xfSearch24(rest.concat([cands[c]]));
+        if (r) return r;
+      }
+    }
+  }
+  return null;
+}
+function __xfHasSolution(nums) { return __xfSolve24(nums) !== null; }
+function __xfRandomPuzzle() {
+  for (var t = 0; t < 500; t++) {
+    var a = [];
+    for (var i = 0; i < 4; i++) a.push(Math.floor(Math.random() * 10) + 1);
+    if (__xfHasSolution(a)) return a;
+  }
+  return [3, 3, 8, 8];
+}
+function __xfParseNums(text) {
+  var parts = String(text).split(/[^0-9]+/).filter(function (s) { return s !== ""; });
+  return parts.slice(0, 4).map(function (s) { return Number(s); });
+}
+function run() {
+  var nums = __xfParseNums($("src").value);
+  if (nums.length !== 4) { $("tip").textContent = "⚠️ 请正好输入 4 个数字"; $("res").innerHTML = ""; return; }
+  var s = __xfSolve24(nums);
+  $("tip").textContent = s ? "✅ 找到解法" : "❌ 该组合无解";
+  $("res").innerHTML = s
+    ? "<div>数字：" + nums.join("、") + "</div><div>解法：<b style='color:#4d8bb8;font-size:15px;'>" + s.replace(/^\(|\)$/g, "") + " = 24</b></div>"
+    : "<div>数字：" + nums.join("、") + " 用加、减、乘、除与括号无法得到 24，请换一组数字。</div>";
+  return s;
+}
+function runRand() {
+  var nums = __xfRandomPuzzle();
+  $("src").value = nums.join(", ");
+  return run();
+}
+$("runBtn").onclick = run;
+$("randBtn").onclick = runRand;
+run();
+</script>
+</body>
+</html>

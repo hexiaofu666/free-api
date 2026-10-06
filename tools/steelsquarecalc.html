@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>不锈钢方管重量计算器 - 词海工具箱</title>
+<meta name="description" content="在线不锈钢方管与矩形管理论重量计算器，按边长、壁厚与密度换算每米重量及整根总重。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/steelsquarecalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="steelsquarecalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>边长 A（毫米）</label><input type="number" id="a" value="40" step="0.1"></div>
+      <div class="fitem"><label>边长 B（毫米）</label><input type="number" id="b" value="40" step="0.1"></div>
+      <div class="fitem"><label>壁厚（毫米）</label><input type="number" id="t" value="2" step="0.1"></div>
+      <div class="fitem"><label>密度（g/cm³）</label><input type="number" id="rho" value="7.93" step="0.01"></div>
+      <div class="fitem"><label>单根长度（米）</label><input type="number" id="len" value="6" step="0.1"></div>
+      <div class="fitem"><label>根数</label><input type="number" id="qty" value="1" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算重量</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">方管理论重量 = (A + B − 2 × 壁厚) × 2 × 壁厚 × 密度 ÷ 1000</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于不锈钢方管重量计算器介绍：</h4>
+    <ol>
+      <li>截面积 = 2 × 壁厚 ×（边长 A + 边长 B − 2 × 壁厚），单位为平方毫米。</li>
+      <li>每米重量 = 截面积 × 密度 ÷ 1000，边长与壁厚均以毫米计，结果为公斤每米。</li>
+      <li>正方形管 A 等于 B 时公式退化为 4 × 壁厚 ×（边长 − 壁厚）× 密度 ÷ 1000。</li>
+      <li>壁厚达到或超过边长一半时截面积记为 0，此时输入数据不成立。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfTubeSectionA(a, b, t) {
+  var inner = a + b - 2 * t;
+  if (!(a > 0) || !(b > 0) || !(t > 0) || !(inner > 0)) return 0;
+  return 2 * t * inner;
+}
+function __xfTubeMeterWeight(a, b, t, rho) {
+  var s = __xfTubeSectionA(a, b, t);
+  if (!(s > 0)) return 0;
+  return s * (rho || 7.93) / 1000;
+}
+function __xfTubeTotalWeight(a, b, t, rho, lenM) {
+  if (!(lenM > 0)) return 0;
+  return __xfTubeMeterWeight(a, b, t, rho) * lenM;
+}
+function __xfTubeBatchWeight(a, b, t, rho, lenM, qty) {
+  if (!(qty > 0)) return 0;
+  return __xfTubeTotalWeight(a, b, t, rho, lenM) * qty;
+}
+function run() {
+  var a = Number($("a").value), b = Number($("b").value), t = Number($("t").value);
+  var rho = Number($("rho").value) || 7.93;
+  var lenM = Number($("len").value) || 0;
+  var qty = Math.max(1, Math.floor(Number($("qty").value) || 1));
+  var s = __xfTubeSectionA(a, b, t);
+  if (!(s > 0)) {
+    $("tip").textContent = "⚠️ 壁厚需小于边长的一半"; $("res").innerHTML = ""; return null;
+  }
+  var mw = __xfTubeMeterWeight(a, b, t, rho);
+  var one = __xfTubeTotalWeight(a, b, t, rho, lenM);
+  var all = __xfTubeBatchWeight(a, b, t, rho, lenM, qty);
+  $("tip").textContent = "✅ 每米重量 " + __xfRound(mw, 4) + " kg/m";
+  $("res").innerHTML =
+    "<div>截面积：<b>" + __xfRound(s, 2) + "</b> mm²</div>" +
+    "<div style='color:#c0392b;'>每米重量：<b>" + __xfRound(mw, 4) + "</b> kg/m</div>" +
+    "<div>单根 " + lenM + " 米重量：<b>" + __xfRound(one, 3) + "</b> kg</div>" +
+    "<div>" + qty + " 根合计：<b>" + __xfRound(all, 3) + "</b> kg</div>" +
+    "<div style='color:#888;'>规格：" + a + " × " + b + " × " + t + " 毫米，" + (a === b ? "方管" : "矩形管") + "。</div>";
+  return { section: s, meterWeight: mw, perPiece: one, total: all };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>平行四边形面积计算器 - 词海工具箱</title>
+<meta name="description" content="在线平行四边形面积计算器，支持底乘高与两边夹角两种算法，同时输出周长与对角线参考值。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/paraarea.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="paraarea" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>计算方式</label>
+        <select id="mode"><option value="bh">底 × 高</option><option value="angle">两边 + 夹角</option></select>
+      </div>
+      <div class="fitem"><label>底 / 边 a</label><input type="text" id="a" value="6"></div>
+      <div class="fitem"><label>高 / 边 b</label><input type="text" id="b" value="4"></div>
+      <div class="fitem"><label>夹角（度）</label><input type="text" id="deg" value="45"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">平行四边形面积</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于平行四边形面积计算器介绍：</h4>
+    <ol>
+      <li>底 × 高方式下，第二个输入框填写高；两边夹角方式下填写另一条边长。</li>
+      <li>夹角方式面积公式为 S = a·b·sinθ，夹角单位是度。</li>
+      <li>同时给出平行四边形周长 2(a+b)，方便做边框、围挡等计算。</li>
+      <li>底与高必须为正；夹角为 0 或 180 度时面积为 0，属于退化情况。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfParaArea(a, h, dec) {
+  var x = Number(a), y = Number(h);
+  if (!isFinite(x) || !isFinite(y) || x <= 0 || y <= 0) return null;
+  return { a: x, h: y, area: x * y, base: x, other: y, angle: null, text: String(__xfRound(x * y, dec)) };
+}
+function __xfParaAreaByAngle(a, b, deg, dec) {
+  var x = Number(a), y = Number(b), d = Number(deg);
+  if (!isFinite(x) || !isFinite(y) || !isFinite(d) || x <= 0 || y <= 0) return null;
+  var rad = d * Math.PI / 180;
+  var area = x * y * Math.sin(rad);
+  return { a: x, h: y * Math.sin(rad), area: area, base: x, other: y, angle: d, text: String(__xfRound(area, dec)) };
+}
+function __xfParaPerimeter(a, b) { return 2 * (Number(a) + Number(b)); }
+function run() {
+  var mode = $("mode").value, dec = Number($("dec").value) || 0;
+  var o = mode === "bh" ? __xfParaArea($("a").value, $("b").value, dec) : __xfParaAreaByAngle($("a").value, $("b").value, $("deg").value, dec);
+  if (!o) { $("tip").textContent = "⚠️ 请输入大于 0 的数值"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML =
+    "<div>面积 S = <b style='color:#4d8bb8;font-size:16px;'>" + o.text + "</b></div>" +
+    "<div style='color:#888;'>底 a = " + o.base + "　" + (o.angle === null ? "高 h = " + o.other : "邻边 b = " + o.other + "，夹角 " + o.angle + "°，等效高 " + __xfRound(o.h, 6)) + "</div>" +
+    "<div style='color:#888;'>周长 = " + __xfRound(__xfParaPerimeter(o.base, o.other), 6) + "</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

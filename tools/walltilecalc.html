@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>墙砖用量计算器 - 词海工具箱</title>
+<meta name="description" content="在线墙砖用量计算器，按墙面净面积与墙砖规格计算所需片数，支持扣除门窗面积与设置施工损耗率。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/walltilecalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="walltilecalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>墙面长（米）</label><input type="number" id="len" value="5" step="0.01"></div>
+      <div class="fitem"><label>墙面高（米）</label><input type="number" id="hgt" value="2.8" step="0.01"></div>
+      <div class="fitem"><label>门窗面积（㎡）</label><input type="number" id="door" value="2" step="0.01"></div>
+      <div class="fitem"><label>墙砖长边（米）</label><input type="number" id="ta" value="0.3" step="0.01"></div>
+      <div class="fitem"><label>墙砖短边（米）</label><input type="number" id="tb" value="0.6" step="0.01"></div>
+      <div class="fitem"><label>损耗率（%）</label><input type="number" id="loss" value="10" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算用量</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">按墙面净面积估算墙砖片数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于墙砖用量计算器介绍：</h4>
+    <ol>
+      <li>墙面净面积 = 墙长 × 墙高 − 门窗面积，负值按 0 处理。</li>
+      <li>片数 = 墙面净面积 ×（1 + 损耗率）÷ 单片面积，结果向上取整。</li>
+      <li>墙砖开孔切割多、阳角包边多时，损耗率建议取 10% 至 15%。</li>
+      <li>单片面积较小时结果偏差更明显，建议同时用「行×列」法复核一遍。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfWallTileArea(len, h, door) {
+  if (!(len > 0) || !(h > 0)) return 0;
+  var a = len * h - (door || 0);
+  return a > 0 ? a : 0;
+}
+function __xfTileUnit(a, b) {
+  if (!(a > 0) || !(b > 0)) return 0;
+  return a * b;
+}
+function __xfTileCount(area, a, b, loss) {
+  var one = __xfTileUnit(a, b);
+  if (!(area > 0) || !(one > 0)) return 0;
+  return Math.ceil(area * (1 + (loss || 0)) / one - 1e-9);
+}
+function __xfWallTileGrid(len, h, a, b, gap) {
+  var g = gap || 0;
+  var cols = Math.ceil(len / (a + g) - 1e-9);
+  var rows = Math.ceil(h / (b + g) - 1e-9);
+  return cols * rows;
+}
+function run() {
+  var len = Number($("len").value), h = Number($("hgt").value);
+  var door = Number($("door").value) || 0;
+  var a = Number($("ta").value), b = Number($("tb").value);
+  var loss = (Number($("loss").value) || 0) / 100;
+  if (!(len > 0) || !(h > 0) || !(a > 0) || !(b > 0)) {
+    $("tip").textContent = "⚠️ 墙面与墙砖尺寸必须为正数"; $("res").innerHTML = ""; return null;
+  }
+  var area = __xfWallTileArea(len, h, door);
+  var one = __xfTileUnit(a, b);
+  var count = __xfTileCount(area, a, b, loss);
+  var grid = __xfWallTileGrid(len, h, a, b, 0.002);
+  $("tip").textContent = "✅ 共需墙砖 " + count + " 片";
+  $("res").innerHTML =
+    "<div>墙面净面积：<b>" + __xfRound(area, 2) + "</b> ㎡（含高 " + h + " 米，扣门窗 " + door + " ㎡）</div>" +
+    "<div>单片墙砖面积：<b>" + __xfRound(one, 4) + "</b> ㎡</div>" +
+    "<div style='color:#c0392b;'>含 " + __xfRound(loss * 100, 1) + "% 损耗需购买：<b>" + count + "</b> 片</div>" +
+    "<div style='color:#2b7cbf;'>行×列法（含 2 毫米缝）参考：<b>" + grid + "</b> 片</div>" +
+    "<div style='color:#888;'>整面墙铺满面积约 " + __xfRound(len * h, 2) + " ㎡。</div>";
+  return { area: area, count: count, grid: grid };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

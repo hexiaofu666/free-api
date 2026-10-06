@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扇形面积计算器 - 词海工具箱</title>
+<meta name="description" content="在线扇形面积计算器，输入半径与圆心角算出扇形面积与弧长，支持角度制与弧度制切换。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/sectorarea.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="sectorarea" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>半径 r</label><input type="text" id="r" value="6"></div>
+      <div class="fitem"><label>圆心角</label><input type="text" id="deg" value="60"></div>
+      <div class="fitem"><label>角度单位</label>
+        <select id="unit"><option value="deg">角度（度）</option><option value="rad">弧度（rad）</option></select>
+      </div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">扇形面积与弧长</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于扇形面积计算器介绍：</h4>
+    <ol>
+      <li>扇形面积公式 S = πr² × θ/360（角度制），弧长 L = 2πr × θ/360。</li>
+      <li>切换到弧度制时按 S = ½r²θ、L = rθ 计算，结果完全一致。</li>
+      <li>圆心角超过 360 度时按超出部分循环处理，结果仍对应实际扫过的角度。</li>
+      <li>同时给出扇形周长（两条半径加弧长），方便做围栏、扇面等实际计算。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfSector(r, angle, unit, dec) {
+  var rr = Number(r), a = Number(angle);
+  if (!isFinite(rr) || !isFinite(a) || rr < 0) return null;
+  var rad = unit === "rad" ? a : a * Math.PI / 180;
+  var area = 0.5 * rr * rr * rad;
+  var arc = rr * rad;
+  var peri = arc + 2 * rr;
+  return {
+    r: rr, rad: rad, deg: rad * 180 / Math.PI, area: area, arc: arc, peri: peri,
+    text: { area: String(__xfRound(area, dec)), arc: String(__xfRound(arc, dec)), peri: String(__xfRound(peri, dec)), rad: String(__xfRound(rad, 6)), deg: String(__xfRound(rad * 180 / Math.PI, 4)) }
+  };
+}
+function run() {
+  var o = __xfSector($("r").value, $("deg").value, $("unit").value, Number($("dec").value) || 0);
+  if (!o) { $("tip").textContent = "⚠️ 请输入合法的半径与圆心角"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML =
+    "<div>扇形面积 S = <b style='color:#4d8bb8;font-size:16px;'>" + o.text.area + "</b></div>" +
+    "<div>弧长 L = <b style='color:#4d8bb8;'>" + o.text.arc + "</b></div>" +
+    "<div>扇形周长 = " + o.text.peri + "（弧长 + 2r）</div>" +
+    "<div style='color:#888;'>圆心角 " + o.text.deg + "° = " + o.text.rad + " rad</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

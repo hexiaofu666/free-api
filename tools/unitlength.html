@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>长度单位换算 - 词海工具箱</title>
+<meta name="description" content="在线长度单位换算器，米、厘米、毫米、千米、英寸、英尺、码、英里、海里、市制尺寸一次全部换算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/unitlength.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="unitlength" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="1"></div>
+      <div class="fitem"><label>源单位</label><select id="from"></select></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn green" id="runBtn">换算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">公制 / 英制 / 市制 长度换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于长度单位换算介绍：</h4>
+    <ol>
+      <li>以米为基准换算，覆盖公制、英制与中国市制常用长度单位。</li>
+      <li>1 英寸 = 2.54 厘米、1 英尺 = 0.3048 米、1 英里 = 1609.344 米均为国际标准定义。</li>
+      <li>1 海里 = 1852 米，1 市里 = 500 米，1 市尺 = 1/3 米。</li>
+      <li>改变源单位或数值后点击换算即可，结果一次性列出全部单位。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+var LEN = [
+  { k: "mm", n: "毫米", f: 0.001 }, { k: "cm", n: "厘米", f: 0.01 }, { k: "dm", n: "分米", f: 0.1 },
+  { k: "m", n: "米", f: 1 }, { k: "km", n: "千米", f: 1000 },
+  { k: "in", n: "英寸", f: 0.0254 }, { k: "ft", n: "英尺", f: 0.3048 }, { k: "yd", n: "码", f: 0.9144 },
+  { k: "mi", n: "英里", f: 1609.344 }, { k: "nmi", n: "海里", f: 1852 },
+  { k: "cnli", n: "市里", f: 500 }, { k: "cnchi", n: "市尺", f: 1 / 3 }, { k: "cncun", n: "市寸", f: 1 / 30 },
+  { k: "zhang", n: "市丈", f: 10 / 3 }
+];
+function __xfLenUnit(key) { for (var i = 0; i < LEN.length; i++) if (LEN[i].k === key) return LEN[i]; return null; }
+function __xfLenToMeter(v, from) {
+  var u = __xfLenUnit(from);
+  if (!u) return null;
+  var n = Number(v);
+  if (!isFinite(n)) return null;
+  return n * u.f;
+}
+function __xfLenConvert(v, from) {
+  var m = __xfLenToMeter(v, from);
+  if (m === null) return null;
+  var out = {};
+  LEN.forEach(function (u) { out[u.k] = m / u.f; });
+  return out;
+}
+function __xfLenList() { return LEN; }
+function run() {
+  var dec = Number($("dec").value) || 0;
+  var o = __xfLenConvert($("val").value, $("from").value);
+  if (!o) { $("tip").textContent = "⚠️ 请输入合法数值"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = LEN.map(function (u) {
+    return "<div>" + u.n + "（" + u.k + "）：<b style='color:#5a8f7b;'>" + __xfRound(o[u.k], dec) + "</b></div>";
+  }).join("");
+  return o;
+}
+(function init() {
+  var sel = $("from");
+  LEN.forEach(function (u) { var op = document.createElement("option"); op.value = u.k; op.textContent = u.n; sel.appendChild(op); });
+  sel.value = "m";
+})();
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

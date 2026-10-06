@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>百分比计算器 - 词海工具箱</title>
+<meta name="description" content="在线百分比计算器，支持求一个数的百分之几、两数占比、增减幅度与百分点换算等六种常用算法。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/percentcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="percentcalc" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>计算类型</label>
+        <select id="mode">
+          <option value="of">A 的 B% 是多少</option>
+          <option value="is">A 是 B 的百分之几</option>
+          <option value="change">从 A 到 B 变化了百分之几</option>
+          <option value="add">A 增加 B%</option>
+          <option value="sub">A 减少 B%</option>
+        </select>
+      </div>
+      <div class="fitem"><label>数值 A</label><input type="text" id="a" value="200"></div>
+      <div class="fitem"><label>数值 B</label><input type="text" id="b" value="15"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">常用百分比算法一网打尽</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于百分比计算器介绍：</h4>
+    <ol>
+      <li>五种模式覆盖日常最常用的百分比计算场景，切换后点计算即可。</li>
+      <li>「A 的 B% 是多少」即 A × B ÷ 100，是最基础的百分比应用。</li>
+      <li>「变化了百分之几」结果为正值表示增长、负值表示下降。</li>
+      <li>除数或基数不能为 0，否则会给出提示，避免出现无穷大结果。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+function __xfPercentOf(a, b) { return Number(a) * Number(b) / 100; }
+function __xfPercentIs(a, b) { return Number(b) === 0 ? null : Number(a) / Number(b) * 100; }
+function __xfPercentChange(from, to) { return Number(from) === 0 ? null : (Number(to) - Number(from)) / Math.abs(Number(from)) * 100; }
+function __xfPercentAdd(a, b) { return Number(a) * (1 + Number(b) / 100); }
+function __xfPercentSub(a, b) { return Number(a) * (1 - Number(b) / 100); }
+function __xfPercentPoints(a, b) { return Number(b) - Number(a); }
+function run() {
+  var mode = $("mode").value, a = Number($("a").value), b = Number($("b").value), dec = Number($("dec").value) || 0;
+  if (!isFinite(a) || !isFinite(b)) { $("tip").textContent = "⚠️ 请输入数值"; $("res").innerHTML = ""; return; }
+  var r, desc;
+  if (mode === "of") { r = __xfPercentOf(a, b); desc = a + " 的 " + b + "% = " + __xfRound(r, dec); }
+  else if (mode === "is") {
+    r = __xfPercentIs(a, b);
+    desc = r === null ? "基数 B 不能为 0" : a + " 占 " + b + " 的 " + __xfRound(r, dec) + "%";
+  } else if (mode === "change") {
+    r = __xfPercentChange(a, b);
+    desc = r === null ? "起始值 A 不能为 0" : "从 " + a + " 到 " + b + " " + (r >= 0 ? "增长" : "下降") + " " + __xfRound(Math.abs(r), dec) + "%";
+  } else if (mode === "add") { r = __xfPercentAdd(a, b); desc = a + " 增加 " + b + "% = " + __xfRound(r, dec); }
+  else { r = __xfPercentSub(a, b); desc = a + " 减少 " + b + "% = " + __xfRound(r, dec); }
+  $("tip").textContent = r === null ? "⚠️ 参数不合法" : "✅ 计算完成";
+  $("res").innerHTML = "<div><b style='color:#4d8bb8;font-size:16px;'>" + desc + "</b></div>" +
+    "<div style='color:#888;'>百分点差：" + __xfRound(__xfPercentPoints(a, b), dec) + "　倍数关系：" + __xfRound(a / b, dec) + "</div>";
+  return r;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

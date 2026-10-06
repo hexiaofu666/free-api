@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCC校验在线计算 - 词海工具箱</title>
+<meta name="description" content="在线 BCC 异或校验计算器，对文本或十六进制字节串计算异或校验值，支持逐字节输出过程。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/bcccheck.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="bcccheck" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输入方式</label>
+        <select id="mode"><option value="text">文本（按 UTF-8 字节）</option><option value="hex">十六进制字节串</option></select>
+      </div>
+      <div class="fitem"><label>数据</label><input type="text" id="src" value="Hello"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算 BCC</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">BCC = 所有字节逐位异或</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;font-family:Consolas,monospace;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于BCC校验在线计算介绍：</h4>
+    <ol>
+      <li>BCC（Block Check Character）即异或校验，把所有字节依次异或得到一个校验字节。</li>
+      <li>文本模式按 UTF-8 编码取字节，中文一个字通常占 3 字节。</li>
+      <li>十六进制模式可输入空格或逗号分隔的字节，如 01 03 00 00。</li>
+      <li>结果同时给出十进制与十六进制，并展示逐步异或过程便于核对。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfUtf8Bytes(str) {
+  var out = [], s = String(str);
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charCodeAt(i);
+    if (c < 0x80) out.push(c);
+    else if (c < 0x800) { out.push(0xc0 | (c >> 6), 0x80 | (c & 63)); }
+    else if (c >= 0xd800 && c <= 0xdbff && i + 1 < s.length) {
+      var c2 = s.charCodeAt(++i);
+      var cp = 0x10000 + ((c - 0xd800) << 10) + (c2 - 0xdc00);
+      out.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 63), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63));
+    } else { out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63)); }
+  }
+  return out;
+}
+function __xfParseHexBytes(text) {
+  var t = String(text).replace(/[^0-9a-fA-F]/g, " ");
+  var parts = t.split(/\s+/).filter(function (x) { return x !== ""; });
+  var out = [];
+  for (var i = 0; i < parts.length; i++) {
+    var p = parts[i];
+    if (p.length > 2) return null;
+    out.push(parseInt(p, 16));
+  }
+  return out;
+}
+function __xfBcc(bytes) {
+  if (!bytes || !bytes.length) return null;
+  var v = 0, steps = [];
+  for (var i = 0; i < bytes.length; i++) { v = v ^ (bytes[i] & 0xff); steps.push(v); }
+  return { bcc: v, hex: __xfHex2(v), steps: steps };
+}
+function __xfHex2(n) { var s = (n & 0xff).toString(16).toUpperCase(); return s.length < 2 ? "0" + s : s; }
+function run() {
+  var mode = $("mode").value, raw = $("src").value;
+  var bytes = mode === "text" ? __xfUtf8Bytes(raw) : __xfParseHexBytes(raw);
+  if (!bytes || !bytes.length) { $("tip").textContent = "⚠️ 数据为空或十六进制格式不合法"; $("res").innerHTML = ""; return; }
+  var o = __xfBcc(bytes);
+  $("tip").textContent = "✅ 共 " + bytes.length + " 字节";
+  $("res").innerHTML = "<div>BCC（十六进制）= <b style='color:#607d8b;font-size:16px;'>" + o.hex + "</b></div>" +
+    "<div>BCC（十进制）= " + o.bcc + "　二进制 = " + o.bcc.toString(2).padStart(8, "0") + "</div>" +
+    "<div style='color:#888;'>字节序列：" + bytes.map(__xfHex2).join(" ") + "</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

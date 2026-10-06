@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>平方根计算器 - 词海工具箱</title>
+<meta name="description" content="在线平方根计算器，给出算术平方根近似值、是否完全平方数，并把根号内可开方因子提到根号外化简。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/sqrtcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="sqrtcalc" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>被开方数</label><input type="text" id="src" placeholder="支持多个非负数，逗号分隔" value="2, 144, 200"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入非负数求平方根</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于平方根计算器介绍：</h4>
+    <ol>
+      <li>支持批量计算与自定义小数位，输入负数会给出无实数解提示。</li>
+      <li>完全平方数会明确标注，例如 144 是 12 的平方。</li>
+      <li>同时给出根式化简结果，如 √200 = 10√2，方便代数运算核对。</li>
+      <li>显示值为四舍五入结果，内部按双精度计算，精度约 15 位有效数字。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+function __xfSqrt(x, dec) {
+  var v = Number(x);
+  if (!isFinite(v) || v < 0) return null;
+  return { value: Math.sqrt(v), text: String(__xfRound(Math.sqrt(v), dec === undefined ? 6 : dec)) };
+}
+function __xfIsPerfectSquare(x) {
+  var v = Number(x);
+  if (!isFinite(v) || v < 0) return false;
+  var r = Math.round(Math.sqrt(v));
+  return r * r === v;
+}
+function __xfSqrtSimplify(x) {
+  var v = Math.floor(Number(x));
+  if (!isFinite(v) || v < 0) return null;
+  if (v === 0) return { out: 0, in: 0, text: "0" };
+  var out = 1, inner = v, d = 2;
+  while (d * d <= inner) {
+    var k = 0;
+    while (inner % d === 0) { inner /= d; k++; }
+    out *= Math.pow(d, Math.floor(k / 2));
+    if (k % 2 === 1) inner *= d;
+    d += (d === 2 ? 1 : 2);
+  }
+  return { out: out, in: inner, text: inner === 1 ? String(out) : (out === 1 ? "√" + inner : out + "√" + inner) };
+}
+function run() {
+  var parts = String($("src").value).split(/[^0-9.]+/).filter(function (s) { return s !== "" && s !== "."; });
+  if (!parts.length) { $("tip").textContent = "⚠️ 请输入非负数"; $("res").innerHTML = ""; return; }
+  var dec = Number($("dec").value) || 0, out = [];
+  $("tip").textContent = "✅ 共计算 " + parts.length + " 个数值";
+  $("res").innerHTML = parts.map(function (s) {
+    var v = Number(s);
+    var r = __xfSqrt(v, dec);
+    if (!r) return "<div style='color:#c00;'>√" + v + " 在实数范围内无意义（被开方数为负）</div>";
+    var pf = __xfIsPerfectSquare(v), sm = __xfSqrtSimplify(v);
+    out.push(r);
+    return "<div>√<b>" + v + "</b> ≈ <b style='color:#4d8bb8;'>" + r.text + "</b>　<span style='color:#888;'>" +
+      (pf ? "完全平方数（= " + Math.round(Math.sqrt(v)) + "²）" : "非完全平方数") +
+      "，化简 " + (sm ? "√" + v + " = " + sm.text : "-") + "</span></div>";
+  }).join("");
+  return out;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").innerHTML = ""; $("tip").textContent = "输入非负数求平方根"; };
+run();
+</script>
+</body>
+</html>

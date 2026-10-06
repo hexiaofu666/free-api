@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>狗狗年龄计算器 - 词海工具箱</title>
+<meta name="description" content="在线狗狗年龄计算器，按小型犬中型犬大型犬不同衰老速率换算狗狗年龄对应的人类年龄，并给出生命阶段判断。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/dogagecalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="dogagecalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>狗狗年龄（岁，可含小数）</label><input type="number" id="y" value="3" step="0.1"></div>
+      <div class="fitem"><label>体型（1 小型 2 中型 3 大型）</label><input type="number" id="type" value="2" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">换算年龄</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">狗狗第 1 年约等于人类 15 岁，第 2 年再增 9 岁</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于狗狗年龄计算器介绍：</h4>
+    <ol>
+      <li>换算口径为第 1 年等于人类 15 岁，第 2 年累计 24 岁，之后按体型每年增加 4 至 6 岁。</li>
+      <li>体型越小越长寿，小型犬之后每年约增 4 岁，中型犬约 5 岁，大型犬约 6 岁。</li>
+      <li>生命阶段参考：1 岁前为幼犬，1 至 7 岁为成犬，8 岁以上进入老年期。</li>
+      <li>本结果为通用估算，实际寿命受品种遗传、体重管理与医疗条件影响。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfDogRate(type) {
+  if (type === 1 || type === "small" || type === "小型犬") return 4;
+  if (type === 3 || type === "large" || type === "大型犬") return 6;
+  return 5;
+}
+function __xfDogAge(y, perYear) {
+  var p = perYear > 0 ? perYear : 5;
+  if (!(y > 0)) return 0;
+  if (y <= 1) return 15 * y;
+  if (y <= 2) return 15 + 9 * (y - 1);
+  return 24 + (y - 2) * p;
+}
+function __xfDogStage(y) {
+  if (!(y > 0)) return "未知";
+  if (y < 1) return "幼犬";
+  if (y <= 7) return "成犬";
+  return "老年犬";
+}
+function run() {
+  var y = Number($("y").value);
+  var type = Number($("type").value) || 2;
+  if (!(y > 0)) { $("tip").textContent = "⚠️ 狗狗年龄需为正数"; $("res").innerHTML = ""; return null; }
+  var rate = __xfDogRate(type), human = __xfDogAge(y, rate);
+  var label = type === 1 ? "小型犬" : (type === 3 ? "大型犬" : "中型犬");
+  $("tip").textContent = "✅ 约等于人类 " + __xfRound(human, 1) + " 岁";
+  $("res").innerHTML =
+    "<div>狗狗年龄：<b>" + y + "</b> 岁（" + label + "，每年递增 " + rate + " 人岁）</div>" +
+    "<div style='color:#c0392b;'>折合人类年龄：<b>" + __xfRound(human, 1) + "</b> 岁</div>" +
+    "<div>生命阶段：<b>" + __xfDogStage(y) + "</b></div>" +
+    "<div style='color:#888;'>换算过程：" + (y <= 1 ? "第 1 年按 15 岁等比折算" : (y <= 2 ? "15 + 9 × (年龄 − 1)" : "24 + (年龄 − 2) × " + rate)) + "。</div>";
+  return { human: human, stage: __xfDogStage(y), rate: rate };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圆形周长计算器 - 词海工具箱</title>
+<meta name="description" content="在线圆的周长计算器，输入半径或直径算出圆周长，同时给出面积、弧长换算与不同小数位结果。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/circlesperi.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="circlesperi" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>已知量</label>
+        <select id="mode"><option value="r">半径 r</option><option value="d">直径 d</option></select>
+      </div>
+      <div class="fitem"><label>数值</label><input type="text" id="src" value="5"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button><button class="fbtn brown" id="tabBtn">周长对照表</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">圆周长 C = 2πr</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于圆形周长计算器介绍：</h4>
+    <ol>
+      <li>圆周长公式 C = 2πr = πd，切换半径或直径输入都能直接计算。</li>
+      <li>结果同时给出一倍半径、两倍半径的周长，便于快速估算。</li>
+      <li>周长对照表会列出半径 1 到 10 的圆周长，方便查表核对。</li>
+      <li>若要做单位换算，得到的数值默认为输入数值所对应的单位。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfCircumference(r) { var x = Number(r); return 2 * Math.PI * x; }
+function __xfCircumferenceText(r, dec) { return String(__xfRound(__xfCircumference(r), dec)); }
+function __xfCircleByMode(mode, v, dec) {
+  var n = Number(v);
+  if (!isFinite(n) || n < 0) return null;
+  var r = mode === "d" ? n / 2 : n;
+  return { r: r, c: __xfCircumference(r), area: Math.PI * r * r, text: __xfCircumferenceText(r, dec) };
+}
+function __xfCircTable(maxR, dec) {
+  var out = [];
+  for (var r = 1; r <= maxR; r++) out.push({ r: r, c: __xfCircumference(r), text: __xfCircumferenceText(r, dec) });
+  return out;
+}
+function run() {
+  var o = __xfCircleByMode($("mode").value, $("src").value, Number($("dec").value) || 0);
+  if (!o) { $("tip").textContent = "⚠️ 请输入非负数"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>周长 C = <b style='color:#4d8bb8;font-size:16px;'>" + o.text + "</b></div>" +
+    "<div style='color:#888;'>半径 r = " + __xfRound(o.r, 6) + "　面积 S = " + __xfRound(o.area, 6) + "</div>" +
+    "<div style='color:#888;'>精确周长：" + o.c + "</div>";
+  return o;
+}
+function runTab() {
+  var list = __xfCircTable(10, Number($("dec").value) || 0);
+  $("tip").textContent = "✅ 半径 1~10 圆周长对照";
+  $("res").innerHTML = list.map(function (x) { return "<div>r = " + x.r + " → C = " + x.text + "</div>"; }).join("");
+  return list;
+}
+$("runBtn").onclick = run;
+$("tabBtn").onclick = runTab;
+run();
+</script>
+</body>
+</html>

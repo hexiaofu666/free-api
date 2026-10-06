@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分数计算器 - 词海工具箱</title>
+<meta name="description" content="在线分数计算器，支持两个分数加减乘除并自动约分，同时给出小数结果与带分数形式。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/fractioncalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="fractioncalc" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>分数 A（分子/分母）</label><input type="text" id="a" value="1/2"></div>
+      <div class="fitem"><label>运算符</label>
+        <select id="op"><option value="+">加 +</option><option value="-">减 -</option><option value="*">乘 ×</option><option value="/">除 ÷</option></select>
+      </div>
+      <div class="fitem"><label>分数 B（分子/分母）</label><input type="text" id="b" value="1/3"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">分数四则运算，结果自动约分</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于分数计算器介绍：</h4>
+    <ol>
+      <li>输入格式为「分子/分母」，也可直接输入整数（视为分母为 1）。</li>
+      <li>结果自动约分到最简分数，并给出带分数与小数形式。</li>
+      <li>除法遇到除数为 0 时会给出提示，不会输出错误结果。</li>
+      <li>负号写在分子前即可，例如 -3/4 表示负四分之三。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfGcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a || 1; }
+function __xfReduce(n, d) {
+  if (d === 0) return null;
+  if (d < 0) { n = -n; d = -d; }
+  var g = __xfGcd(n, d);
+  return { n: n / g, d: d / g };
+}
+function __xfParseFraction(text) {
+  var s = String(text).trim();
+  var m = s.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+  if (m) {
+    var n = Number(m[1]), d = Number(m[2]);
+    if (d === 0) return null;
+    return __xfReduce(n, d);
+  }
+  if (/^-?\d+$/.test(s)) return __xfReduce(Number(s), 1);
+  return null;
+}
+function __xfFracAdd(x, y) { return __xfReduce(x.n * y.d + y.n * x.d, x.d * y.d); }
+function __xfFracSub(x, y) { return __xfReduce(x.n * y.d - y.n * x.d, x.d * y.d); }
+function __xfFracMul(x, y) { return __xfReduce(x.n * y.n, x.d * y.d); }
+function __xfFracDiv(x, y) { if (!y.n) return null; return __xfReduce(x.n * y.d, x.d * y.n); }
+function __xfFracText(f) { return f.d === 1 ? String(f.n) : f.n + "/" + f.d; }
+function __xfFracToDecimal(f, dec) {
+  var p = Math.pow(10, dec === undefined ? 6 : dec);
+  return Math.round(f.n / f.d * p) / p;
+}
+function __xfFracToMixed(f) {
+  if (f.d === 1 || Math.abs(f.n) < f.d) return null;
+  var sign = f.n < 0 ? "-" : "", a = Math.abs(f.n);
+  var whole = Math.floor(a / f.d), rest = a % f.d;
+  return { whole: whole, n: rest, d: f.d, text: sign + whole + " " + rest + "/" + f.d };
+}
+function run() {
+  var x = __xfParseFraction($("a").value), y = __xfParseFraction($("b").value);
+  if (!x || !y) { $("tip").textContent = "⚠️ 请输入「分子/分母」形式的分数"; $("res").innerHTML = ""; return; }
+  var op = $("op").value;
+  var r = op === "+" ? __xfFracAdd(x, y) : op === "-" ? __xfFracSub(x, y) : op === "*" ? __xfFracMul(x, y) : __xfFracDiv(x, y);
+  if (!r) { $("tip").textContent = "⚠️ 除数不能为 0"; $("res").innerHTML = ""; return; }
+  var names = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+  var mixed = __xfFracToMixed(r);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML =
+    "<div>" + __xfFracText(x) + " " + names[op] + " " + __xfFracText(y) + " = <b style='color:#4d8bb8;font-size:16px;'>" + __xfFracText(r) + "</b></div>" +
+    "<div>小数形式：" + __xfFracToDecimal(r, 6) + "</div>" +
+    (mixed ? "<div style='color:#888;'>带分数：" + mixed.text + "</div>" : "") +
+    "<div style='color:#888;'>原始结果未约分前为 " + (op === "+" ? (x.n * y.d + y.n * x.d) : op === "-" ? (x.n * y.d - y.n * x.d) : op === "*" ? (x.n * y.n) : (x.n * y.d) ) + "/" + (op === "/" ? (x.d * y.n) : (x.d * y.d)) + "，已约分</div>";
+  return r;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

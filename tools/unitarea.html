@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面积单位换算 - 词海工具箱</title>
+<meta name="description" content="在线面积单位换算器，平方米、平方公里、公顷、亩、平方英尺、英亩等面积单位一次性互相换算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/unitarea.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="unitarea" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="1"></div>
+      <div class="fitem"><label>源单位</label><select id="from"></select></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn green" id="runBtn">换算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">以平方米为基准换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于面积单位换算介绍：</h4>
+    <ol>
+      <li>以平方米为基准，覆盖公制、英制与中国市制常用面积单位。</li>
+      <li>1 公顷 = 10000 平方米，1 亩 = 2000/3 平方米 ≈ 666.67 平方米。</li>
+      <li>1 平方英尺 = 0.09290304 平方米，1 英亩 = 4046.8564224 平方米。</li>
+      <li>土地面积换算时注意亩与平方米的换算并非整数，建议保留 2 位以上小数。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+var AREA = [
+  { k: "mm2", n: "平方毫米", f: 1e-6 }, { k: "cm2", n: "平方厘米", f: 1e-4 }, { k: "dm2", n: "平方分米", f: 0.01 },
+  { k: "m2", n: "平方米", f: 1 }, { k: "km2", n: "平方千米", f: 1e6 },
+  { k: "ha", n: "公顷", f: 10000 }, { k: "mu", n: "亩", f: 2000 / 3 },
+  { k: "in2", n: "平方英寸", f: 0.00064516 }, { k: "ft2", n: "平方英尺", f: 0.09290304 },
+  { k: "yd2", n: "平方码", f: 0.83612736 }, { k: "acre", n: "英亩", f: 4046.8564224 },
+  { k: "cnzhang2", n: "平方市丈", f: 100 / 9 }, { k: "cnchi2", n: "平方市尺", f: 1 / 9 }
+];
+function __xfAreaUnit(key) { for (var i = 0; i < AREA.length; i++) if (AREA[i].k === key) return AREA[i]; return null; }
+function __xfAreaConvert(v, from) {
+  var u = __xfAreaUnit(from), n = Number(v);
+  if (!u || !isFinite(n)) return null;
+  var base = n * u.f, out = {};
+  AREA.forEach(function (x) { out[x.k] = base / x.f; });
+  return out;
+}
+function __xfAreaList() { return AREA; }
+function run() {
+  var dec = Number($("dec").value) || 0;
+  var o = __xfAreaConvert($("val").value, $("from").value);
+  if (!o) { $("tip").textContent = "⚠️ 请输入合法数值"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = AREA.map(function (u) {
+    return "<div>" + u.n + "：" + __xfRound(o[u.k], dec) + "</div>";
+  }).join("");
+  return o;
+}
+(function init() {
+  var sel = $("from");
+  AREA.forEach(function (u) { var op = document.createElement("option"); op.value = u.k; op.textContent = u.n; sel.appendChild(op); });
+  sel.value = "m2";
+})();
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

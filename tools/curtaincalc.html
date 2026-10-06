@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>窗帘用量计算器 - 词海工具箱</title>
+<meta name="description" content="在线窗帘用量计算器，按窗宽与褶皱倍数计算成品帘宽、帘高、布料面积与罗马杆轨道长度。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/curtaincalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="curtaincalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>窗户宽（米）</label><input type="number" id="ww" value="2" step="0.01"></div>
+      <div class="fitem"><label>窗户高（米）</label><input type="number" id="wh" value="1.8" step="0.01"></div>
+      <div class="fitem"><label>褶皱倍数</label><input type="number" id="fold" value="2" step="0.1"></div>
+      <div class="fitem"><label>上下包边合计（米）</label><input type="number" id="hem" value="0.3" step="0.01"></div>
+      <div class="fitem"><label>轨道两侧出头（米）</label><input type="number" id="side" value="0.1" step="0.01"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算用量</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">按窗宽乘褶皱倍数计算布料</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于窗帘用量计算器介绍：</h4>
+    <ol>
+      <li>成品帘宽 = 窗宽 × 褶皱倍数，褶皱倍数越大越蓬松，家用常见 1.8 至 2.5 倍。</li>
+      <li>帘高 = 窗高 + 上下包边，落地帘请把窗高换成「墙面到地面高度」再扣减离地距离。</li>
+      <li>布料面积按成品帘宽乘帘高估算，用于核对面料幅宽是否够裁。</li>
+      <li>罗马杆或轨道长度 = 窗宽 + 两侧出头，两侧各留 10 至 20 厘米可避免漏光。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfCurtainWidth(winW, fold) {
+  if (!(winW > 0) || !(fold > 0)) return 0;
+  return winW * fold;
+}
+function __xfCurtainHeight(winH, hem) {
+  if (!(winH > 0)) return 0;
+  return winH + (hem || 0);
+}
+function __xfCurtainArea(winW, winH, fold, hem) {
+  return __xfCurtainWidth(winW, fold) * __xfCurtainHeight(winH, hem);
+}
+function __xfCurtainRod(winW, side) {
+  if (!(winW > 0)) return 0;
+  return winW + 2 * (side || 0);
+}
+function __xfCurtainHooks(winW, fold, per) {
+  if (!(winW > 0) || !(fold > 0)) return 0;
+  var step = per > 0 ? per : 0.15;
+  return Math.ceil((winW * fold) / step);
+}
+function run() {
+  var ww = Number($("ww").value), wh = Number($("wh").value);
+  var fold = Number($("fold").value), hem = Number($("hem").value) || 0, side = Number($("side").value) || 0;
+  if (!(ww > 0) || !(wh > 0) || !(fold > 0)) {
+    $("tip").textContent = "⚠️ 窗户宽高与褶皱倍数必须为正数"; $("res").innerHTML = ""; return null;
+  }
+  var cw = __xfCurtainWidth(ww, fold), ch = __xfCurtainHeight(wh, hem);
+  var area = __xfCurtainArea(ww, wh, fold, hem), rod = __xfCurtainRod(ww, side);
+  var hooks = __xfCurtainHooks(ww, fold, 0.15);
+  $("tip").textContent = "✅ 成品帘宽约 " + __xfRound(cw, 2) + " 米";
+  $("res").innerHTML =
+    "<div>成品帘宽：<b>" + __xfRound(cw, 2) + "</b> 米（窗宽 " + ww + " × 褶皱 " + fold + "）</div>" +
+    "<div>帘高：<b>" + __xfRound(ch, 2) + "</b> 米（窗高 " + wh + " + 包边 " + hem + "）</div>" +
+    "<div style='color:#c0392b;'>布料面积：<b>" + __xfRound(area, 2) + "</b> ㎡</div>" +
+    "<div>罗马杆/轨道长度：<b>" + __xfRound(rod, 2) + "</b> 米</div>" +
+    "<div style='color:#888;'>按 15 厘米间距估算挂钩或布带环数量约 " + hooks + " 个。</div>";
+  return { width: cw, height: ch, area: area, rod: rod };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

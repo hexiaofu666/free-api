@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电视观看距离计算器 - 词海工具箱</title>
+<meta name="description" content="在线电视观看距离计算器，按屏幕尺寸与分辨率换算电视高度宽度及推荐观看距离，覆盖 720P 到 4K 三种清晰度。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/tvdistcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="tvdistcalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>屏幕尺寸（英寸，对角线）</label><input type="number" id="diag" value="55" step="0.5"></div>
+      <div class="fitem"><label>分辨率（1 标清 2 1080P 3 4K）</label><input type="number" id="res" value="3" step="1"></div>
+      <div class="fitem"><label>客厅实际距离（米，可留空）</label><input type="number" id="room" value="" step="0.1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算距离</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">屏幕高度 × 倍数为推荐观看距离</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于电视观看距离计算器介绍：</h4>
+    <ol>
+      <li>16:9 屏幕高度等于对角线乘 2.54 再乘 9 除以 18.358，宽度按 16 份比例计算。</li>
+      <li>推荐距离等于屏幕高度乘以倍数：4K 约 1.5 倍，1080P 约 3 倍，720P 约 4.5 倍。</li>
+      <li>清晰度越低需要坐得越远，否则画面颗粒感与噪点会非常明显。</li>
+      <li>填写客厅实际距离可反向推荐合适尺寸，避免买得过大造成压迫感。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+var __xfD16 = Math.sqrt(16 * 16 + 9 * 9);
+function __xfTvHeight(diag) {
+  if (!(diag > 0)) return 0;
+  return diag * 2.54 * 9 / __xfD16;
+}
+function __xfTvWidth(diag) {
+  if (!(diag > 0)) return 0;
+  return diag * 2.54 * 16 / __xfD16;
+}
+function __xfTvFactor(res) {
+  if (res === 1 || res === "720" || res === "720p") return 4.5;
+  if (res === 2 || res === "1080" || res === "1080p") return 3;
+  return 1.5;
+}
+function __xfTvDistance(diag, factor) {
+  return __xfTvHeight(diag) * (factor > 0 ? factor : 1.5) / 100;
+}
+function __xfTvDistanceByRes(diag, res) {
+  return __xfTvDistance(diag, __xfTvFactor(res));
+}
+function __xfTvSizeFor(distM, res) {
+  if (!(distM > 0)) return 0;
+  var f = __xfTvFactor(res);
+  var h = distM * 100 / f;
+  return h * __xfD16 / (9 * 2.54);
+}
+function run() {
+  var diag = Number($("diag").value), res = Number($("res").value) || 3;
+  var room = $("room").value === "" ? 0 : Number($("room").value);
+  if (!(diag > 0)) { $("tip").textContent = "⚠️ 屏幕尺寸需为正数"; $("res").innerHTML = ""; return null; }
+  var h = __xfTvHeight(diag), w = __xfTvWidth(diag);
+  var dist = __xfTvDistanceByRes(diag, res);
+  var f = __xfTvFactor(res);
+  var label = res === 1 ? "720P 标清" : (res === 2 ? "1080P 全高清" : "4K 超高清");
+  var line = room > 0 ? ("<div style='color:#2b7cbf;'>按客厅 " + room + " 米反推，适合 " + label + " 的最大尺寸约 <b>" +
+    __xfRound(__xfTvSizeFor(room, res), 1) + "</b> 英寸</div>") : "";
+  $("tip").textContent = "✅ " + label + " 推荐观看距离约 " + __xfRound(dist, 2) + " 米";
+  $("res").innerHTML =
+    "<div>屏幕尺寸：<b>" + diag + "</b> 英寸（16:9）</div>" +
+    "<div>屏幕宽 × 高：<b>" + __xfRound(w, 1) + " × " + __xfRound(h, 1) + "</b> 厘米</div>" +
+    "<div style='color:#c0392b;'>推荐观看距离：<b>" + __xfRound(dist, 2) + "</b> 米（屏幕高度 × " + f + "）</div>" +
+    line +
+    "<div style='color:#888;'>距离过近易疲劳，过远则看不清 4K 细节，建议在推荐值正负 15% 范围内。</div>";
+  return { height: h, width: w, distance: dist };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

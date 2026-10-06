@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>退休时间计算器 - 词海工具箱</title>
+<meta name="description" content="在线退休时间计算器，按出生年月与身份类别推算法定退休年月，并计算距退休还有多少个月与工作日参考值。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/retirecalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="retirecalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>出生年份</label><input type="number" id="by" value="1990" step="1"></div>
+      <div class="fitem"><label>出生月份</label><input type="number" id="bm" value="6" step="1"></div>
+      <div class="fitem"><label>身份（1 男职工 2 女干部 3 女工人）</label><input type="number" id="role" value="1" step="1"></div>
+      <div class="fitem"><label>当前年份</label><input type="number" id="ny" value="2026" step="1"></div>
+      <div class="fitem"><label>当前月份</label><input type="number" id="nm" value="10" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算退休时间</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">按现行法定退休年龄 男 60 女干部 55 女工人 50</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于退休时间计算器介绍：</h4>
+    <ol>
+      <li>现行法定退休年龄口径为男职工 60 周岁，女干部 55 周岁，女工人 50 周岁。</li>
+      <li>退休年月按出生年月加退休年龄计算，即退休月份与出生月份相同。</li>
+      <li>距退休月数等于退休年月与当前年月的月份差，已过退休时间会显示负数。</li>
+      <li>延迟退休政策正在分步实施，实际退休时间请以人社部门最新规定为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfRetireAge(role) {
+  if (role === 2) return 55;
+  if (role === 3) return 50;
+  return 60;
+}
+function __xfRetireYear(birthYear, role) {
+  if (!(birthYear > 1900)) return 0;
+  return birthYear + __xfRetireAge(role);
+}
+function __xfRetireMonthsLeft(birthYear, birthMonth, role, nowYear, nowMonth) {
+  var age = __xfRetireAge(role);
+  var target = (birthYear + age) * 12 + (birthMonth - 1);
+  var now = nowYear * 12 + (nowMonth - 1);
+  return target - now;
+}
+function __xfRetireWorkdays(months) {
+  if (!(months > 0)) return 0;
+  return Math.round(months * 21.75);
+}
+function __xfRetireAgeLabel(role) {
+  if (role === 2) return "女干部 55 周岁";
+  if (role === 3) return "女工人 50 周岁";
+  return "男职工 60 周岁";
+}
+function run() {
+  var by = Number($("by").value), bm = Math.floor(Number($("bm").value) || 1);
+  var role = Number($("role").value) || 1;
+  var ny = Number($("ny").value), nm = Math.floor(Number($("nm").value) || 1);
+  if (!(by > 1900) || bm < 1 || bm > 12) {
+    $("tip").textContent = "⚠️ 请填写合法的出生年份与月份"; $("res").innerHTML = ""; return null;
+  }
+  var age = __xfRetireAge(role);
+  var ry = __xfRetireYear(by, role);
+  var left = __xfRetireMonthsLeft(by, bm, role, ny, nm);
+  var years = Math.floor(Math.abs(left) / 12), months = Math.abs(left) % 12;
+  var wd = __xfRetireWorkdays(left);
+  $("tip").textContent = left > 0
+    ? ("✅ 距退休还有 " + years + " 年 " + months + " 个月")
+    : (left === 0 ? "✅ 本月即为退休月" : "✅ 已过退休时间 " + years + " 年 " + months + " 个月");
+  $("res").innerHTML =
+    "<div>出生年月：<b>" + by + " 年 " + bm + " 月</b></div>" +
+    "<div>身份类别：<b>" + __xfRetireAgeLabel(role) + "</b></div>" +
+    "<div style='color:#c0392b;'>预计退休时间：<b>" + ry + " 年 " + bm + " 月</b></div>" +
+    "<div>距退休：<b>" + (left >= 0 ? "" : "已过 ") + years + " 年 " + months + " 个月</b>（" + left + " 个月）</div>" +
+    "<div style='color:#888;'>按每月 21.75 个工作日估算，约还有 " + wd + " 个工作日。</div>";
+  return { retireYear: ry, monthsLeft: left, workdays: wd };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>吸烟成本计算器 - 词海工具箱</title>
+<meta name="description" content="在线吸烟成本计算器，按每日包数单价与烟龄计算日支出年支出累计花费，并折算成理财复利下的机会成本。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/smokecalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="smokecalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>每天吸烟（包）</label><input type="number" id="packs" value="1" step="0.1"></div>
+      <div class="fitem"><label>每包价格（元）</label><input type="number" id="price" value="20" step="0.5"></div>
+      <div class="fitem"><label>烟龄（年）</label><input type="number" id="years" value="10" step="1"></div>
+      <div class="fitem"><label>年化理财收益率（%）</label><input type="number" id="rate" value="3" step="0.5"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算成本</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">每日支出、年支出与烟龄累计花费</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于吸烟成本计算器介绍：</h4>
+    <ol>
+      <li>每日支出等于每天包数乘每包价格，年支出按 365 天折算。</li>
+      <li>累计花费等于年支出乘烟龄，同时统计累计吸食的支数。</li>
+      <li>机会成本按每年把烟钱投入年化收益率的复利终值计算，采用年金终值公式。</li>
+      <li>收益率填 0 时机会成本退化为累计本金，便于直观对比。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfSmokeDaily(packs, price) {
+  if (!(packs > 0) || !(price > 0)) return 0;
+  return packs * price;
+}
+function __xfSmokeYear(packs, price) {
+  if (!(packs > 0) || !(price > 0)) return 0;
+  return packs * price * 365;
+}
+function __xfSmokeTotal(packs, price, years) {
+  if (!(years > 0)) return 0;
+  return __xfSmokeYear(packs, price) * years;
+}
+function __xfSmokeFuture(yearCost, years, rate) {
+  if (!(yearCost > 0) || !(years > 0)) return 0;
+  var r = rate || 0;
+  if (r === 0) return yearCost * years;
+  return yearCost * (Math.pow(1 + r, years) - 1) / r;
+}
+function __xfSmokeCigs(packs, years) {
+  if (!(packs > 0) || !(years > 0)) return 0;
+  return Math.round(packs * 20 * 365 * years);
+}
+function run() {
+  var packs = Number($("packs").value), price = Number($("price").value);
+  var years = Number($("years").value);
+  var rate = (Number($("rate").value) || 0) / 100;
+  if (!(packs > 0) || !(price > 0)) {
+    $("tip").textContent = "⚠️ 每日包数与每包价格需为正数"; $("res").innerHTML = ""; return null;
+  }
+  var daily = __xfSmokeDaily(packs, price);
+  var year = __xfSmokeYear(packs, price);
+  var total = __xfSmokeTotal(packs, price, years);
+  var fv = __xfSmokeFuture(year, years, rate);
+  var cigs = __xfSmokeCigs(packs, years);
+  $("tip").textContent = "✅ " + years + " 年累计花费 " + __xfRound(total, 2) + " 元";
+  $("res").innerHTML =
+    "<div>每日支出：<b>" + __xfRound(daily, 2) + "</b> 元</div>" +
+    "<div>每年支出：<b>" + __xfRound(year, 2) + "</b> 元</div>" +
+    "<div style='color:#c0392b;'>" + years + " 年累计支出：<b>" + __xfRound(total, 2) + "</b> 元</div>" +
+    "<div>累计吸食：<b>" + cigs + "</b> 支</div>" +
+    "<div style='color:#2b7cbf;'>若投入年化 " + __xfRound(rate * 100, 1) + "% 的理财，" + years + " 年后约 <b>" +
+    __xfRound(fv, 2) + "</b> 元，较本金多出 " + __xfRound(fv - total, 2) + " 元</div>";
+  return { daily: daily, year: year, total: total, future: fv };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

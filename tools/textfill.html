@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线文本填充工具 - 词海工具箱</title>
+<meta name="description" content="在线文本填充工具，把每行补齐到指定长度，支持左填充、右填充、居中填充与自定义填充字符。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/textfill.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="textfill" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文</label><textarea id="src" rows="5">1
+22
+333
+4444</textarea></div>
+      <div class="fitem"><label>目标长度</label><input type="number" id="len" value="8" min="1" max="500"></div>
+      <div class="fitem"><label>填充字符</label><input type="text" id="ch" value="0" maxlength="4"></div>
+      <div class="fitem"><label>填充位置</label>
+        <select id="align"><option value="left">左填充（内容靠右）</option><option value="right">右填充（内容靠左）</option><option value="center">居中填充</option></select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">填充</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填充结果</strong></div>
+      <textarea id="res" rows="6" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;font-family:Consolas,monospace;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线文本填充工具介绍：</h4>
+    <ol>
+      <li>左填充适合给数字补零对齐，右填充适合做表格固定宽度字段。</li>
+      <li>居中填充会把两侧余量平分，一侧多出的字符放在左侧。</li>
+      <li>填充字符可以多字符组合，程序会循环使用直至补齐目标长度。</li>
+      <li>原行长度已超过目标长度时保持原样，不会截断内容。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSplitLines(text) { return String(text).replace(/\r\n?/g, "\n").split("\n"); }
+function __xfRepeatTo(ch, len) {
+  var c = String(ch) || " ";
+  if (len <= 0) return "";
+  var out = "";
+  while (out.length < len) out += c;
+  return out.slice(0, len);
+}
+function __xfPad(line, len, ch, align) {
+  var s = String(line), target = Math.max(0, Math.floor(Number(len) || 0));
+  if (s.length >= target) return s;
+  var need = target - s.length;
+  if (align === "right") return s + __xfRepeatTo(ch, need);
+  if (align === "center") {
+    var left = Math.floor(need / 2);
+    return __xfRepeatTo(ch, left) + s + __xfRepeatTo(ch, need - left);
+  }
+  return __xfRepeatTo(ch, need) + s;
+}
+function __xfPadText(text, len, ch, align) {
+  return __xfSplitLines(text).map(function (l) { return __xfPad(l, len, ch, align); }).join("\n");
+}
+function run() {
+  var o = __xfPadText($("src").value, $("len").value, $("ch").value, $("align").value);
+  $("res").value = o;
+  $("tip").textContent = "✅ 已填充到 " + $("len").value + " 字符宽";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

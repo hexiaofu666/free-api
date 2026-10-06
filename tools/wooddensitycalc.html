@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>木材密度计算器 - 词海工具箱</title>
+<meta name="description" content="在线木材密度计算器，由木料尺寸与重量求密度，或由密度推算重量，支持厘米与毫米两种尺寸输入口径。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/wooddensitycalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="wooddensitycalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>长（厘米）</label><input type="number" id="l" value="100" step="0.1"></div>
+      <div class="fitem"><label>宽（厘米）</label><input type="number" id="w" value="10" step="0.1"></div>
+      <div class="fitem"><label>厚（厘米）</label><input type="number" id="t" value="2" step="0.1"></div>
+      <div class="fitem"><label>重量（千克，可留空）</label><input type="number" id="kg" value="1.2" step="0.001"></div>
+      <div class="fitem"><label>密度（g/cm³，可留空）</label><input type="number" id="rho" value="" step="0.01"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">开始计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">已知重量求密度，已知密度求重量</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于木材密度计算器介绍：</h4>
+    <ol>
+      <li>体积按长宽厚三边相乘计算，输入单位为厘米，结果单位为立方厘米。</li>
+      <li>填了重量就求密度，填了密度就求重量，两个都填则以重量优先并同时校验是否自洽。</li>
+      <li>常见气干木材密度参考：松木约 0.45，杉木约 0.39，橡木约 0.75，红木约 1.05。</li>
+      <li>含水率越高密度越大，湿材实测值会明显高于同一树种的气干密度。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfWoodVolume(l, w, t) {
+  if (!(l > 0) || !(w > 0) || !(t > 0)) return 0;
+  return l * w * t;
+}
+function __xfWoodVolumeMM(l, w, t) {
+  if (!(l > 0) || !(w > 0) || !(t > 0)) return 0;
+  return l * w * t / 1000;
+}
+function __xfWoodDensity(weightKg, vol) {
+  if (!(weightKg > 0) || !(vol > 0)) return 0;
+  return weightKg * 1000 / vol;
+}
+function __xfWoodWeight(vol, rho) {
+  if (!(vol > 0) || !(rho > 0)) return 0;
+  return vol * rho / 1000;
+}
+function run() {
+  var l = Number($("l").value), w = Number($("w").value), t = Number($("t").value);
+  var kg = $("kg").value === "" ? 0 : Number($("kg").value);
+  var rho = $("rho").value === "" ? 0 : Number($("rho").value);
+  var vol = __xfWoodVolume(l, w, t);
+  if (!(vol > 0)) {
+    $("tip").textContent = "⚠️ 长宽厚必须为正数"; $("res").innerHTML = ""; return null;
+  }
+  if (kg > 0) {
+    var d = __xfWoodDensity(kg, vol);
+    $("tip").textContent = "✅ 该木材密度约 " + __xfRound(d, 4) + " g/cm³";
+    $("res").innerHTML =
+      "<div>体积：<b>" + __xfRound(vol, 2) + "</b> cm³（" + __xfRound(vol / 1000000, 6) + " m³）</div>" +
+      "<div style='color:#c0392b;'>密度：<b>" + __xfRound(d, 4) + "</b> g/cm³（即 " + __xfRound(d * 1000, 1) + " kg/m³）</div>" +
+      "<div>按该密度，1 立方米该木材重约 <b>" + __xfRound(d * 1000, 1) + "</b> kg</div>" +
+      (rho > 0 ? "<div style='color:#888;'>与输入的密度 " + rho + " 相差 " + __xfRound(Math.abs(d - rho) / rho * 100, 2) + "%。</div>" : "") ;
+    return { volume: vol, density: d };
+  }
+  if (rho > 0) {
+    var wt = __xfWoodWeight(vol, rho);
+    $("tip").textContent = "✅ 该木料重量约 " + __xfRound(wt, 4) + " kg";
+    $("res").innerHTML =
+      "<div>体积：<b>" + __xfRound(vol, 2) + "</b> cm³（" + __xfRound(vol / 1000000, 6) + " m³）</div>" +
+      "<div style='color:#c0392b;'>重量：<b>" + __xfRound(wt, 4) + "</b> kg</div>" +
+      "<div>每立方米重量：<b>" + __xfRound(rho * 1000, 1) + "</b> kg（密度 " + rho + " g/cm³）</div>" +
+      "<div style='color:#888;'>1 立方米的同种木材约需 " + __xfRound(1 / (rho * 1000 / 1000), 2) + " 根此规格木料。</div>";
+    return { volume: vol, weight: wt };
+  }
+  $("tip").textContent = "⚠️ 请至少填写重量或密度其中一项";
+  $("res").innerHTML = "<div>当前体积：<b>" + __xfRound(vol, 2) + "</b> cm³</div>" +
+    "<div style='color:#888;'>填写重量可求密度，填写密度可求重量。</div>";
+  return { volume: vol };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

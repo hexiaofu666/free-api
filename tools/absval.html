@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>绝对值计算器 - 词海工具箱</title>
+<meta name="description" content="在线绝对值计算器，支持批量输入数值一次性求绝对值，同时给出相反数与数轴距离解释。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/absval.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="absval" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值列表</label><input type="text" id="src" placeholder="例如：-3, 5.5, -0.25, 0" value="-3, 5.5, -0.25, 0"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">求绝对值</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">支持整数与小数批量计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于绝对值计算器介绍：</h4>
+    <ol>
+      <li>支持整数、小数与负数，逗号、空格或换行分隔后批量计算。</li>
+      <li>绝对值表示该数在数轴上与原点的距离，结果恒为非负数。</li>
+      <li>同时给出相反数（符号取反）与是否与原数相等的判断。</li>
+      <li>输入负数时请使用英文减号 -，中文全角符号会被忽略。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfParseNums(text) {
+  var parts = String(text).split(/[^0-9.\-]+/), arr = [];
+  for (var i = 0; i < parts.length; i++) {
+    var s = parts[i];
+    if (s === "" || s === "-" || s === ".") continue;
+    var v = Number(s);
+    if (isFinite(v)) arr.push(v);
+  }
+  return arr;
+}
+function __xfAbs(x) { return Math.abs(Number(x)); }
+function __xfOpposite(x) { return -Number(x); }
+function __xfAbsLines(text) {
+  return __xfParseNums(text).map(function (v) {
+    return { v: v, abs: __xfAbs(v), opp: __xfOpposite(v), same: __xfAbs(v) === v };
+  });
+}
+function run() {
+  var rows = __xfAbsLines($("src").value);
+  if (!rows.length) { $("tip").textContent = "⚠️ 请输入数值"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 共计算 " + rows.length + " 个数值";
+  $("res").innerHTML = rows.map(function (r) {
+    return "<div>|<b>" + r.v + "</b>| = <b style='color:#4d8bb8;'>" + r.abs + "</b>　" +
+      "<span style='color:#888;'>相反数 " + r.opp + (r.same ? "（非负数，绝对值等于自身）" : "（负数，绝对值等于其相反数）") + "</span></div>";
+  }).join("");
+  return rows;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").innerHTML = ""; $("tip").textContent = "支持整数与小数批量计算"; };
+run();
+</script>
+</body>
+</html>

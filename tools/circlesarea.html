@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圆形面积计算器 - 词海工具箱</title>
+<meta name="description" content="在线圆形面积计算器，输入半径、直径或周长任一项即可算出圆的面积，并给出周长与直径换算结果。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/circlesarea.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="circlesarea" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>已知量</label>
+        <select id="mode">
+          <option value="r">半径 r</option>
+          <option value="d">直径 d</option>
+          <option value="c">周长 C</option>
+        </select>
+      </div>
+      <div class="fitem"><label>数值</label><input type="text" id="src" value="5"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">圆面积 = πr²</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于圆形面积计算器介绍：</h4>
+    <ol>
+      <li>可在半径、直径、周长三种已知量之间切换，任意一项都能算出圆面积。</li>
+      <li>面积公式为 S = πr²，圆周率取双精度 Math.PI，精度约 15 位有效数字。</li>
+      <li>结果同时给出周长、直径与半径，方便一次性拿到全部圆参数。</li>
+      <li>小数位参数只影响显示，改变它不会影响计算精度。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfCircleFromRadius(r, dec) {
+  r = Number(r);
+  if (!isFinite(r) || r < 0) return null;
+  return { r: r, d: 2 * r, c: 2 * Math.PI * r, area: Math.PI * r * r, text: String(__xfRound(Math.PI * r * r, dec)) };
+}
+function __xfCircleFromDiameter(d, dec) { return __xfCircleFromRadius(Number(d) / 2, dec); }
+function __xfCircleFromCircumference(c, dec) { return __xfCircleFromRadius(Number(c) / (2 * Math.PI), dec); }
+function __xfCircleArea(r) { var r2 = Number(r); return Math.PI * r2 * r2; }
+function run() {
+  var mode = $("mode").value, v = Number($("src").value), dec = Number($("dec").value) || 0;
+  var o = mode === "r" ? __xfCircleFromRadius(v, dec) : mode === "d" ? __xfCircleFromDiameter(v, dec) : __xfCircleFromCircumference(v, dec);
+  if (!o) { $("tip").textContent = "⚠️ 请输入非负数"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>面积 S = <b style='color:#4d8bb8;font-size:16px;'>" + o.text + "</b></div>" +
+    "<div style='color:#888;'>半径 r = " + __xfRound(o.r, dec + 2) + "　直径 d = " + __xfRound(o.d, dec + 2) + "　周长 C = " + __xfRound(o.c, dec + 2) + "</div>" +
+    "<div style='color:#888;'>精确面积：" + o.area + "</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

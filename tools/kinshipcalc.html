@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>亲戚称呼计算器 - 词海工具箱</title>
+<meta name="description" content="在线亲戚称呼计算器，输入两层亲属关系组合即可查询对应中文称谓，也可由称谓反查关系链，覆盖常见直系与旁系亲属。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/kinshipcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="kinshipcalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>上一层关系</label>
+        <select id="r1">
+          <option value="爸爸">爸爸</option><option value="妈妈">妈妈</option>
+          <option value="哥哥">哥哥</option><option value="弟弟">弟弟</option>
+          <option value="姐姐">姐姐</option><option value="妹妹">妹妹</option>
+          <option value="儿子">儿子</option><option value="女儿">女儿</option>
+        </select>
+      </div>
+      <div class="fitem"><label>下一层关系</label>
+        <select id="r2">
+          <option value="爸爸">爸爸</option><option value="妈妈">妈妈</option>
+          <option value="哥哥">哥哥</option><option value="弟弟">弟弟</option>
+          <option value="姐姐">姐姐</option><option value="妹妹">妹妹</option>
+          <option value="儿子">儿子</option><option value="女儿">女儿</option>
+        </select>
+      </div>
+      <div class="fitem"><label>反查称谓（可留空）</label><input type="text" id="rev" placeholder="例如：舅舅"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">查询称呼</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">组合查询与称谓反查</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于亲戚称呼计算器介绍：</h4>
+    <ol>
+      <li>按上一层关系的下一层关系组合查询，例如爸爸的爸爸对应爷爷。</li>
+      <li>输入称谓可反查关系链，例如输入舅舅会得到妈妈的哥哥。</li>
+      <li>同一个称谓在不同地区可能有多套叫法，本工具采用北方通用称谓。</li>
+      <li>兄弟姊妹的子女称谓已区分侄与外甥，姊妹的后代统一带外字。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var __xfKinTable = {
+  "爸爸|爸爸": "爷爷", "爸爸|妈妈": "奶奶",
+  "妈妈|爸爸": "外公", "妈妈|妈妈": "外婆",
+  "爸爸|哥哥": "伯父", "爸爸|弟弟": "叔叔",
+  "爸爸|姐姐": "姑妈", "爸爸|妹妹": "姑姑",
+  "妈妈|哥哥": "舅舅", "妈妈|弟弟": "舅舅",
+  "妈妈|姐姐": "姨妈", "妈妈|妹妹": "小姨",
+  "儿子|儿子": "孙子", "儿子|女儿": "孙女",
+  "女儿|儿子": "外孙", "女儿|女儿": "外孙女",
+  "哥哥|儿子": "侄子", "哥哥|女儿": "侄女",
+  "弟弟|儿子": "侄子", "弟弟|女儿": "侄女",
+  "姐姐|儿子": "外甥", "姐姐|女儿": "外甥女",
+  "妹妹|儿子": "外甥", "妹妹|女儿": "外甥女"
+};
+function __xfKinship(a, b) {
+  var k = String(a) + "|" + String(b);
+  return Object.prototype.hasOwnProperty.call(__xfKinTable, k) ? __xfKinTable[k] : null;
+}
+function __xfKinReverse(word) {
+  var w = String(word).replace(/\s/g, "");
+  for (var k in __xfKinTable) {
+    if (__xfKinTable[k] === w) return k.split("|").join("的");
+  }
+  return null;
+}
+function __xfKinCount() { return Object.keys(__xfKinTable).length; }
+function run() {
+  var r1 = $("r1").value, r2 = $("r2").value;
+  var rev = $("rev").value || "";
+  var name = __xfKinship(r1, r2);
+  var back = rev ? __xfKinReverse(rev) : "";
+  $("tip").textContent = name ? "✅ " + r1 + "的" + r2 + " 称为「" + name + "」" : "⚠️ 该关系组合暂未收录";
+  $("res").innerHTML =
+    "<div>关系组合：<b>" + r1 + "的" + r2 + "</b></div>" +
+    "<div style='color:#c0392b;'>对应称呼：<b>" + (name || "未收录") + "</b></div>" +
+    (back ? "<div>反查「" + rev + "」：<b>" + back + "</b></div>" : "") +
+    "<div style='color:#888;'>已收录 " + __xfKinCount() + " 组常见亲属关系组合。</div>";
+  return { name: name, back: back };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

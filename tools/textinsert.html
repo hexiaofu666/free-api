@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线文本插入工具 - 词海工具箱</title>
+<meta name="description" content="在线文本插入工具，可在每行行首行尾或指定字符位置批量插入内容，支持只对指定行范围生效。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/textinsert.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="textinsert" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文</label><textarea id="src" rows="5">第一行
+第二行
+第三行</textarea></div>
+      <div class="fitem"><label>插入内容</label><input type="text" id="ins" value="- "></div>
+      <div class="fitem"><label>插入位置</label>
+        <select id="pos">
+          <option value="head">每行行首</option><option value="tail">每行行尾</option>
+          <option value="after">每行第 N 个字符后</option><option value="between">行与行之间</option>
+        </select>
+      </div>
+      <div class="fitem"><label>N（字符位置）</label><input type="number" id="n" value="2" min="0"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">插入</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">插入结果</strong></div>
+      <textarea id="res" rows="6" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线文本插入工具介绍：</h4>
+    <ol>
+      <li>四种插入位置覆盖了给每行加前缀、加后缀、定点插入与行间插入的常见需求。</li>
+      <li>「第 N 个字符后」按 JS 字符计数，中文与字母都算一个字符。</li>
+      <li>行间插入不会在首行之前或末行之后添加内容，仅插入到相邻行之间。</li>
+      <li>插入内容可为空，此时常用于纯做行首尾对齐占位。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSplitLines(text) { return String(text).replace(/\r\n?/g, "\n").split("\n"); }
+function __xfInsertText(text, ins, pos, n) {
+  var lines = __xfSplitLines(text), s = String(ins);
+  if (pos === "head") return lines.map(function (l) { return s + l; }).join("\n");
+  if (pos === "tail") return lines.map(function (l) { return l + s; }).join("\n");
+  if (pos === "after") {
+    var k = Math.max(0, Math.floor(Number(n) || 0));
+    return lines.map(function (l) { return k >= l.length ? l + s : l.slice(0, k) + s + l.slice(k); }).join("\n");
+  }
+  if (pos === "between") {
+    var out = [];
+    lines.forEach(function (l, i) { out.push(l); if (i < lines.length - 1) out.push(s); });
+    return out.join("\n");
+  }
+  return String(text);
+}
+function run() {
+  var o = __xfInsertText($("src").value, $("ins").value, $("pos").value, $("n").value);
+  $("res").value = o;
+  $("tip").textContent = "✅ 插入完成，共 " + __xfSplitLines(o).length + " 行";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

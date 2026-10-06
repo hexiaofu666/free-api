@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>等比数列生成器 - 词海工具箱</title>
+<meta name="description" content="在线等比数列生成器，输入首项与公比生成数列，给出通项公式、前 n 项和与任意项数值。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/geoseq.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="geoseq" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>首项 a₁</label><input type="text" id="a1" value="1"></div>
+      <div class="fitem"><label>公比 q</label><input type="text" id="q" value="2"></div>
+      <div class="fitem"><label>项数 n</label><input type="number" id="n" value="20" min="1" max="200"></div>
+      <div class="fitem"><label>查询第几项</label><input type="number" id="k" value="10" min="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">生成数列</button><button class="fbtn blue" id="sumBtn">求和</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">aₙ = a₁ · q^(n-1)</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;word-break:break-all;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于等比数列生成器介绍：</h4>
+    <ol>
+      <li>通项公式 aₙ = a₁ · q^(n-1)，公比绝对值大于 1 时数列递增，小于 1 时递减。</li>
+      <li>前 n 项和：q≠1 时为 a₁(1-qⁿ)/(1-q)，q=1 时为 n·a₁。</li>
+      <li>公比 q 等于 1 时数列为常数列，每项都等于首项。</li>
+      <li>公比为负时数列正负交替，生成结果中会体现符号变化。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+function __xfGeoItem(a1, q, n) {
+  var a = Number(a1), r = Number(q), k = Math.floor(Number(n));
+  if (!isFinite(a) || !isFinite(r) || k < 1) return null;
+  return a * Math.pow(r, k - 1);
+}
+function __xfGeoSum(a1, q, n) {
+  var a = Number(a1), r = Number(q), k = Math.floor(Number(n));
+  if (!isFinite(a) || !isFinite(r) || k < 1) return null;
+  if (r === 1) return a * k;
+  return a * (1 - Math.pow(r, k)) / (1 - r);
+}
+function __xfGeoList(a1, q, count) {
+  var out = [];
+  for (var i = 1; i <= count; i++) out.push(__xfGeoItem(a1, q, i));
+  return out;
+}
+function __xfGeoInfiniteSum(a1, q) {
+  var a = Number(a1), r = Number(q);
+  if (!isFinite(a) || !isFinite(r) || Math.abs(r) >= 1) return null;
+  return a / (1 - r);
+}
+function run() {
+  var a1 = Number($("a1").value), q = Number($("q").value);
+  var n = Math.min(200, Math.max(1, Math.floor(Number($("n").value) || 20)));
+  if (!isFinite(a1) || !isFinite(q)) { $("tip").textContent = "⚠️ 请输入合法数值"; $("res").innerHTML = ""; return; }
+  var list = __xfGeoList(a1, q, n), sum = __xfGeoSum(a1, q, n);
+  var inf = __xfGeoInfiniteSum(a1, q);
+  $("tip").textContent = "✅ 前 " + n + " 项数列";
+  $("res").innerHTML =
+    "<div style='line-height:1.9;'>" + list.map(function (v) { return __xfRound(v, 6); }).join(", ") + "</div>" +
+    "<div>通项：aₙ = " + a1 + " × " + q + "^(n-1)　第 " + n + " 项 = " + __xfRound(list[n - 1], 6) + "</div>" +
+    "<div style='color:#888;'>前 " + n + " 项和 Sₙ = " + __xfRound(sum, 6) + (inf === null ? "" : "　无穷级数和 = " + __xfRound(inf, 6)) + "</div>";
+  return list;
+}
+function runSum() {
+  var a1 = Number($("a1").value), q = Number($("q").value), k = Math.max(1, Math.floor(Number($("k").value) || 1));
+  var a = __xfGeoItem(a1, q, k), s = __xfGeoSum(a1, q, k);
+  $("tip").textContent = "✅ 第 " + k + " 项与前 " + k + " 项和";
+  $("res").innerHTML = "<div>a<sub>" + k + "</sub> = " + __xfRound(a, 8) + "</div>" +
+    "<div>S<sub>" + k + "</sub> = " + __xfRound(s, 8) + "</div>" +
+    "<div style='color:#888;'>公比 q = " + q + (q === 1 ? "（常数列）" : "") + "</div>";
+  return { a: a, sum: s };
+}
+$("runBtn").onclick = run;
+$("sumBtn").onclick = runSum;
+run();
+</script>
+</body>
+</html>

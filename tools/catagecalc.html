@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猫猫年龄计算器 - 词海工具箱</title>
+<meta name="description" content="在线猫猫年龄计算器，按猫咪第 1 年等于人类 15 岁、之后每年增 4 岁的口径换算人类年龄并判断生命阶段。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/catagecalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="catagecalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>猫咪年龄（岁，可含小数）</label><input type="number" id="y" value="4" step="0.1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">换算年龄</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">猫咪第 1 年约等于人类 15 岁，第 2 年累计 24 岁</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于猫猫年龄计算器介绍：</h4>
+    <ol>
+      <li>换算口径为第 1 年等于人类 15 岁，第 2 年累计 24 岁，之后每年增加约 4 岁。</li>
+      <li>生命阶段参考：1 岁前为幼猫，1 至 7 岁为成猫，超过 7 岁进入老年猫阶段。</li>
+      <li>家养室内猫平均寿命可达 13 至 17 岁，科学喂养下超过 20 岁的案例并不罕见。</li>
+      <li>绝育、口腔护理与体重控制会明显影响猫咪的实际寿命。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfCatAge(y) {
+  if (!(y > 0)) return 0;
+  if (y <= 1) return 15 * y;
+  if (y <= 2) return 15 + 9 * (y - 1);
+  return 24 + (y - 2) * 4;
+}
+function __xfCatStage(y) {
+  if (!(y > 0)) return "未知";
+  if (y < 1) return "幼猫";
+  if (y <= 7) return "成猫";
+  return "老年猫";
+}
+function __xfCatMonthToAge(m) {
+  if (!(m > 0)) return 0;
+  return m / 12;
+}
+function run() {
+  var y = Number($("y").value);
+  if (!(y > 0)) { $("tip").textContent = "⚠️ 猫咪年龄需为正数"; $("res").innerHTML = ""; return null; }
+  var human = __xfCatAge(y), stage = __xfCatStage(y);
+  $("tip").textContent = "✅ 约等于人类 " + __xfRound(human, 1) + " 岁";
+  $("res").innerHTML =
+    "<div>猫咪年龄：<b>" + y + "</b> 岁（约 " + __xfRound(y * 12, 1) + " 个月）</div>" +
+    "<div style='color:#c0392b;'>折合人类年龄：<b>" + __xfRound(human, 1) + "</b> 岁</div>" +
+    "<div>生命阶段：<b>" + stage + "</b></div>" +
+    "<div style='color:#888;'>换算过程：" + (y <= 1 ? "第 1 年按 15 岁等比折算" : (y <= 2 ? "15 + 9 × (年龄 − 1)" : "24 + (年龄 − 2) × 4")) + "。</div>";
+  return { human: human, stage: stage };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

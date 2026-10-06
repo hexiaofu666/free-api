@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>壁纸用量计算器 - 词海工具箱</title>
+<meta name="description" content="在线壁纸用量计算器，输入房间长宽与层高即可估算所需壁纸卷数，支持扣除门窗面积与设置损耗率。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/wallpapercalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="wallpapercalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>房间长（米）</label><input type="number" id="len" value="5" step="0.01"></div>
+      <div class="fitem"><label>房间宽（米）</label><input type="number" id="wid" value="4" step="0.01"></div>
+      <div class="fitem"><label>层高（米）</label><input type="number" id="hgt" value="2.8" step="0.01"></div>
+      <div class="fitem"><label>门窗面积（㎡）</label><input type="number" id="door" value="0" step="0.01"></div>
+      <div class="fitem"><label>单卷壁纸宽（米）</label><input type="number" id="rw" value="0.53" step="0.01"></div>
+      <div class="fitem"><label>单卷壁纸长（米）</label><input type="number" id="rl" value="10" step="0.01"></div>
+      <div class="fitem"><label>损耗率（%）</label><input type="number" id="loss" value="10" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算用量</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">按墙面净面积估算壁纸卷数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于壁纸用量计算器介绍：</h4>
+    <ol>
+      <li>墙面净面积 = 房间周长 × 层高 − 门窗面积，房间周长按长宽各乘二求和。</li>
+      <li>面积法按「单卷面积」算卷数，条数法按「裁条」算卷数，两种口径同时给出便于对比。</li>
+      <li>损耗率默认 10%，对花图案、转角多的房间建议提高到 15% 以上。</li>
+      <li>若层高超过单卷壁纸长度，条数法无法整条裁切，会直接给出 0 并提示。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfWallPerimeter(l, w) { return 2 * (l + w); }
+function __xfWallArea(l, w, h, door) {
+  var a = 2 * (l + w) * h - (door || 0);
+  return a > 0 ? a : 0;
+}
+function __xfWallpaperRolls(area, rw, rl, loss) {
+  if (!(area > 0) || !(rw > 0) || !(rl > 0)) return 0;
+  var need = area * (1 + (loss || 0));
+  return Math.ceil(need / (rw * rl) - 1e-9);
+}
+function __xfWallpaperRollsByStrip(l, w, h, rw, rl) {
+  if (!(h > 0) || !(rw > 0) || !(rl > 0)) return 0;
+  var strips = Math.ceil(2 * (l + w) / rw - 1e-9);
+  var per = Math.floor(rl / h);
+  if (per < 1) return 0;
+  return Math.ceil(strips / per);
+}
+function run() {
+  var l = Number($("len").value), w = Number($("wid").value), h = Number($("hgt").value);
+  var door = Number($("door").value) || 0, rw = Number($("rw").value), rl = Number($("rl").value);
+  var loss = (Number($("loss").value) || 0) / 100;
+  if (!(l > 0) || !(w > 0) || !(h > 0) || !(rw > 0) || !(rl > 0)) {
+    $("tip").textContent = "⚠️ 请输入合法的正数"; $("res").innerHTML = ""; return null;
+  }
+  var area = __xfWallArea(l, w, h, door);
+  var r1 = __xfWallpaperRolls(area, rw, rl, loss);
+  var r2 = __xfWallpaperRollsByStrip(l, w, h, rw, rl);
+  var peri = __xfWallPerimeter(l, w);
+  $("tip").textContent = "✅ 共需壁纸约 " + r1 + " 卷（面积法口径）";
+  $("res").innerHTML =
+    "<div>房间周长：<b>" + __xfRound(peri, 2) + "</b> 米</div>" +
+    "<div>墙面净面积：<b>" + __xfRound(area, 2) + "</b> ㎡</div>" +
+    "<div>单卷可贴面积：<b>" + __xfRound(rw * rl, 2) + "</b> ㎡（宽 " + rw + " 米 × 长 " + rl + " 米）</div>" +
+    "<div style='color:#c0392b;'>面积法建议购买：<b>" + r1 + " 卷</b>（含 " + __xfRound(loss * 100, 1) + "% 损耗）</div>" +
+    "<div style='color:#2b7cbf;'>条数法建议购买：<b>" + r2 + " 卷</b>" + (r2 === 0 ? "（层高超卷长，无法整条裁切）" : "") + "</div>" +
+    "<div style='color:#888;'>条数法口径为「按房间周长切条、每卷可裁 " + Math.floor(rl / h) + " 条」。</div>";
+  return { rolls: r1, rollsByStrip: r2, area: area };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

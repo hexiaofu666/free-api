@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本换行转换行符工具 - 词海工具箱</title>
+<meta name="description" content="在线换行符转换工具，把 Windows 的 CRLF 换行转为 LF 或 CR，便于上传到 Linux 服务器处理。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/crlf2cr.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="crlf2cr" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文</label><textarea id="src" rows="6">第一行
+第二行
+第三行</textarea></div>
+      <div class="fitem"><label>目标换行符</label>
+        <select id="to">
+          <option value="lf">LF（\n，Linux/macOS）</option>
+          <option value="crlf">CRLF（\r\n，Windows）</option>
+          <option value="cr">CR（\r，经典 Mac）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">转换</button><button class="fbtn blue" id="detectBtn">检测当前换行符</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">换行符转换</strong></div>
+      <textarea id="res" rows="6" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本换行转换行符工具介绍：</h4>
+    <ol>
+      <li>LF 是 Unix 系换行（\n），CRLF 是 Windows 换行（\r\n），CR 是早期 Mac 换行（\r）。</li>
+      <li>把文本上传到 Linux 服务器前建议转为 LF，避免脚本出现 ^M 报错。</li>
+      <li>检测功能会统计文本中三种换行符各有多少处，帮助判断来源系统。</li>
+      <li>转换后结果区显示的是纯文本，复制到编辑器即生效。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfDetectEol(text) {
+  var s = String(text);
+  var crlf = (s.match(/\r\n/g) || []).length;
+  var lf = (s.match(/(^|[^\r])\n/g) || []).length;
+  var cr = (s.match(/\r(?!\n)/g) || []).length;
+  var kind = crlf > lf && crlf > cr ? "CRLF" : cr > lf && cr > crlf ? "CR" : lf > 0 ? "LF" : "无换行";
+  return { crlf: crlf, lf: lf, cr: cr, kind: kind, total: crlf + lf + cr };
+}
+function __xfConvertEol(text, to) {
+  var s = String(text).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  if (to === "crlf") return s.replace(/\n/g, "\r\n");
+  if (to === "cr") return s.replace(/\n/g, "\r");
+  return s;
+}
+function run() {
+  var o = __xfConvertEol($("src").value, $("to").value);
+  var d = __xfDetectEol(o);
+  $("res").value = o;
+  $("tip").textContent = "✅ 已转换为 " + d.kind + "，共 " + d.total + " 处换行";
+  return o;
+}
+function runDetect() {
+  var d = __xfDetectEol($("src").value);
+  $("tip").textContent = "✅ 当前主要换行符：";
+  $("res").value = "CRLF(\r\n)：" + d.crlf + " 处\nLF(\n)：" + d.lf + " 处\nCR(\r)：" + d.cr + " 处\n判定：" + d.kind;
+  return d;
+}
+$("runBtn").onclick = run;
+$("detectBtn").onclick = runDetect;
+run();
+</script>
+</body>
+</html>

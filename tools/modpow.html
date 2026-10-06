@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模幂计算器 - 词海工具箱</title>
+<meta name="description" content="在线模幂计算器，用快速幂算法计算大数幂取模结果，支持极大指数，常用于密码学与哈希运算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/modpow.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="modpow" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>底数 a</label><input type="text" id="a" value="7"></div>
+      <div class="fitem"><label>指数 b</label><input type="text" id="b" value="100"></div>
+      <div class="fitem"><label>模数 m</label><input type="text" id="m" value="13"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算 a^b mod m</button><button class="fbtn blue" id="eulerBtn">欧拉定理示例</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">快速幂取模，不会溢出</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;word-break:break-all;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于模幂计算器介绍：</h4>
+    <ol>
+      <li>快速幂按指数二进制拆解，每一步都取模，因此指数可以是很大的整数。</li>
+      <li>常用于 RSA 加密、Diffie-Hellman 密钥交换等密码学运算。</li>
+      <li>模数必须大于 0，指数为 0 时结果恒为 1（模数大于 1 时）。</li>
+      <li>指数过大时计算仍很快，但结果位数不会超过模数本身的位数。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfModPow(base, exp, mod) {
+  var b = BigInt(base), e = BigInt(exp), m = BigInt(mod);
+  if (m <= 0n) return null;
+  if (e < 0n) return null;
+  b = ((b % m) + m) % m;
+  var result = 1n;
+  while (e > 0n) {
+    if (e & 1n) result = (result * b) % m;
+    b = (b * b) % m;
+    e >>= 1n;
+  }
+  return result % m;
+}
+function __xfModPowText(base, exp, mod) {
+  var r = __xfModPow(base, exp, mod);
+  return r === null ? null : r.toString();
+}
+function __xfModPowSteps(base, exp, mod) {
+  var out = [], e = BigInt(exp), b = ((BigInt(base) % BigInt(mod)) + BigInt(mod)) % BigInt(mod);
+  var n = 0;
+  while (e > 0n && n < 12) { out.push(b.toString()); b = (b * b) % BigInt(mod); e >>= 1n; n++; }
+  return out;
+}
+function run() {
+  var r = __xfModPowText($("a").value, $("b").value, $("m").value);
+  if (r === null) { $("tip").textContent = "⚠️ 参数不合法：模数需大于 0，指数需为非负整数"; $("res").innerHTML = ""; return r; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>" + $("a").value + " ^ " + $("b").value + " mod " + $("m").value + " = <b style='color:#607d8b;font-size:16px;'>" + r + "</b></div>" +
+    "<div style='color:#888;'>平方序列：" + __xfModPowSteps($("a").value, $("b").value, $("m").value).join(" → ") + "</div>";
+  return r;
+}
+function runEuler() {
+  var m = Number($("m").value) || 13;
+  var lines = [];
+  for (var a = 2; a <= Math.min(6, m - 1); a++) lines.push(a + "^" + (m - 1) + " mod " + m + " = " + __xfModPowText(a, m - 1, m));
+  $("tip").textContent = "✅ 欧拉定理示例（模数 " + m + " 为质数时，a^(m-1) ≡ 1）";
+  $("res").innerHTML = lines.map(function (l) { return "<div>" + l + "</div>"; }).join("");
+  return lines;
+}
+$("runBtn").onclick = run;
+$("eulerBtn").onclick = runEuler;
+run();
+</script>
+</body>
+</html>

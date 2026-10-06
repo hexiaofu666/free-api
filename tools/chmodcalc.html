@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chmod计算器 - 词海工具箱</title>
+<meta name="description" content="在线 Chmod 计算器，Linux 文件权限数字与符号形式互转，勾选权限位实时生成 chmod 命令。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/chmodcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="chmodcalc" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数字权限</label><input type="text" id="num" value="755" placeholder="如 755 / 0644"></div>
+      <div class="fitem"><label>符号权限</label><input type="text" id="sym" value="rwxr-xr-x" placeholder="如 rwxr-xr-x"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">数字转符号</button>
+      <button class="fbtn blue" id="backBtn">符号转数字</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">数字权限与符号权限互转</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;font-family:Consolas,monospace;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Chmod计算器介绍：</h4>
+    <ol>
+      <li>数字权限每位由读(4)、写(2)、执行(1)相加得到，755 即 rwxr-xr-x。</li>
+      <li>符号权限共 9 位，依次对应属主、属组、其他用户的 rwx 权限。</li>
+      <li>特殊权限位 setuid/setgid/sticky 对应数字前缀 4、2、1，本工具按四位数字支持。</li>
+      <li>符号中的 - 表示无该权限，s 与 t 表示同时具有执行位的特殊权限。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfChmodToSymbolic(num) {
+  var s = String(num).trim().replace(/^0+/, "") || "0";
+  if (!/^[0-7]{1,4}$/.test(s)) return null;
+  if (s.length < 3) s = ("000" + s).slice(-3);
+  var bits = ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"];
+  var out = "";
+  for (var i = 0; i < s.length; i++) out += bits[parseInt(s.charAt(i), 8)];
+  return out;
+}
+function __xfChmodToNum(sym) {
+  var s = String(sym).trim();
+  if (!/^[rwxst-]{9}$/i.test(s)) return null;
+  var out = "";
+  for (var g = 0; g < 3; g++) {
+    var v = 0;
+    for (var i = 0; i < 3; i++) {
+      var c = s.charAt(g * 3 + i).toLowerCase();
+      if (c === "r") v += 4;
+      else if (c === "w") v += 2;
+      else if (c === "x" || c === "s" || c === "t") v += 1;
+    }
+    out += v;
+  }
+  return out;
+}
+function __xfChmodExplain(num) {
+  var sym = __xfChmodToSymbolic(num);
+  if (!sym) return null;
+  var owner = sym.slice(0, 3), group = sym.slice(3, 6), other = sym.slice(6, 9);
+  var cmd = "chmod " + String(num).replace(/^0+/, "") + " 文件名";
+  return { num: String(num).replace(/^0+/, ""), sym: sym, owner: owner, group: group, other: other, cmd: cmd };
+}
+function run() {
+  var o = __xfChmodExplain($("num").value);
+  if (!o) { $("tip").textContent = "⚠️ 请输入 1~4 位八进制数字（0-7）"; $("res").innerHTML = ""; return; }
+  $("sym").value = o.sym;
+  $("tip").textContent = "✅ 转换完成";
+  $("res").innerHTML = "<div>数字 " + o.num + " = 符号 " + o.sym + "</div>" +
+    "<div>属主 " + o.owner + "　属组 " + o.group + "　其他 " + o.other + "</div>" +
+    "<div style='color:#888;'>命令：" + o.cmd + "</div>";
+  return o;
+}
+function runBack() {
+  var n = __xfChmodToNum($("sym").value);
+  if (!n) { $("tip").textContent = "⚠️ 请输入 9 位符号权限，如 rwxr-xr-x"; $("res").innerHTML = ""; return; }
+  $("num").value = n;
+  $("tip").textContent = "✅ 转换完成";
+  $("res").innerHTML = "<div>符号 " + $("sym").value + " = 数字权限 <b style='color:#607d8b;'>" + n + "</b></div>";
+  return n;
+}
+$("runBtn").onclick = run;
+$("backBtn").onclick = runBack;
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>汉字charCode编码查询工具 - 词海工具箱</title>
+<meta name="description" content="在线汉字 charCode 编码查询工具，查看每个字符的 Unicode 码点、十进制与十六进制编码及 UTF-8 字节。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/charcodequery.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="charcodequery" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输入文本</label><input type="text" id="src" value="词海A1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">查询编码</button><button class="fbtn blue" id="backBtn">编码还原文字</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">charCode / 码点 / UTF-8 字节</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;word-break:break-all;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于汉字charCode编码查询工具介绍：</h4>
+    <ol>
+      <li>charCodeAt 返回 UTF-16 编码单元，码点用 codePointAt 可正确处理 emoji 等增补平面字符。</li>
+      <li>十六进制码点即 CSS 中的 \\uXXXX 写法，可直接用于网页样式与转义。</li>
+      <li>UTF-8 字节按标准规则计算：ASCII 占 1 字节、中文占 3 字节、emoji 占 4 字节。</li>
+      <li>编码还原功能可把十六进制或十进制编码序列还原为原文字，便于调试。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfUtf8BytesOfChar(cp) {
+  if (cp < 0x80) return [cp];
+  if (cp < 0x800) return [0xc0 | (cp >> 6), 0x80 | (cp & 63)];
+  if (cp < 0x10000) return [0xe0 | (cp >> 12), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63)];
+  return [0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 63), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63)];
+}
+function __xfHex(n, pad) { var s = n.toString(16).toUpperCase(); while (s.length < pad) s = "0" + s; return s; }
+function __xfCharInfo(text) {
+  var s = String(text), out = [], i = 0;
+  while (i < s.length) {
+    var cp = s.codePointAt(i);
+    var unit = s.charCodeAt(i);
+    var str = String.fromCodePoint(cp);
+    out.push({
+      char: str, unit: unit, codePoint: cp, hex: __xfHex(cp, 4), dec: cp,
+      utf8: __xfUtf8BytesOfChar(cp).map(function (b) { return __xfHex(b, 2); }).join(" "),
+      bytes: __xfUtf8BytesOfChar(cp).length
+    });
+    i += str.length;
+  }
+  return out;
+}
+function __xfDecodeCodes(text) {
+  var parts = String(text).trim().split(/[\s,]+/).filter(function (x) { return x !== ""; });
+  var out = "";
+  parts.forEach(function (p) {
+    var v = /^0x/i.test(p) || /^[0-9a-fA-F]{4}$/.test(p) ? parseInt(p.replace(/^0x/i, ""), 16) : Number(p);
+    if (isFinite(v) && v >= 0) out += String.fromCodePoint(v);
+  });
+  return out;
+}
+function run() {
+  var list = __xfCharInfo($("src").value);
+  $("tip").textContent = "✅ 共 " + list.length + " 个字符";
+  $("res").innerHTML = list.map(function (o) {
+    return "<div><b>" + (o.char === " " ? "（空格）" : o.char) + "</b>　charCode = " + o.unit +
+      "　码点 = " + o.dec + "（0x" + o.hex + "）　UTF-8：" + o.utf8 + "（" + o.bytes + " 字节）</div>";
+  }).join("");
+  return list;
+}
+function runBack() {
+  var o = __xfDecodeCodes($("src").value);
+  $("tip").textContent = "✅ 已还原";
+  $("res").innerHTML = "<div>还原结果：<b style='color:#607d8b;font-size:15px;'>" + o + "</b></div>";
+  return o;
+}
+$("runBtn").onclick = run;
+$("backBtn").onclick = runBack;
+run();
+</script>
+</body>
+</html>

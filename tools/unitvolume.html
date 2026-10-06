@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体积容量换算 - 词海工具箱</title>
+<meta name="description" content="在线体积容量单位换算器，立方米、升、毫升、立方厘米、加仑、夸脱、品脱、立方英尺互相换算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/unitvolume.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="unitvolume" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="1"></div>
+      <div class="fitem"><label>源单位</label><select id="from"></select></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn green" id="runBtn">换算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">以升为基准换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于体积容量换算介绍：</h4>
+    <ol>
+      <li>以升为基准，同时覆盖公制体积单位与英美制容积单位。</li>
+      <li>1 立方米 = 1000 升，1 升 = 1000 毫升 = 1000 立方厘米。</li>
+      <li>美制加仑 = 3.785411784 升，英制加仑 = 4.54609 升，两者相差约 20%。</li>
+      <li>做配方、油量、容器容量估算时注意区分美制与英制加仑。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+var VOL = [
+  { k: "ml", n: "毫升", f: 0.001 }, { k: "l", n: "升", f: 1 },
+  { k: "cm3", n: "立方厘米", f: 0.001 }, { k: "dm3", n: "立方分米", f: 1 }, { k: "m3", n: "立方米", f: 1000 },
+  { k: "in3", n: "立方英寸", f: 0.016387064 }, { k: "ft3", n: "立方英尺", f: 28.316846592 },
+  { k: "galus", n: "加仑（美）", f: 3.785411784 }, { k: "galuk", n: "加仑（英）", f: 4.54609 },
+  { k: "qtus", n: "夸脱（美）", f: 0.946352946 }, { k: "ptus", n: "品脱（美）", f: 0.473176473 },
+  { k: "flozus", n: "液量盎司（美）", f: 0.0295735295625 }
+];
+function __xfVolUnit(key) { for (var i = 0; i < VOL.length; i++) if (VOL[i].k === key) return VOL[i]; return null; }
+function __xfVolConvert(v, from) {
+  var u = __xfVolUnit(from), n = Number(v);
+  if (!u || !isFinite(n)) return null;
+  var base = n * u.f, out = {};
+  VOL.forEach(function (x) { out[x.k] = base / x.f; });
+  return out;
+}
+function __xfVolList() { return VOL; }
+function run() {
+  var dec = Number($("dec").value) || 0;
+  var o = __xfVolConvert($("val").value, $("from").value);
+  if (!o) { $("tip").textContent = "⚠️ 请输入合法数值"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = VOL.map(function (u) {
+    return "<div>" + u.n + "：" + __xfRound(o[u.k], dec) + "</div>";
+  }).join("");
+  return o;
+}
+(function init() {
+  var sel = $("from");
+  VOL.forEach(function (u) { var op = document.createElement("option"); op.value = u.k; op.textContent = u.n; sel.appendChild(op); });
+  sel.value = "l";
+})();
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

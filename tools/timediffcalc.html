@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时间差计算器 - 词海工具箱</title>
+<meta name="description" content="在线时间差计算器，输入两个 Unix 时间戳即可得出相差的天数小时分钟秒，同时给出总天数总小时等汇总口径。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/timediffcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="timediffcalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>开始时间戳（秒）</label><input type="number" id="a" value="0" step="1"></div>
+      <div class="fitem"><label>结束时间戳（秒）</label><input type="number" id="b" value="93784" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算时间差</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">两个时间戳之间的差值分解</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于时间差计算器介绍：</h4>
+    <ol>
+      <li>时间戳单位为秒，无论先后顺序都取绝对值计算，结果恒为非负。</li>
+      <li>差值按天小时分钟秒逐级分解，例如 93784 秒等于 1 天 2 小时 3 分 4 秒。</li>
+      <li>总天数按 86400 秒一天折算，总小时按 3600 秒折算，便于快速看量级。</li>
+      <li>本工具只做差值计算，需要日期加减请使用时间加减计算器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfGapSeconds(a, b) {
+  if (!isFinite(a) || !isFinite(b)) return 0;
+  return Math.abs(b - a);
+}
+function __xfDecompose(seconds) {
+  var t = Math.abs(Math.floor(seconds));
+  if (!isFinite(t)) return [0, 0, 0, 0];
+  var d = Math.floor(t / 86400); t = t - d * 86400;
+  var h = Math.floor(t / 3600); t = t - h * 3600;
+  var m = Math.floor(t / 60); var s = t - m * 60;
+  return [d, h, m, s];
+}
+function __xfGapDays(a, b) { return __xfGapSeconds(a, b) / 86400; }
+function __xfGapHours(a, b) { return __xfGapSeconds(a, b) / 3600; }
+function __xfGapMinutes(a, b) { return __xfGapSeconds(a, b) / 60; }
+function run() {
+  var a = Number($("a").value), b = Number($("b").value);
+  if (!isFinite(a) || !isFinite(b)) {
+    $("tip").textContent = "⚠️ 请输入合法的时间戳"; $("res").innerHTML = ""; return null;
+  }
+  var gap = __xfGapSeconds(a, b), parts = __xfDecompose(gap);
+  var days = __xfGapDays(a, b);
+  var y = days / 365;
+  $("tip").textContent = "✅ 相差 " + parts[0] + " 天 " + parts[1] + " 小时 " + parts[2] + " 分 " + parts[3] + " 秒";
+  $("res").innerHTML =
+    "<div>时间戳差值：<b>" + gap + "</b> 秒</div>" +
+    "<div style='color:#c0392b;'>相差：<b>" + parts[0] + " 天 " + parts[1] + " 小时 " + parts[2] + " 分 " + parts[3] + " 秒</b></div>" +
+    "<div>合计：" + __xfRound(days, 4) + " 天 / " + __xfRound(__xfGapHours(a, b), 2) + " 小时 / " +
+    __xfRound(__xfGapMinutes(a, b), 2) + " 分钟</div>" +
+    "<div style='color:#888;'>约合 " + __xfRound(y, 4) + " 年（按 365 天每年折算）。</div>";
+  return { gap: gap, parts: parts, days: days };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>汉字二进制编码查询工具 - 词海工具箱</title>
+<meta name="description" content="在线汉字二进制编码查询工具，把汉字转为 UTF-8 和 UTF-16 二进制编码，也支持二进制还原文字。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/hanzi2binary.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="hanzi2binary" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输入文本</label><input type="text" id="src" value="词海"></div>
+      <div class="fitem"><label>编码方式</label>
+        <select id="mode"><option value="utf8">UTF-8 二进制</option><option value="utf16">UTF-16 二进制</option><option value="cp">Unicode 码点二进制</option></select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">转二进制</button><button class="fbtn blue" id="backBtn">二进制还原</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">二进制编码结果</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;word-break:break-all;font-family:Consolas,monospace;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于汉字二进制编码查询工具介绍：</h4>
+    <ol>
+      <li>UTF-8 二进制按实际存储字节展开，一个汉字为 3 字节共 24 位。</li>
+      <li>UTF-16 二进制按编码单元展开，每个单元 16 位，与 JS 内存表示一致。</li>
+      <li>码点二进制是字符的 Unicode 编号二进制形式，不含编码转换。</li>
+      <li>二进制还原支持连续或空格分隔的二进制串，按所选编码方式反向解析。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfUtf8BytesOfChar(cp) {
+  if (cp < 0x80) return [cp];
+  if (cp < 0x800) return [0xc0 | (cp >> 6), 0x80 | (cp & 63)];
+  if (cp < 0x10000) return [0xe0 | (cp >> 12), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63)];
+  return [0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 63), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63)];
+}
+function __xfBin(n, pad) { var s = n.toString(2); while (s.length < pad) s = "0" + s; return s; }
+function __xfToBinary(text, mode) {
+  var s = String(text), parts = [];
+  for (var i = 0; i < s.length; i++) {
+    var unit = s.charCodeAt(i);
+    if (mode === "utf16") parts.push(__xfBin(unit, 16));
+  }
+  if (mode === "utf16") return parts.join(" ");
+  var i2 = 0, out = [];
+  while (i2 < s.length) {
+    var cp = s.codePointAt(i2);
+    if (mode === "cp") out.push(__xfBin(cp, cp < 0x10000 ? 16 : 21));
+    else out.push(__xfUtf8BytesOfChar(cp).map(function (b) { return __xfBin(b, 8); }).join(" "));
+    i2 += String.fromCodePoint(cp).length;
+  }
+  return out.join("  ");
+}
+function __xfFromBinary(text, mode) {
+  var parts = String(text).trim().split(/[\s,]+/).filter(function (x) { return x !== "" && /^[01]+$/.test(x); });
+  var out = "";
+  if (mode === "utf16") {
+    parts.forEach(function (p) { out += String.fromCharCode(parseInt(p, 2)); });
+    return out;
+  }
+  if (mode === "cp") {
+    parts.forEach(function (p) { out += String.fromCodePoint(parseInt(p, 2)); });
+    return out;
+  }
+  var bytes = parts.map(function (p) { return parseInt(p, 2) & 0xff; });
+  return __xfFromUtf8Bytes(bytes);
+}
+function __xfFromUtf8Bytes(bytes) {
+  var out = "", i = 0;
+  while (i < bytes.length) {
+    var b = bytes[i];
+    if (b < 0x80) { out += String.fromCharCode(b); i += 1; }
+    else if (b >= 0xc0 && b < 0xe0) { out += String.fromCharCode(((b & 31) << 6) | (bytes[i + 1] & 63)); i += 2; }
+    else if (b >= 0xe0 && b < 0xf0) { out += String.fromCharCode(((b & 15) << 12) | ((bytes[i + 1] & 63) << 6) | (bytes[i + 2] & 63)); i += 3; }
+    else {
+      var cp = ((b & 7) << 18) | ((bytes[i + 1] & 63) << 12) | ((bytes[i + 2] & 63) << 6) | (bytes[i + 3] & 63);
+      out += String.fromCodePoint(cp); i += 4;
+    }
+  }
+  return out;
+}
+function run() {
+  var o = __xfToBinary($("src").value, $("mode").value);
+  $("tip").textContent = "✅ " + $("mode").value.toUpperCase() + " 编码完成";
+  $("res").innerHTML = "<div>" + o + "</div>";
+  return o;
+}
+function runBack() {
+  var o = __xfFromBinary($("src").value, $("mode").value);
+  $("tip").textContent = "✅ 已还原";
+  $("res").innerHTML = "<div>还原结果：<b style='color:#607d8b;font-size:15px;'>" + o + "</b></div>";
+  return o;
+}
+$("runBtn").onclick = run;
+$("backBtn").onclick = runBack;
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本换行符转换行工具 - 词海工具箱</title>
+<meta name="description" content="在线换行符转换行工具，把换行符替换为可见的转义字符串或反向还原，方便查看与编辑隐藏字符。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cr2crlf.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cr2crlf" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文</label><textarea id="src" rows="6">第一行
+第二行	带制表符</textarea></div>
+      <div class="fitem"><label>转换方向</label>
+        <select id="mode">
+          <option value="toesc">换行/制表符 → 可见转义符</option>
+          <option value="tochar">可见转义符 → 真实换行</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">转换</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">转义与还原</strong></div>
+      <textarea id="res" rows="6" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本换行符转换行工具介绍：</h4>
+    <ol>
+      <li>转为转义符会把真实换行显示为 \n、制表符显示为 \t，便于在单行中查看。</li>
+      <li>还原模式把文本中的 \n、\r、\t 等转义序列还原为真实控制字符。</li>
+      <li>还原时会同时处理 \\、\" 等常见转义序列，与 JSON 字符串规则一致。</li>
+      <li>该功能常用于编写代码字符串、调试日志与配置文件的换行处理。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfToEscape(text) {
+  return String(text)
+    .replace(/\\/g, "\u0001")
+    .replace(/\\"/g, "\u0002")
+    .replace(/\r\n/g, "\\r\\n")
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r")
+    .replace(/\t/g, "\\t")
+    .replace(/\u0001/g, "\\\\")
+    .replace(/\u0002/g, "\\\"");
+}
+function __xfToChar(text) {
+  return String(text)
+    .replace(/\\r\\n/g, "\r\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\r")
+    .replace(/\\t/g, "\t")
+    .replace(/\\\\/g, "\\")
+    .replace(/\\"/g, '"');
+}
+function __xfCountControl(text) {
+  var s = String(text);
+  return { crlf: (s.match(/\r\n/g) || []).length, lf: (s.match(/(^|[^\r])\n/g) || []).length, tab: (s.match(/\t/g) || []).length };
+}
+function run() {
+  var mode = $("mode").value;
+  var o = mode === "toesc" ? __xfToEscape($("src").value) : __xfToChar($("src").value);
+  $("res").value = o;
+  var c = __xfCountControl($("src").value);
+  $("tip").textContent = mode === "toesc"
+    ? "✅ 已转为转义符（原文本含 " + c.crlf + " 处 CRLF、" + c.lf + " 处 LF、" + c.tab + " 处制表符）"
+    : "✅ 已还原为真实控制字符";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

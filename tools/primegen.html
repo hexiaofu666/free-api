@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>质数计算生成器 - 词海工具箱</title>
+<meta name="description" content="在线质数素数生成器，指定区间列出全部质数，并可判断任意整数是否为质数、给出质因数试除依据。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/primegen.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="primegen" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>起始值</label><input type="number" id="from" value="1" min="0"></div>
+      <div class="fitem"><label>结束值</label><input type="number" id="to" value="200" min="0"></div>
+      <div class="fitem"><label>单数判断</label><input type="number" id="one" value="97" min="0"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成质数</button>
+      <button class="fbtn brown" id="chkBtn">判断单数</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">区间质数列表</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:1.9;font-size:13px;word-break:break-all;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于质数计算生成器介绍：</h4>
+    <ol>
+      <li>区间上限建议不超过 1000000，过大时浏览器计算会变慢。</li>
+      <li>采用 6k±1 试除法判定质数，只需试除到平方根，效率较高。</li>
+      <li>单数判断会给出该数是否为质数，合数则给出最小质因数。</li>
+      <li>1 既不是质数也不是合数，2 是最小的质数也是唯一的偶质数。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfIsPrime(n) {
+  n = Math.floor(Number(n));
+  if (!isFinite(n) || n < 2) return false;
+  if (n < 4) return true;
+  if (n % 2 === 0 || n % 3 === 0) return false;
+  for (var i = 5; i * i <= n; i += 6) { if (n % i === 0 || n % (i + 2) === 0) return false; }
+  return true;
+}
+function __xfPrimes(from, to) {
+  from = Math.max(0, Math.floor(Number(from) || 0));
+  to = Math.floor(Number(to) || 0);
+  var out = [];
+  for (var n = Math.max(2, from); n <= to; n++) if (__xfIsPrime(n)) out.push(n);
+  return out;
+}
+function __xfPrimeCount(from, to) { return __xfPrimes(from, to).length; }
+function __xfMinFactor(n) {
+  n = Math.floor(Number(n));
+  if (n < 2) return null;
+  for (var i = 2; i * i <= n; i++) if (n % i === 0) return i;
+  return n;
+}
+function runRange() {
+  var a = Number($("from").value), b = Number($("to").value);
+  if (b < a) { var t = a; a = b; b = t; }
+  if (b - a > 200000) { $("tip").textContent = "⚠️ 区间过大，请缩小到 20 万以内"; return; }
+  var list = __xfPrimes(a, b);
+  $("tip").textContent = "✅ " + a + " ~ " + b + " 共 " + list.length + " 个质数";
+  $("res").innerHTML = list.length ? "<div>" + list.join("、") + "</div>" : "<div style='color:#c00;'>该区间内没有质数</div>";
+  return list;
+}
+function runOne() {
+  var n = Math.floor(Number($("one").value));
+  if (!isFinite(n)) { $("tip").textContent = "⚠️ 请输入整数"; return; }
+  var p = __xfIsPrime(n);
+  $("tip").textContent = p ? "✅ " + n + " 是质数" : "❌ " + n + " 不是质数";
+  $("res").innerHTML = p
+    ? "<div>" + n + " 只能被 1 和自身整除，是质数。</div>"
+    : "<div>" + (n < 2 ? n + " 小于 2，不是质数。" : n + " = " + __xfMinFactor(n) + " × " + (n / __xfMinFactor(n)) + "，最小质因数为 " + __xfMinFactor(n) + "。") + "</div>";
+  return p;
+}
+$("runBtn").onclick = runRange;
+$("chkBtn").onclick = runOne;
+runRange();
+</script>
+</body>
+</html>

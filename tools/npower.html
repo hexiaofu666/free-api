@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N次方计算器 - 词海工具箱</title>
+<meta name="description" content="在线 N 次方计算器，支持任意底数与指数（含负数指数、小数指数），可保留指定小数位数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/npower.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="npower" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>底数 a</label><input type="text" id="base" value="2"></div>
+      <div class="fitem"><label>指数 n</label><input type="text" id="exp" value="10"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算</button>
+      <button class="fbtn brown" id="chainBtn">连续幂表</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">a 的 n 次方</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;word-break:break-all;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于N次方计算器介绍：</h4>
+    <ol>
+      <li>指数支持负整数与小数，例如 2 的 -3 次方等于 0.125，9 的 0.5 次方等于 3。</li>
+      <li>结果超过 1e21 时自动改用科学计数法显示，避免精度丢失。</li>
+      <li>小数位设置仅影响显示，内部始终以双精度浮点计算。</li>
+      <li>负数的非整数次方在实数范围内无意义，会给出提示。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfPow(base, exp, dec) {
+  var a = Number(base), n = Number(exp);
+  if (!isFinite(a) || !isFinite(n)) return null;
+  if (a < 0 && n % 1 !== 0) return null;
+  var v = Math.pow(a, n);
+  if (!isFinite(v)) return null;
+  var d = dec === undefined ? 6 : Number(dec);
+  var p = Math.pow(10, d);
+  var rounded = Math.round(v * p) / p;
+  return { value: v, text: __xfFmt(v, d) };
+}
+function __xfFmt(v, dec) {
+  if (Math.abs(v) >= 1e21) return v.toExponential(6);
+  var p = Math.pow(10, dec === undefined ? 6 : dec);
+  var r = Math.round(v * p) / p;
+  if (Math.abs(r) < 1e-12 && r !== 0) return v.toExponential(6);
+  return String(r);
+}
+function __xfPowChain(base, count) {
+  var out = [], a = Number(base);
+  for (var i = 1; i <= count; i++) out.push({ n: i, v: Math.pow(a, i) });
+  return out;
+}
+function run() {
+  var r = __xfPow($("base").value, $("exp").value, Number($("dec").value) || 0);
+  if (!r) { $("tip").textContent = "⚠️ 计算失败：负数的非整数次方在实数范围内无意义"; $("res").innerHTML = ""; return; }
+  var a = Number($("base").value), n = Number($("exp").value);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div><b>" + a + "</b> 的 <b>" + n + "</b> 次方 = <b style='color:#4d8bb8;font-size:16px;'>" + r.text + "</b></div>" +
+    "<div style='color:#888;'>精确值：" + r.value + "</div>";
+  return r;
+}
+function runChain() {
+  var a = Number($("base").value), list = __xfPowChain(a, 12);
+  $("tip").textContent = "✅ " + a + " 的前 12 次幂";
+  $("res").innerHTML = list.map(function (x) { return "<div>" + a + "^" + x.n + " = " + __xfFmt(x.v, 6) + "</div>"; }).join("");
+  return list;
+}
+$("runBtn").onclick = run;
+$("chainBtn").onclick = runChain;
+run();
+</script>
+</body>
+</html>

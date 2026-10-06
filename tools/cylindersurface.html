@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圆柱表面积计算器 - 词海工具箱</title>
+<meta name="description" content="在线圆柱表面积计算器，输入半径与高算出圆柱总表面积，同时拆出侧面积与两个底面积便于下料。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cylindersurface.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cylindersurface" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>底面半径 r</label><input type="text" id="r" value="3"></div>
+      <div class="fitem"><label>高 h</label><input type="text" id="h" value="10"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">表面积 S = 2πr² + 2πrh</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于圆柱表面积计算器介绍：</h4>
+    <ol>
+      <li>总表面积 = 两个底面积（2πr²）加侧面积（2πrh）。</li>
+      <li>侧面积展开后是一个矩形，宽为底面周长 2πr，长为圆柱高 h。</li>
+      <li>结果分项列出，做铁皮桶、纸管等材料下料时可直接取侧面积。</li>
+      <li>若只要做无盖容器，把结果减去一个底面积即可。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfCylinderSurface(r, h, dec) {
+  var x = Number(r), y = Number(h);
+  if (!isFinite(x) || !isFinite(y) || x <= 0 || y <= 0) return null;
+  var base = Math.PI * x * x, lateral = 2 * Math.PI * x * y;
+  return {
+    r: x, h: y, base: base, lateral: lateral, total: 2 * base + lateral, round: 2 * Math.PI * x,
+    text: { total: String(__xfRound(2 * base + lateral, dec)), lateral: String(__xfRound(lateral, dec)), base: String(__xfRound(base, dec)), round: String(__xfRound(2 * Math.PI * x, dec)) }
+  };
+}
+function run() {
+  var o = __xfCylinderSurface($("r").value, $("h").value, Number($("dec").value) || 0);
+  if (!o) { $("tip").textContent = "⚠️ 请输入大于 0 的半径与高"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML =
+    "<div>总表面积 = <b style='color:#4d8bb8;font-size:16px;'>" + o.text.total + "</b></div>" +
+    "<div>侧面积 = " + o.text.lateral + "　单底面积 = " + o.text.base + "（共两个底）</div>" +
+    "<div style='color:#888;'>侧面展开为 " + o.text.round + " × " + o.h + " 的矩形</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

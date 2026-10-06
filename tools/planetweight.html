@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行星体重换算器 - 词海工具箱</title>
+<meta name="description" content="在线行星体重换算器，输入地球体重即可换算在月球与八大行星上的体重，并给出最轻与最重的天体位置。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/planetweight.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="planetweight" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>地球体重（千克）</label><input type="number" id="kg" value="60" step="0.1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">换算体重</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">按各天体表面重力加速度换算体重</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于行星体重换算器介绍：</h4>
+    <ol>
+      <li>换算公式为地球体重乘以该天体的表面重力与地球重力之比，质量不变而重量随重力改变。</li>
+      <li>重力比越小体重越轻，月球表面重力仅为地球的 0.166 倍，是最轻的天体。</li>
+      <li>太阳表面重力约为地球的 27.9 倍，站在太阳上体重会变成地球上的近二十八倍。</li>
+      <li>本工具只做重力换算，不涉及天体质量、轨道周期等其它物理量。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+var __xfPlanets = [
+  { key: "moon", name: "月球", g: 0.166 },
+  { key: "mercury", name: "水星", g: 0.378 },
+  { key: "venus", name: "金星", g: 0.907 },
+  { key: "mars", name: "火星", g: 0.377 },
+  { key: "jupiter", name: "木星", g: 2.364 },
+  { key: "saturn", name: "土星", g: 0.916 },
+  { key: "uranus", name: "天王星", g: 0.889 },
+  { key: "neptune", name: "海王星", g: 1.125 },
+  { key: "sun", name: "太阳", g: 27.9 }
+];
+function __xfPlanetGravity(key) {
+  for (var i = 0; i < __xfPlanets.length; i++) {
+    if (__xfPlanets[i].key === key) return __xfPlanets[i].g;
+  }
+  return 1;
+}
+function __xfPlanetName(key) {
+  for (var i = 0; i < __xfPlanets.length; i++) {
+    if (__xfPlanets[i].key === key) return __xfPlanets[i].name;
+  }
+  return null;
+}
+function __xfPlanetWeight(weight, key) {
+  if (!(weight > 0)) return 0;
+  return weight * __xfPlanetGravity(key);
+}
+function __xfPlanetList(weight) {
+  var w = weight > 0 ? weight : 0;
+  return __xfPlanets.map(function (p) {
+    return { key: p.key, name: p.name, g: p.g, w: w * p.g };
+  });
+}
+function __xfLightestKey() {
+  var best = __xfPlanets[0];
+  for (var i = 1; i < __xfPlanets.length; i++) {
+    if (__xfPlanets[i].g < best.g) best = __xfPlanets[i];
+  }
+  return best.key;
+}
+function __xfHeaviestKey() {
+  var best = __xfPlanets[0];
+  for (var i = 1; i < __xfPlanets.length; i++) {
+    if (__xfPlanets[i].g > best.g) best = __xfPlanets[i];
+  }
+  return best.key;
+}
+function run() {
+  var kg = Number($("kg").value);
+  if (!(kg > 0)) { $("tip").textContent = "⚠️ 请输入大于 0 的地球体重"; $("res").innerHTML = ""; return null; }
+  var list = __xfPlanetList(kg);
+  var rows = list.map(function (p) {
+    return "<div>" + p.name + "：<b>" + __xfRound(p.w, 2) + "</b> 千克" +
+      "<span style='color:#888;'>（重力比 " + p.g + "）</span></div>";
+  }).join("");
+  $("tip").textContent = "✅ 在地球 " + kg + " 千克的你，在月球上只有 " + __xfRound(__xfPlanetWeight(kg, "moon"), 2) + " 千克";
+  $("res").innerHTML =
+    "<div>地球体重：<b>" + kg + "</b> 千克（重力比基准 1）</div>" + rows +
+    "<div style='color:#888;'>最轻为" + __xfPlanetName(__xfLightestKey()) + "，" +
+    "最重为" + __xfPlanetName(__xfHeaviestKey()) + "。</div>";
+  return { weight: kg, list: list };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

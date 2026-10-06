@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>等边三角形面积计算器 - 词海工具箱</title>
+<meta name="description" content="在线等边三角形面积计算器，输入边长算出面积、高、周长与外接圆半径、内切圆半径等全部几何量。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/eqtriangle.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="eqtriangle" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>边长 a</label><input type="text" id="src" value="6"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">等边三角形：三边相等、三角均为 60°</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于等边三角形面积计算器介绍：</h4>
+    <ol>
+      <li>面积公式 S = √3/4 × a²，是正三角形独有的简化公式。</li>
+      <li>高 h = √3/2 × a，外接圆半径 R = √3/3 × a，内切圆半径 r = √3/6 × a。</li>
+      <li>周长 = 3a，三个内角均为 60 度，三条中线、角平分线、高重合。</li>
+      <li>结果可用于板材下料、六边形拼装等实际场景的尺寸推算。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfEqTriangle(a, dec) {
+  var x = Number(a);
+  if (!isFinite(x) || x <= 0) return null;
+  var h = Math.sqrt(3) / 2 * x;
+  var area = Math.sqrt(3) / 4 * x * x;
+  var o = {
+    a: x, h: h, area: area, peri: 3 * x,
+    rOuter: Math.sqrt(3) / 3 * x, rInner: Math.sqrt(3) / 6 * x,
+    text: { area: String(__xfRound(area, dec)), h: String(__xfRound(h, dec)), peri: String(__xfRound(3 * x, dec)), rOuter: String(__xfRound(Math.sqrt(3) / 3 * x, dec)), rInner: String(__xfRound(Math.sqrt(3) / 6 * x, dec)) }
+  };
+  o.rInnerIsHalf = Math.abs(o.rInner * 2 - o.rOuter) < 1e-12;
+  return o;
+}
+function run() {
+  var o = __xfEqTriangle($("src").value, Number($("dec").value) || 0);
+  if (!o) { $("tip").textContent = "⚠️ 请输入大于 0 的边长"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML =
+    "<div>面积 S = <b style='color:#4d8bb8;font-size:16px;'>" + o.text.area + "</b></div>" +
+    "<div>高 h = " + o.text.h + "　周长 = " + o.text.peri + "</div>" +
+    "<div style='color:#888;'>外接圆半径 R = " + o.text.rOuter + "　内切圆半径 r = " + o.text.rInner + "（R = 2r）</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

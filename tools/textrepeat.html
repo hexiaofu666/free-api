@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本重复工具 - 词海工具箱</title>
+<meta name="description" content="在线文本重复工具，可按行或整体重复指定次数，支持添加序号、自定义分隔符与生成批量测试数据。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/textrepeat.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="textrepeat" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文本</label><textarea id="src" rows="5">词海工具箱</textarea></div>
+      <div class="fitem"><label>重复次数</label><input type="number" id="n" value="10" min="1" max="10000"></div>
+      <div class="fitem"><label>重复方式</label>
+        <select id="mode"><option value="line">每行重复（逐行展开）</option><option value="block">整体重复（块级）</option><option value="inline">行内连续重复</option></select>
+      </div>
+      <div class="fitem"><label>添加序号</label>
+        <select id="num"><option value="none">不添加</option><option value="prefix">行首加序号</option><option value="suffix">行尾加序号</option></select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">生成</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">重复结果</strong></div>
+      <textarea id="res" rows="8" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本重复工具介绍：</h4>
+    <ol>
+      <li>每行重复会把每一行连续展开 N 次，适合构造测试数据。</li>
+      <li>整体重复把全部文本作为一个块重复 N 次，适合复制模板段落。</li>
+      <li>行内连续重复把整段文本拼成一长行，适合生成占位字符串。</li>
+      <li>序号位数自动对齐，如 1~100 会补零为 001~100，便于排序。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSplitLines(text) { return String(text).replace(/\r\n?/g, "\n").split("\n"); }
+function __xfPadNum(n, width) { var s = String(n); while (s.length < width) s = "0" + s; return s; }
+function __xfRepeatText(text, times, mode) {
+  var t = Math.max(1, Math.floor(Number(times) || 1));
+  var s = String(text);
+  if (mode === "inline") return new Array(t + 1).join(s);
+  if (mode === "block") {
+    var out = [];
+    for (var i = 0; i < t; i++) out.push(s);
+    return out.join("\n");
+  }
+  var lines = __xfSplitLines(s), res = [];
+  lines.forEach(function (l) { for (var i = 0; i < t; i++) res.push(l); });
+  return res.join("\n");
+}
+function __xfAddIndex(text, position) {
+  var lines = __xfSplitLines(text);
+  var width = String(lines.length).length;
+  return lines.map(function (l, i) {
+    var n = __xfPadNum(i + 1, width);
+    return position === "suffix" ? l + " " + n : n + " " + l;
+  }).join("\n");
+}
+function run() {
+  var o = __xfRepeatText($("src").value, $("n").value, $("mode").value);
+  var num = $("num").value;
+  if (num !== "none") o = __xfAddIndex(o, num);
+  $("res").value = o;
+  $("tip").textContent = "✅ 共 " + __xfSplitLines(o).length + " 行";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

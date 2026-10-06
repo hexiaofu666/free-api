@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>长方体体积计算器 - 词海工具箱</title>
+<meta name="description" content="在线长方体体积计算器，输入长宽高算出体积、表面积、棱长总和与体对角线长度，正方体自动识别。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cuboidvolume.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cuboidvolume" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>长 a</label><input type="text" id="a" value="3"></div>
+      <div class="fitem"><label>宽 b</label><input type="text" id="b" value="4"></div>
+      <div class="fitem"><label>高 c</label><input type="text" id="c" value="5"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">长方体体积 V = abc</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于长方体体积计算器介绍：</h4>
+    <ol>
+      <li>体积 = 长 × 宽 × 高，表面积 = 2(ab + bc + ca)。</li>
+      <li>棱长总和为 4(a + b + c)，体对角线为 √(a² + b² + c²)。</li>
+      <li>三边相等时会自动标注为正方体，并给出对应结论。</li>
+      <li>装箱、算容积、木材方量等场景都可用本工具快速得出结果。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfCuboid(a, b, c, dec) {
+  var x = Number(a), y = Number(b), z = Number(c);
+  if (!isFinite(x) || !isFinite(y) || !isFinite(z) || x <= 0 || y <= 0 || z <= 0) return null;
+  var vol = x * y * z, surf = 2 * (x * y + y * z + z * x), diag = Math.sqrt(x * x + y * y + z * z);
+  return {
+    a: x, b: y, c: z, volume: vol, surface: surf, edgeSum: 4 * (x + y + z), diag: diag, isCube: x === y && y === z,
+    text: { volume: String(__xfRound(vol, dec)), surface: String(__xfRound(surf, dec)), edgeSum: String(__xfRound(4 * (x + y + z), dec)), diag: String(__xfRound(diag, dec)) }
+  };
+}
+function run() {
+  var o = __xfCuboid($("a").value, $("b").value, $("c").value, Number($("dec").value) || 0);
+  if (!o) { $("tip").textContent = "⚠️ 请输入大于 0 的长宽高"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成" + (o.isCube ? "（三边相等，是正方体）" : "");
+  $("res").innerHTML =
+    "<div>体积 V = <b style='color:#4d8bb8;font-size:16px;'>" + o.text.volume + "</b></div>" +
+    "<div>表面积 S = " + o.text.surface + "　棱长总和 = " + o.text.edgeSum + "</div>" +
+    "<div style='color:#888;'>体对角线 = " + o.text.diag + "（" + o.a + " × " + o.b + " × " + o.c + "）</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分数通分计算器 - 词海工具箱</title>
+<meta name="description" content="在线分数通分计算器，求多个分数的最小公分母并给出通分后的分子，含最小公倍数演算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/fractioncommondenom.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="fractioncommondenom" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>分数列表</label><input type="text" id="src" value="1/2, 1/3, 1/4" placeholder="多个分数用逗号分隔"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">通分</button><button class="fbtn blue" id="lcmBtn">仅求最小公分母</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">最小公分母 = 各分母的最小公倍数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于分数通分计算器介绍：</h4>
+    <ol>
+      <li>最小公分母取各分母的最小公倍数，是通分的最简形式。</li>
+      <li>通分后每个分数的分子等于原分子乘以（公分母 ÷ 原分母）。</li>
+      <li>通分是分数加减法的前置步骤，结果可直接用于同分母运算。</li>
+      <li>分母互质时公分母即为各分母之积，如 2、3、5 通分为 30。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfGcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a || 1; }
+function __xfLcm(a, b) { a = Math.abs(a); b = Math.abs(b); if (!a || !b) return 0; return a / __xfGcd(a, b) * b; }
+function __xfParseList(text) {
+  return String(text).split(/[,\s]+/).filter(function (s) { return s !== ""; }).map(function (s) {
+    var m = s.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+    if (m) { var n = Number(m[1]), d = Number(m[2]); return d === 0 ? null : { n: n, d: d, text: n + "/" + d }; }
+    if (/^-?\d+$/.test(s)) return { n: Number(s), d: 1, text: s };
+    return null;
+  });
+}
+function __xfCommonDenom(list) {
+  var d = 1;
+  list.forEach(function (f) { d = __xfLcm(d, f.d); });
+  return {
+    den: d,
+    items: list.map(function (f) { return { text: f.text, n: f.n * (d / f.d), d: d, mul: d / f.d }; })
+  };
+}
+function run() {
+  var list = __xfParseList($("src").value);
+  if (list.length < 2) { $("tip").textContent = "⚠️ 请至少输入两个分数"; $("res").innerHTML = ""; return; }
+  if (list.some(function (f) { return !f; })) { $("tip").textContent = "⚠️ 存在格式错误或分母为 0 的分数"; $("res").innerHTML = ""; return; }
+  var o = __xfCommonDenom(list);
+  $("tip").textContent = "✅ 最小公分母为 " + o.den;
+  $("res").innerHTML =
+    "<div>各分母：" + list.map(function (f) { return f.d; }).join("、") + " → 最小公分母 <b style='color:#4d8bb8;'>" + o.den + "</b></div>" +
+    o.items.map(function (x) { return "<div>" + x.text + " = " + x.n + "/" + x.d + "（分子分母同乘 " + x.mul + "）</div>"; }).join("") +
+    "<div style='color:#888;'>通分后分子依次为 " + o.items.map(function (x) { return x.n; }).join("、") + "</div>";
+  return o;
+}
+function runLcm() {
+  var list = __xfParseList($("src").value);
+  if (list.some(function (f) { return !f; })) { $("tip").textContent = "⚠️ 存在非法分数"; return; }
+  var o = __xfCommonDenom(list);
+  $("tip").textContent = "✅ 最小公分母";
+  $("res").innerHTML = "<div>分母 " + list.map(function (f) { return f.d; }).join("、") + " 的最小公倍数为 <b style='color:#4d8bb8;font-size:16px;'>" + o.den + "</b></div>";
+  return o.den;
+}
+$("runBtn").onclick = run;
+$("lcmBtn").onclick = runLcm;
+run();
+</script>
+</body>
+</html>

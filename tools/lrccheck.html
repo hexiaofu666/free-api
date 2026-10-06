@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LRC校验工具 - 词海工具箱</title>
+<meta name="description" content="在线 LRC 纵向冗余校验计算器，对文本或十六进制字节串求出 LRC 校验字节与校验码，含验算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/lrccheck.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="lrccheck" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>输入方式</label>
+        <select id="mode"><option value="text">文本（按 UTF-8 字节）</option><option value="hex">十六进制字节串</option></select>
+      </div>
+      <div class="fitem"><label>数据</label><input type="text" id="src" value="010300000002"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算 LRC</button><button class="fbtn blue" id="chkBtn">校验验证</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">LRC = ~(累加和) + 1 取低八位</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;font-family:Consolas,monospace;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于LRC校验工具介绍：</h4>
+    <ol>
+      <li>LRC（纵向冗余校验）把全部字节求和，取反加一后保留低八位。</li>
+      <li>常用于 Modbus RTU 等通信协议中，与数据字节一起发送。</li>
+      <li>校验验证会重新计算含校验字节时总和是否为 0，结果为 0 说明数据正确。</li>
+      <li>文本模式按 UTF-8 取字节，十六进制模式可输入连续或空格分隔的字节。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfUtf8Bytes(str) {
+  var out = [], s = String(str);
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charCodeAt(i);
+    if (c < 0x80) out.push(c);
+    else if (c < 0x800) { out.push(0xc0 | (c >> 6), 0x80 | (c & 63)); }
+    else { out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63)); }
+  }
+  return out;
+}
+function __xfParseHexBytes(text) {
+  var t = String(text).replace(/^0x/i, "").replace(/[^0-9a-fA-F]/g, " ");
+  var parts = t.split(/\s+/).filter(function (x) { return x !== ""; });
+  var out = [];
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].length > 2) return null;
+    out.push(parseInt(parts[i], 16));
+  }
+  return out;
+}
+function __xfLrc(bytes) {
+  if (!bytes || !bytes.length) return null;
+  var sum = 0;
+  for (var i = 0; i < bytes.length; i++) sum += bytes[i] & 0xff;
+  var lrc = ((~sum + 1) & 0xff);
+  return { sum: sum, sumLow: sum & 0xff, lrc: lrc, hex: __xfHex2(lrc) };
+}
+function __xfHex2(n) { var s = (n & 0xff).toString(16).toUpperCase(); return s.length < 2 ? "0" + s : s; }
+function __xfLrcVerify(bytes) {
+  if (!bytes || !bytes.length) return null;
+  var sum = 0;
+  for (var i = 0; i < bytes.length; i++) sum += bytes[i] & 0xff;
+  return { total: sum, low: sum & 0xff, ok: (sum & 0xff) === 0 };
+}
+function run() {
+  var mode = $("mode").value, raw = $("src").value;
+  var bytes = mode === "text" ? __xfUtf8Bytes(raw) : __xfParseHexBytes(raw);
+  if (!bytes || !bytes.length) { $("tip").textContent = "⚠️ 数据为空或格式不合法"; $("res").innerHTML = ""; return; }
+  var o = __xfLrc(bytes);
+  $("tip").textContent = "✅ 共 " + bytes.length + " 字节";
+  $("res").innerHTML = "<div>LRC（十六进制）= <b style='color:#607d8b;font-size:16px;'>" + o.hex + "</b></div>" +
+    "<div>累加和 = " + o.sum + "，低八位 = " + o.sumLow + "，LRC = " + o.lrc + "</div>" +
+    "<div style='color:#888;'>字节序列：" + bytes.map(__xfHex2).join(" ") + "</div>";
+  return o;
+}
+function runChk() {
+  var mode = $("mode").value, raw = $("src").value;
+  var bytes = mode === "text" ? __xfUtf8Bytes(raw) : __xfParseHexBytes(raw);
+  if (!bytes || !bytes.length) { $("tip").textContent = "⚠️ 数据为空或格式不合法"; return; }
+  var o = __xfLrcVerify(bytes);
+  $("tip").textContent = o.ok ? "✅ 校验通过：含校验字节的累加和低八位为 0" : "❌ 校验未通过";
+  $("res").innerHTML = "<div>累加和 = " + o.total + "，低八位 = " + o.low + "</div>" +
+    "<div style='color:#888;'>" + (o.ok ? "说明数据已包含正确的 LRC 校验字节。" : "说明数据尚未包含校验字节，或存在错误字节。") + "</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+$("chkBtn").onclick = runChk;
+run();
+</script>
+</body>
+</html>

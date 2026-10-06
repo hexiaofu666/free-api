@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分数转小数工具 - 词海工具箱</title>
+<meta name="description" content="在线分数转小数工具，长除法展开小数并自动识别循环节，用括号标出循环部分。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/fraction2decimal.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="fraction2decimal" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>分数</label><input type="text" id="src" value="1/3" placeholder="如 1/3，多个用逗号分隔"></div>
+      <div class="fitem"><label>最多展开位数</label><input type="number" id="max" value="30" min="1" max="80"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">转换</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">识别有限小数与循环小数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;word-break:break-all;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于分数转小数工具介绍：</h4>
+    <ol>
+      <li>采用长除法逐步求商，同时记录余数，余数重复出现即说明进入循环。</li>
+      <li>有限小数直接给出结果，循环小数用括号标出循环节，如 0.(3)。</li>
+      <li>循环节长度不会超过分母减一，工具已自动限制展开位数防止死循环。</li>
+      <li>分母含 2 与 5 以外的质因数时必然为循环小数，可用来快速判断。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfFrac2Dec(n, d, maxLen) {
+  n = Number(n); d = Number(d);
+  if (!isFinite(n) || !isFinite(d) || d === 0) return null;
+  var sign = (n < 0) !== (d < 0) ? "-" : "";
+  var a = Math.abs(Math.trunc(n)), b = Math.abs(Math.trunc(d));
+  var intPart = Math.floor(a / b), rem = a % b;
+  if (rem === 0) return { sign: sign, int: intPart, frac: "", repeat: "", finite: true, text: sign + intPart };
+  var seen = {}, digits = "", rep = "", limit = maxLen || 30;
+  while (rem !== 0 && digits.length < limit) {
+    if (seen[rem] !== undefined) { rep = digits.slice(seen[rem]); digits = digits.slice(0, seen[rem]); break; }
+    seen[rem] = digits.length;
+    rem *= 10;
+    digits += Math.floor(rem / b);
+    rem = rem % b;
+  }
+  var finite = rem === 0;
+  var text = sign + intPart + "." + digits + (rep ? "(" + rep + ")" : "");
+  return { sign: sign, int: intPart, frac: digits, repeat: rep, finite: finite, text: text, digitCount: digits.length };
+}
+function __xfIsTerminating(d) {
+  var n = Math.abs(Math.trunc(Number(d)));
+  if (!n) return false;
+  while (n % 2 === 0) n /= 2;
+  while (n % 5 === 0) n /= 5;
+  return n === 1;
+}
+function __xfParseList(text) {
+  return String(text).split(/[,\s]+/).filter(function (s) { return s !== ""; }).map(function (s) {
+    var m = s.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+    if (m) return { n: Number(m[1]), d: Number(m[2]) };
+    if (/^-?\d+$/.test(s)) return { n: Number(s), d: 1 };
+    return null;
+  });
+}
+function run() {
+  var list = __xfParseList($("src").value), maxLen = Number($("max").value) || 30;
+  if (!list.length) { $("tip").textContent = "⚠️ 请输入分数"; $("res").innerHTML = ""; return; }
+  $("res").innerHTML = list.map(function (f) {
+    if (!f) return "<div style='color:#c00;'>格式错误</div>";
+    var o = __xfFrac2Dec(f.n, f.d, maxLen);
+    if (!o) return "<div style='color:#c00;'>分母不能为 0</div>";
+    return "<div>" + f.n + "/" + f.d + " = <b style='color:#4d8bb8;'>" + o.text + "</b>" +
+      "<span style='color:#888;'>（" + (o.finite ? "有限小数，共 " + o.digitCount + " 位" : "循环小数，循环节 " + o.repeat + "，长度 " + o.repeat.length) + "）</span></div>";
+  }).join("");
+  $("tip").textContent = "✅ 转换完成";
+  return list;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

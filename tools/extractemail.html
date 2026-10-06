@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线邮箱地址提取工具 - 词海工具箱</title>
+<meta name="description" content="在线邮箱地址提取工具，从杂乱文本中批量提取电子邮箱、自动去重并统计数量，可导出为列表。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/extractemail.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="extractemail" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文本</label><textarea id="src" rows="7">联系：service@example.com，备用 support@test.cn。
+无效地址：abc@@x.com、no-at-sign.com。技术部 dev.team@mail.co.uk</textarea></div>
+      <div class="fitem"><label>去重</label>
+        <select id="uniq"><option value="yes">去重（推荐）</option><option value="no">保留重复</option></select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">提取邮箱</button><button class="fbtn plain" id="demoBtn">填入示例</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">提取结果</strong></div>
+      <textarea id="res" rows="7" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线邮箱地址提取工具介绍：</h4>
+    <ol>
+      <li>按标准邮箱格式匹配，要求 @ 前后均有合法字符且域名包含点号与顶级域。</li>
+      <li>自动跳过 abc@@x.com 这类重复符号与缺少 @ 的无效串。</li>
+      <li>去重时不区分大小写，输出保留首次出现时的原始大小写。</li>
+      <li>提取结果每行一个邮箱，可直接复制到邮件客户端或表格中使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfExtractEmails(text, uniq) {
+  var re = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9](?:[A-Za-z0-9\-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9\-]*[A-Za-z0-9])?)+/g;
+  var raw = String(text).match(re) || [];
+  var valid = raw.filter(function (m) { return m.indexOf("..") < 0 && m.split("@").length === 2; });
+  if (uniq === "no") return { list: valid, count: valid.length, raw: raw.length };
+  var seen = {}, out = [];
+  valid.forEach(function (m) {
+    var k = m.toLowerCase();
+    if (!seen[k]) { seen[k] = 1; out.push(m); }
+  });
+  return { list: out, count: out.length, raw: raw.length };
+}
+function run() {
+  var o = __xfExtractEmails($("src").value, $("uniq").value);
+  $("res").value = o.list.join("\n");
+  $("tip").textContent = o.count ? "✅ 提取到 " + o.count + " 个邮箱" : "⚠️ 未发现邮箱地址";
+  return o;
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = function () {
+  $("src").value = "联系人 A：zhangsan@example.com\n联系人 B：LiSi@Company.COM\n重复：zhangsan@example.com\n无效：test@@mail.com";
+  return run();
+};
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线身份证信息批量提取工具 - 词海工具箱</title>
+<meta name="description" content="在线身份证号批量提取工具，提取文本中的身份证号码并校验合法性，解析出生日期与性别。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/extractidcard.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="extractidcard" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文本</label><textarea id="src" rows="7"></textarea></div>
+      <div class="fitem"><label>输出内容</label>
+        <select id="mode"><option value="full">号码 + 生日 + 性别</option><option value="only">仅号码</option></select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">提取</button><button class="fbtn plain" id="demoBtn">填入示例</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">提取与校验结果</strong></div>
+      <textarea id="res" rows="7" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线身份证信息批量提取工具介绍：</h4>
+    <ol>
+      <li>识别 18 位（最后一位可为 X）与 15 位两代身份证号码。</li>
+      <li>18 位号码按 ISO 7064 加权算法校验最后一位校验码，无效号码会被标注。</li>
+      <li>从号码中解析出生日期：15 位取第 7~12 位补 19 世纪，18 位取第 7~14 位。</li>
+      <li>性别由第 17 位（15 位为第 15 位）决定，奇数为男、偶数为女。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var ID_WEIGHT = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+var ID_CHECK = "10X98765432";
+function __xfExtractIds(text) {
+  var re = /(?<![0-9])(?:[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[0-9Xx]|[1-9]\d{5}\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3})(?![0-9])/g;
+  return String(text).match(re) || [];
+}
+function __xfIdCheckCode(id) {
+  var s = String(id).toUpperCase();
+  if (s.length !== 17 && s.length !== 18) return null;
+  var sum = 0;
+  for (var i = 0; i < 17; i++) sum += Number(s.charAt(i)) * ID_WEIGHT[i];
+  return ID_CHECK.charAt(sum % 11);
+}
+function __xfIdValid(id) {
+  var s = String(id).trim().toUpperCase();
+  if (/^\d{15}$/.test(s)) return true;
+  if (!/^\d{17}[0-9X]$/.test(s)) return false;
+  return __xfIdCheckCode(s) === s.charAt(17);
+}
+function __xfIdInfo(id) {
+  var s = String(id).trim().toUpperCase();
+  var info = { id: s, valid: __xfIdValid(s), length: s.length };
+  if (/^\d{15}$/.test(s)) {
+    info.birth = "19" + s.substr(6, 2) + "-" + s.substr(8, 2) + "-" + s.substr(10, 2);
+    info.gender = Number(s.charAt(14)) % 2 ? "男" : "女";
+  } else if (s.length === 18) {
+    info.birth = s.substr(6, 4) + "-" + s.substr(10, 2) + "-" + s.substr(12, 2);
+    info.gender = Number(s.charAt(16)) % 2 ? "男" : "女";
+    info.check = s.charAt(17);
+    info.expectCheck = __xfIdCheckCode(s);
+  }
+  return info;
+}
+function run() {
+  var ids = __xfExtractIds($("src").value);
+  if (!ids.length) { $("tip").textContent = "⚠️ 未发现身份证号码"; $("res").value = ""; return; }
+  var mode = $("mode").value;
+  $("res").value = ids.map(function (x) {
+    var i = __xfIdInfo(x);
+    if (mode === "only") return i.id;
+    return i.id + "　" + (i.birth || "生日未知") + "　" + (i.gender || "") + (i.valid ? "　✅有效" : "　❌校验失败（应为 " + i.expectCheck + "）");
+  }).join("\n");
+  $("tip").textContent = "✅ 共提取 " + ids.length + " 个号码";
+  return ids;
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = function () {
+  $("src").value = "身份证：11010519491231002X\n另一个：110105194912310011";
+  return run();
+};
+run();
+</script>
+</body>
+</html>

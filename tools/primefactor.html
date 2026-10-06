@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>质因数分解计算器 - 词海工具箱</title>
+<meta name="description" content="在线质因数分解工具，把正整数分解为质因数幂次乘积，输出标准分解式与全部约数个数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/primefactor.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="primefactor" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>待分解整数</label><input type="text" id="src" placeholder="支持多个数，逗号或换行分隔" value="360"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">分解</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入一个或多个正整数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于质因数分解计算器介绍：</h4>
+    <ol>
+      <li>支持一次分解多个数（逗号、空格或换行分隔），逐行输出结果。</li>
+      <li>输出标准分解式，例如 360 = 2^3 × 3^2 × 5，并给出约数个数。</li>
+      <li>数值过大（超过 1e15）时试除法会变慢，建议拆小后再算。</li>
+      <li>约数个数按 (指数+1) 连乘计算，约数之和按等比数列求和公式计算。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfFactor(n) {
+  n = Math.floor(Math.abs(Number(n)));
+  if (!isFinite(n) || n < 1) return null;
+  var list = [], m = n, d = 2, k = 0;
+  while (d * d <= m) {
+    k = 0;
+    while (m % d === 0) { m /= d; k++; }
+    if (k) list.push({ p: d, k: k });
+    d += (d === 2 ? 1 : 2);
+  }
+  if (m > 1) list.push({ p: m, k: 1 });
+  return { n: n, list: list };
+}
+function __xfFactorExpr(n) {
+  var r = __xfFactor(n);
+  if (!r) return "";
+  if (n === 1) return "1";
+  return r.list.map(function (x) { return x.k === 1 ? String(x.p) : x.p + "^" + x.k; }).join(" × ");
+}
+function __xfDivisorCount(n) {
+  var r = __xfFactor(n); if (!r) return 0;
+  var c = 1;
+  r.list.forEach(function (x) { c *= (x.k + 1); });
+  return c;
+}
+function __xfDivisorSum(n) {
+  var r = __xfFactor(n); if (!r) return 0;
+  var s = 1;
+  r.list.forEach(function (x) { s *= (Math.pow(x.p, x.k + 1) - 1) / (x.p - 1); });
+  return Math.round(s);
+}
+function __xfFactorLines(text) {
+  var arr = String(text).split(/[^0-9]+/).filter(function (x) { return x !== ""; });
+  return arr.map(function (x) { return { n: Number(x), expr: __xfFactorExpr(Number(x)) }; });
+}
+function run() {
+  var rows = __xfFactorLines($("src").value);
+  if (!rows.length) { $("tip").textContent = "⚠️ 请输入正整数"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 分解完成";
+  $("res").innerHTML = rows.map(function (r) {
+    if (r.n < 1) return "<div style='color:#c00;'>" + r.n + " 不是正整数</div>";
+    return "<div><b>" + r.n + "</b> = " + r.expr + "　<span style='color:#888;'>约数 " + __xfDivisorCount(r.n) + " 个，约数和 " + __xfDivisorSum(r.n) + "</span></div>";
+  }).join("");
+  return rows;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").innerHTML = ""; $("tip").textContent = "输入一个或多个正整数"; };
+run();
+</script>
+</body>
+</html>

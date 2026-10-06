@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据大小转换 - 词海工具箱</title>
+<meta name="description" content="在线数据大小单位转换器，字节、KB、MB、GB、TB 与比特互相换算，同时支持 1024 与 1000 两种进制口径。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/calcdata.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="calcdata" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="1"></div>
+      <div class="fitem"><label>源单位</label><select id="from"></select></div>
+      <div class="fitem"><label>进制口径</label>
+        <select id="base"><option value="1024">1024 进制（KiB/MiB，系统显示）</option><option value="1000">1000 进制（KB/MB，厂商标注）</option></select>
+      </div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">换算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">存储容量单位换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于数据大小转换介绍：</h4>
+    <ol>
+      <li>1024 进制是操作系统显示口径，1 KB = 1024 字节；1000 进制是硬盘厂商口径，1 KB = 1000 字节。</li>
+      <li>硬盘标称 500GB 在系统中显示约 465GiB，差异就来自两种进制。</li>
+      <li>1 字节 = 8 比特，网络带宽通常用比特每秒表示，下载速度用字节每秒。</li>
+      <li>切换到 1000 进制后同样的数值会得到更小的结果，属正常现象。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+var UNITS_1024 = [
+  { k: "bit", n: "比特 bit", f: 1 / 8 }, { k: "b", n: "字节 B", f: 1 },
+  { k: "kb", n: "KB", f: 1024 }, { k: "mb", n: "MB", f: 1024 * 1024 },
+  { k: "gb", n: "GB", f: Math.pow(1024, 3) }, { k: "tb", n: "TB", f: Math.pow(1024, 4) },
+  { k: "pb", n: "PB", f: Math.pow(1024, 5) }
+];
+var UNITS_1000 = [
+  { k: "bit", n: "比特 bit", f: 1 / 8 }, { k: "b", n: "字节 B", f: 1 },
+  { k: "kb", n: "KB", f: 1000 }, { k: "mb", n: "MB", f: 1e6 },
+  { k: "gb", n: "GB", f: 1e9 }, { k: "tb", n: "TB", f: 1e12 }, { k: "pb", n: "PB", f: 1e15 }
+];
+function __xfDataUnits(base) { return String(base) === "1000" ? UNITS_1000 : UNITS_1024; }
+function __xfDataConvert(v, from, base) {
+  var units = __xfDataUnits(base), n = Number(v);
+  if (!isFinite(n)) return null;
+  var src = null;
+  for (var i = 0; i < units.length; i++) if (units[i].k === from) src = units[i];
+  if (!src) return null;
+  var bytes = n * src.f, out = {};
+  units.forEach(function (u) { out[u.k] = bytes / u.f; });
+  return out;
+}
+function __xfDataList(base) { return __xfDataUnits(base); }
+function run() {
+  var base = $("base").value, dec = Number($("dec").value) || 0;
+  var units = __xfDataUnits(base);
+  var o = __xfDataConvert($("val").value, $("from").value, base);
+  if (!o) { $("tip").textContent = "⚠️ 请输入合法数值"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 按 " + base + " 进制换算";
+  $("res").innerHTML = units.map(function (u) {
+    return "<div>" + u.n + "：" + __xfRound(o[u.k], dec) + "</div>";
+  }).join("");
+  return o;
+}
+(function init() {
+  var sel = $("from");
+  UNITS_1024.forEach(function (u) { var op = document.createElement("option"); op.value = u.k; op.textContent = u.n; sel.appendChild(op); });
+  sel.value = "mb";
+})();
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

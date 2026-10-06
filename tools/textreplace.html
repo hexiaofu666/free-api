@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本关键词批量替换 - 词海工具箱</title>
+<meta name="description" content="在线文本关键词批量替换工具，一行一条替换规则，支持大小写敏感切换与正则表达式模式。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/textreplace.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="textreplace" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文</label><textarea id="src" rows="5">词海工具箱很好用，词海工具箱很免费。</textarea></div>
+      <div class="fitem"><label>替换规则（每行一条：旧→新）</label><textarea id="rules" rows="4">词海工具箱=>词海工具</textarea></div>
+      <div class="fitem"><label>匹配方式</label>
+        <select id="mode"><option value="plain">普通文本匹配</option><option value="ci">忽略大小写</option><option value="regex">正则表达式</option></select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">批量替换</button><button class="fbtn plain" id="demoBtn">填入示例</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">替换结果</strong></div>
+      <textarea id="res" rows="6" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本关键词批量替换介绍：</h4>
+    <ol>
+      <li>规则每行一条，用 => 或 -> 分隔查找内容与替换内容，也支持用制表符分隔。</li>
+      <li>替换按规则顺序依次执行，上一条的结果会作为下一条的输入。</li>
+      <li>正则模式下查找内容按正则表达式解析，替换内容可用 $1 引用捕获组。</li>
+      <li>替换后的内容不再参与后续规则匹配，避免循环替换导致结果异常。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfParseRules(text) {
+  var lines = String(text).replace(/\r\n?/g, "\n").split("\n");
+  var out = [];
+  lines.forEach(function (l) {
+    if (l.trim() === "") return;
+    var m = l.match(/^(.*?)\s*(?:=>|->|\t)\s*(.*)$/);
+    if (m) out.push({ from: m[1].trim(), to: m[2] });
+  });
+  return out;
+}
+function __xfEscapeRe(s) {
+  var out = "", sp = ".*+?^$()[]{}|\\/", str = String(s);
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charAt(i);
+    out += sp.indexOf(c) >= 0 ? "\\" + c : c;
+  }
+  return out;
+}
+function __xfApplyRules(text, rules, mode) {
+  var s = String(text), count = 0;
+  for (var i = 0; i < rules.length; i++) {
+    var r = rules[i];
+    if (mode === "regex") {
+      try {
+        var re = new RegExp(r.from, "g");
+        var before = s;
+        s = s.replace(re, r.to);
+        if (s !== before) count++;
+      } catch (e) { /* 跳过非法正则 */ }
+    } else if (mode === "ci") {
+      var re2 = new RegExp(__xfEscapeRe(r.from), "gi");
+      var b2 = s;
+      s = s.replace(re2, r.to);
+      if (s !== b2) count++;
+    } else {
+      var idx = s.indexOf(r.from);
+      if (idx >= 0) {
+        s = s.split(r.from).join(r.to);
+        count++;
+      }
+    }
+  }
+  return { text: s, applied: count, total: rules.length };
+}
+function run() {
+  var rules = __xfParseRules($("rules").value);
+  if (!rules.length) { $("tip").textContent = "⚠️ 请至少填写一条替换规则"; $("res").value = ""; return; }
+  var o = __xfApplyRules($("src").value, rules, $("mode").value);
+  $("res").value = o.text;
+  $("tip").textContent = "✅ " + o.total + " 条规则中有 " + o.applied + " 条生效";
+  return o;
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = function () {
+  $("src").value = "苹果 apple 苹果 APPLE";
+  $("rules").value = "苹果=>橘子\napple=>orange";
+  $("mode").value = "ci";
+  return run();
+};
+run();
+</script>
+</body>
+</html>

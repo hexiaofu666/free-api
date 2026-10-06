@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>油耗计算器 - 词海工具箱</title>
+<meta name="description" content="在线油耗计算器，按两次里程表读数与加油量计算百公里油耗，并换算每公里油费当次油费与满箱续航里程。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/fuelcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="fuelcalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>上次里程（公里）</label><input type="number" id="prev" value="10000" step="1"></div>
+      <div class="fitem"><label>本次里程（公里）</label><input type="number" id="cur" value="10500" step="1"></div>
+      <div class="fitem"><label>本次加油量（升）</label><input type="number" id="liters" value="40" step="0.01"></div>
+      <div class="fitem"><label>油价（元/升）</label><input type="number" id="price" value="8" step="0.01"></div>
+      <div class="fitem"><label>油箱容积（升）</label><input type="number" id="tank" value="50" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算油耗</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">百公里油耗 = 加油量 ÷ 行驶里程 × 100</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于油耗计算器介绍：</h4>
+    <ol>
+      <li>行驶里程等于本次里程表读数减上次读数，读数倒退按 0 处理并提示。</li>
+      <li>百公里油耗等于本次加油量除以行驶里程再乘 100，建议连续多次取平均更准确。</li>
+      <li>每公里油费等于油价乘百公里油耗再除以 100，可用于和网约车地铁成本对比。</li>
+      <li>满箱续航等于油箱容积除以百公里油耗再乘 100，实际续航通常低于该理论值。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfFuelDist(prev, cur) {
+  if (!(prev >= 0) || !(cur >= 0)) return 0;
+  return cur > prev ? cur - prev : 0;
+}
+function __xfFuelPer100(dist, liters) {
+  if (!(dist > 0) || !(liters > 0)) return 0;
+  return liters / dist * 100;
+}
+function __xfFuelCostPerKm(price, per100) {
+  if (!(price > 0) || !(per100 > 0)) return 0;
+  return price * per100 / 100;
+}
+function __xfFuelCost(liters, price) {
+  if (!(liters > 0) || !(price > 0)) return 0;
+  return liters * price;
+}
+function __xfFuelRange(tank, per100) {
+  if (!(tank > 0) || !(per100 > 0)) return 0;
+  return tank / per100 * 100;
+}
+function run() {
+  var prev = Number($("prev").value), cur = Number($("cur").value);
+  var liters = Number($("liters").value), price = Number($("price").value);
+  var tank = Number($("tank").value) || 0;
+  var dist = __xfFuelDist(prev, cur);
+  if (!(dist > 0) || !(liters > 0)) {
+    $("tip").textContent = "⚠️ 里程需递增，加油量需为正数"; $("res").innerHTML = ""; return null;
+  }
+  var per100 = __xfFuelPer100(dist, liters);
+  var perKm = __xfFuelCostPerKm(price, per100);
+  var cost = __xfFuelCost(liters, price);
+  var range = __xfFuelRange(tank, per100);
+  $("tip").textContent = "✅ 百公里油耗约 " + __xfRound(per100, 2) + " 升";
+  $("res").innerHTML =
+    "<div>行驶里程：<b>" + __xfRound(dist, 1) + "</b> 公里</div>" +
+    "<div style='color:#c0392b;'>百公里油耗：<b>" + __xfRound(per100, 2) + "</b> 升/百公里</div>" +
+    "<div>每公里油费：<b>" + __xfRound(perKm, 4) + "</b> 元</div>" +
+    "<div>本次加油金额：<b>" + __xfRound(cost, 2) + "</b> 元</div>" +
+    (tank > 0 ? "<div>满箱理论续航：<b>" + __xfRound(range, 1) + "</b> 公里</div>" : "") +
+    "<div style='color:#888;'>每公里成本 " + __xfRound(perKm, 4) + " 元，行驶 100 公里花费约 " + __xfRound(perKm * 100, 2) + " 元。</div>";
+  return { dist: dist, per100: per100, perKm: perKm, range: range };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

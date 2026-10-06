@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圆柱体积计算器 - 词海工具箱</title>
+<meta name="description" content="在线圆柱体积计算器，输入底面半径与高算出圆柱体积与容积、底面积，支持多种长度单位换算提示。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cylindervolume.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cylindervolume" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>底面半径 r</label><input type="text" id="r" value="3"></div>
+      <div class="fitem"><label>高 h</label><input type="text" id="h" value="10"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button><button class="fbtn brown" id="dBtn">改用直径</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">圆柱体积 V = πr²h</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于圆柱体积计算器介绍：</h4>
+    <ol>
+      <li>圆柱体积公式 V = πr²h，即底面积乘高。</li>
+      <li>点「改用直径」按钮后按直径输入，程序自动折半为半径计算。</li>
+      <li>结果同时给出底面积与等体积正方体的棱长，方便直观感受体积大小。</li>
+      <li>长度单位默认为米时，体积单位为立方米；实际使用请保持输入单位一致。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var __xfUseDiameter = false;
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfCylinderVolume(r, h, dec) {
+  var x = Number(r), y = Number(h);
+  if (!isFinite(x) || !isFinite(y) || x <= 0 || y <= 0) return null;
+  var base = Math.PI * x * x, vol = base * y;
+  return {
+    r: x, h: y, base: base, volume: vol, cubeEdge: Math.cbrt(vol),
+    text: { volume: String(__xfRound(vol, dec)), base: String(__xfRound(base, dec)), cubeEdge: String(__xfRound(Math.cbrt(vol), dec)) }
+  };
+}
+function run() {
+  var rv = Number($("r").value), h = Number($("h").value);
+  if (__xfUseDiameter) rv = rv / 2;
+  var o = __xfCylinderVolume(rv, h, Number($("dec").value) || 0);
+  if (!o) { $("tip").textContent = "⚠️ 请输入大于 0 的半径与高"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成" + (__xfUseDiameter ? "（按直径输入）" : "");
+  $("res").innerHTML =
+    "<div>圆柱体积 V = <b style='color:#4d8bb8;font-size:16px;'>" + o.text.volume + "</b></div>" +
+    "<div>底面积 = " + o.text.base + "　高 = " + o.h + "</div>" +
+    "<div style='color:#888;'>半径 r = " + __xfRound(o.r, 6) + "，等体积正方体棱长 ≈ " + o.text.cubeEdge + "</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+$("dBtn").onclick = function () { __xfUseDiameter = !__xfUseDiameter; $("dBtn").textContent = __xfUseDiameter ? "改用半径" : "改用直径"; return run(); };
+run();
+</script>
+</body>
+</html>

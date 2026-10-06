@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>角度单位换算 - 词海工具箱</title>
+<meta name="description" content="在线角度单位换算器，度、弧度、百分度、角分、角秒与圆周互转，支持度分秒与十进制度互化。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/calcjiaodu.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="calcjiaodu" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="45"></div>
+      <div class="fitem"><label>源单位</label>
+        <select id="from">
+          <option value="deg">度 °</option><option value="rad">弧度 rad</option>
+          <option value="grad">百分度 grad</option><option value="turn">圆周 turn</option>
+        </select>
+      </div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">换算</button><button class="fbtn blue" id="dmsBtn">转度分秒</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">角度单位与度分秒</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于角度单位换算介绍：</h4>
+    <ol>
+      <li>1 圆周 = 360 度 = 2π 弧度 = 400 百分度，四种单位可任意互转。</li>
+      <li>弧度 = 度 × π / 180，编程与数学计算中三角函数默认使用弧度。</li>
+      <li>1 度 = 60 角分 = 3600 角秒，度分秒常用于经纬度与测量数据。</li>
+      <li>转度分秒会把十进制度转换为「度°分′秒″」形式，保留 2 位秒精度。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+function __xfAngleToDeg(v, from) {
+  var n = Number(v);
+  if (!isFinite(n)) return null;
+  if (from === "rad") return n * 180 / Math.PI;
+  if (from === "grad") return n * 0.9;
+  if (from === "turn") return n * 360;
+  return n;
+}
+function __xfAngleConvert(v, from) {
+  var deg = __xfAngleToDeg(v, from);
+  if (deg === null) return null;
+  return { deg: deg, rad: deg * Math.PI / 180, grad: deg / 0.9, turn: deg / 360, min: deg * 60, sec: deg * 3600 };
+}
+function __xfDegToDms(deg) {
+  var d = Number(deg);
+  if (!isFinite(d)) return null;
+  var sign = d < 0 ? "-" : "";
+  var a = Math.abs(d);
+  var dd = Math.floor(a);
+  var mfull = (a - dd) * 60;
+  var mm = Math.floor(mfull);
+  var ss = Math.round((mfull - mm) * 60 * 100) / 100;
+  if (ss >= 60) { ss -= 60; mm += 1; }
+  if (mm >= 60) { mm -= 60; dd += 1; }
+  return { d: dd, m: mm, s: ss, sign: sign, text: sign + dd + "°" + mm + "′" + ss + "″" };
+}
+function run() {
+  var dec = Number($("dec").value) || 0;
+  var o = __xfAngleConvert($("val").value, $("from").value);
+  if (!o) { $("tip").textContent = "⚠️ 请输入合法数值"; $("res").innerHTML = ""; return; }
+  var dms = __xfDegToDms(o.deg);
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML =
+    "<div>度 °：<b style='color:#607d8b;font-size:15px;'>" + __xfRound(o.deg, dec) + "</b></div>" +
+    "<div>弧度 rad：" + __xfRound(o.rad, dec) + "</div>" +
+    "<div>百分度 grad：" + __xfRound(o.grad, dec) + "　圆周：" + __xfRound(o.turn, dec) + "</div>" +
+    "<div style='color:#888;'>角分：" + __xfRound(o.min, dec) + "　角秒：" + __xfRound(o.sec, dec) + "　度分秒：" + dms.text + "</div>";
+  return o;
+}
+function runDms() {
+  var deg = __xfAngleToDeg($("val").value, $("from").value);
+  var o = __xfDegToDms(deg);
+  if (!o) { $("tip").textContent = "⚠️ 请输入合法数值"; return; }
+  $("tip").textContent = "✅ 度分秒形式";
+  $("res").innerHTML = "<div>" + __xfRound(deg, 6) + "° = <b style='color:#607d8b;font-size:15px;'>" + o.text + "</b></div>";
+  return o;
+}
+$("runBtn").onclick = run;
+$("dmsBtn").onclick = runDms;
+run();
+</script>
+</body>
+</html>

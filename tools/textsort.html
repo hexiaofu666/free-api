@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线文本排序 - 词海工具箱</title>
+<meta name="description" content="在线文本排序工具，按行进行升序降序、长度、自然顺序、随机打乱等多种排序，支持去重与去空行。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/textsort.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="textsort" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文本</label><textarea id="src" rows="7"></textarea></div>
+      <div class="fitem"><label>排序方式</label>
+        <select id="mode">
+          <option value="asc">升序（A→Z）</option>
+          <option value="desc">降序（Z→A）</option>
+          <option value="lenasc">按长度升序</option>
+          <option value="lendesc">按长度降序</option>
+          <option value="natural">自然顺序（含数字）</option>
+          <option value="random">随机打乱</option>
+          <option value="reverse">整体倒序</option>
+        </select>
+      </div>
+      <div class="fitem"><label>附加处理</label>
+        <select id="opt">
+          <option value="none">不处理</option><option value="uniq">去除重复行</option>
+          <option value="rmblank">去除空行</option><option value="both">去空行 + 去重复</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">排序</button><button class="fbtn plain" id="demoBtn">填入示例</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">排序结果</strong></div>
+      <textarea id="res" rows="7" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线文本排序介绍：</h4>
+    <ol>
+      <li>自然顺序会把「第2行」排在「第10行」之前，即数字按数值大小比较。</li>
+      <li>按长度排序时长度相同的行保持原相对顺序（稳定排序）。</li>
+      <li>随机打乱每次结果都不同，适合抽签、随机排列名单。</li>
+      <li>去重复行保留首次出现的行，区分大小写与前后空格。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSplitLines(text) { return String(text).replace(/\r\n?/g, "\n").split("\n"); }
+function __xfNaturalKey(s) { return String(s).replace(/\d+/g, function (m) { return "\u0001" + ("0000000000" + m).slice(-10); }); }
+function __xfSortLines(text, mode, opt) {
+  var lines = __xfSplitLines(text);
+  if (opt === "rmblank" || opt === "both") lines = lines.filter(function (l) { return l.trim() !== ""; });
+  if (opt === "uniq" || opt === "both") {
+    var seen = {};
+    lines = lines.filter(function (l) { if (seen[l]) return false; seen[l] = 1; return true; });
+  }
+  var m = mode || "asc";
+  if (m === "asc") lines.sort(function (a, b) { return a < b ? -1 : a > b ? 1 : 0; });
+  else if (m === "desc") lines.sort(function (a, b) { return a > b ? -1 : a < b ? 1 : 0; });
+  else if (m === "lenasc") lines.sort(function (a, b) { return a.length - b.length; });
+  else if (m === "lendesc") lines.sort(function (a, b) { return b.length - a.length; });
+  else if (m === "natural") lines.sort(function (a, b) { var x = __xfNaturalKey(a), y = __xfNaturalKey(b); return x < y ? -1 : x > y ? 1 : 0; });
+  else if (m === "reverse") lines.reverse();
+  else if (m === "random") {
+    for (var i = lines.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = lines[i]; lines[i] = lines[j]; lines[j] = t; }
+  }
+  return { text: lines.join("\n"), count: lines.length, lines: lines };
+}
+function run() {
+  var o = __xfSortLines($("src").value, $("mode").value, $("opt").value);
+  $("res").value = o.text;
+  $("tip").textContent = "✅ 共 " + o.count + " 行";
+  return o;
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = function () {
+  $("src").value = "第10行\n第2行\n苹果\nbanana\napple\n第1行";
+  return run();
+};
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圆形半径直径计算器 - 词海工具箱</title>
+<meta name="description" content="在线圆形半径直径计算器，半径、直径、周长、面积四项输入任一项，自动推算其余三项全部数值。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/circleradius.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="circleradius" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>已知量</label>
+        <select id="mode">
+          <option value="r">半径 r</option><option value="d">直径 d</option>
+          <option value="c">周长 C</option><option value="s">面积 S</option>
+        </select>
+      </div>
+      <div class="fitem"><label>数值</label><input type="text" id="src" value="10"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">四项参数互相推算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于圆形半径直径计算器介绍：</h4>
+    <ol>
+      <li>半径、直径、周长、面积四项任意给一项，其余三项自动推算。</li>
+      <li>由面积反推半径使用 r = √(S/π)，由周长反推使用 r = C/(2π)。</li>
+      <li>所有推算都基于同一套公式，四项结果之间可互相验算。</li>
+      <li>输入负数或非数字时会给出提示，不会输出错误结果。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfCircleAll(mode, v, dec) {
+  var n = Number(v);
+  if (!isFinite(n) || n < 0) return null;
+  var r;
+  if (mode === "d") r = n / 2;
+  else if (mode === "c") r = n / (2 * Math.PI);
+  else if (mode === "s") r = Math.sqrt(n / Math.PI);
+  else r = n;
+  var o = { r: r, d: 2 * r, c: 2 * Math.PI * r, s: Math.PI * r * r };
+  o.text = {
+    r: String(__xfRound(o.r, dec)), d: String(__xfRound(o.d, dec)),
+    c: String(__xfRound(o.c, dec)), s: String(__xfRound(o.s, dec))
+  };
+  return o;
+}
+function run() {
+  var mode = $("mode").value, dec = Number($("dec").value) || 0;
+  var labels = { r: "半径", d: "直径", c: "周长", s: "面积" };
+  var o = __xfCircleAll(mode, $("src").value, dec);
+  if (!o) { $("tip").textContent = "⚠️ 请输入非负数"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 已由" + (labels[mode] || "已知量") + "推算全部参数";
+  $("res").innerHTML =
+    "<div>半径 r = <b style='color:#4d8bb8;'>" + o.text.r + "</b></div>" +
+    "<div>直径 d = <b style='color:#4d8bb8;'>" + o.text.d + "</b></div>" +
+    "<div>周长 C = <b style='color:#4d8bb8;'>" + o.text.c + "</b></div>" +
+    "<div>面积 S = <b style='color:#4d8bb8;'>" + o.text.s + "</b></div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

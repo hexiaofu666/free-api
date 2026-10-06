@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>等差数列生成器 - 词海工具箱</title>
+<meta name="description" content="在线等差数列生成器，输入首项与公差生成数列，给出通项公式、前 n 项和与指定项数值。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/arithseq.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="arithseq" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>首项 a₁</label><input type="text" id="a1" value="2"></div>
+      <div class="fitem"><label>公差 d</label><input type="text" id="d" value="3"></div>
+      <div class="fitem"><label>项数 n</label><input type="number" id="n" value="15" min="1" max="200"></div>
+      <div class="fitem"><label>查询第几项</label><input type="number" id="k" value="100" min="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">生成数列</button><button class="fbtn blue" id="sumBtn">求和</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">aₙ = a₁ + (n-1)d</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;word-break:break-all;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于等差数列生成器介绍：</h4>
+    <ol>
+      <li>通项公式 aₙ = a₁ + (n-1)d，公差 d 可为负数或小数，形成递减或小数数列。</li>
+      <li>前 n 项和 Sn = n(a₁ + aₙ) / 2，等价于 n·a₁ + n(n-1)d/2。</li>
+      <li>数列列表默认生成前 15 项，可在项数框调整（最多 200 项）。</li>
+      <li>查询第几项可直接算出任意位置的项值，不必逐项列举。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+function __xfArithItem(a1, d, n) { return Number(a1) + (Number(n) - 1) * Number(d); }
+function __xfArithSum(a1, d, n) {
+  var a = Number(a1), dd = Number(d), nn = Math.floor(Number(n));
+  if (!isFinite(a) || !isFinite(dd) || nn < 1) return null;
+  return nn * a + nn * (nn - 1) * dd / 2;
+}
+function __xfArithList(a1, d, count) {
+  var out = [];
+  for (var i = 1; i <= count; i++) out.push(__xfArithItem(a1, d, i));
+  return out;
+}
+function run() {
+  var a1 = Number($("a1").value), d = Number($("d").value);
+  var n = Math.min(200, Math.max(1, Math.floor(Number($("n").value) || 15)));
+  if (!isFinite(a1) || !isFinite(d)) { $("tip").textContent = "⚠️ 请输入合法数值"; $("res").innerHTML = ""; return; }
+  var list = __xfArithList(a1, d, n), sum = __xfArithSum(a1, d, n);
+  $("tip").textContent = "✅ 前 " + n + " 项数列";
+  $("res").innerHTML =
+    "<div style='line-height:1.9;'>" + list.join(", ") + "</div>" +
+    "<div>通项：aₙ = " + a1 + " + (n-1)×" + d + "　第 " + n + " 项 = " + __xfRound(list[n - 1], 6) + "</div>" +
+    "<div style='color:#888;'>前 " + n + " 项和 Sₙ = " + __xfRound(sum, 6) + "</div>";
+  return list;
+}
+function runSum() {
+  var a1 = Number($("a1").value), d = Number($("d").value), k = Math.max(1, Math.floor(Number($("k").value) || 1));
+  var a = __xfArithItem(a1, d, k), s = __xfArithSum(a1, d, k);
+  $("tip").textContent = "✅ 第 " + k + " 项与前 " + k + " 项和";
+  $("res").innerHTML = "<div>a<sub>" + k + "</sub> = " + __xfRound(a, 8) + "</div>" +
+    "<div>S<sub>" + k + "</sub> = " + __xfRound(s, 8) + "</div>" +
+    "<div style='color:#888;'>验算：n(a₁+aₙ)/2 = " + k + "×(" + a1 + "+" + __xfRound(a, 6) + ")/2 = " + __xfRound(s, 6) + "</div>";
+  return { a: a, sum: s };
+}
+$("runBtn").onclick = run;
+$("sumBtn").onclick = runSum;
+run();
+</script>
+</body>
+</html>

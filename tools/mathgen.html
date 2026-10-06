@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数学口算题生成器 - 词海工具箱</title>
+<meta name="description" content="在线数学口算题生成器，按难度生成加减乘除口算题与答案，适合小学生日常练习与家长出题。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/mathgen.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="mathgen" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>题型</label>
+        <select id="type">
+          <option value="add">加法</option><option value="sub">减法</option>
+          <option value="mul">乘法</option><option value="div">除法</option><option value="mix">混合运算</option>
+        </select>
+      </div>
+      <div class="fitem"><label>数值范围</label>
+        <select id="range"><option value="10">10 以内</option><option value="20" selected>20 以内</option><option value="100">100 以内</option><option value="1000">1000 以内</option></select>
+      </div>
+      <div class="fitem"><label>题目数量</label><input type="number" id="count" value="20" min="1" max="100"></div>
+      <div class="fitem"><label>同步显示答案</label>
+        <select id="show"><option value="yes">显示答案</option><option value="no">只出题</option></select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">生成题目</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">口算练习</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2.1;font-size:14px;font-family:Consolas,monospace;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于数学口算题生成器介绍：</h4>
+    <ol>
+      <li>减法会自动保证被减数不小于减数，除法保证整除，不会出现负数与小数结果。</li>
+      <li>乘法按范围生成两位数以内的乘数，适合小学阶段的乘法口诀练习。</li>
+      <li>混合运算按加、减、乘、除随机出题，可综合检验计算能力。</li>
+      <li>选择「只出题」会隐藏答案，适合打印后作为练习卷使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRandInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function __xfMakeAdd(R) { var a = __xfRandInt(1, R - 1), b = __xfRandInt(1, R - a); return { text: a + " + " + b + " =", answer: a + b }; }
+function __xfMakeSub(R) {
+  var a = __xfRandInt(2, R), b = __xfRandInt(1, a - 1);
+  return { text: a + " − " + b + " =", answer: a - b };
+}
+function __xfMakeMul(R) {
+  var lim = Math.max(2, Math.floor(Math.sqrt(R)));
+  var a = __xfRandInt(2, lim), b = __xfRandInt(2, lim);
+  return { text: a + " × " + b + " =", answer: a * b };
+}
+function __xfMakeDiv(R) {
+  var lim = Math.max(2, Math.floor(Math.sqrt(R)));
+  var b = __xfRandInt(2, lim), q = __xfRandInt(2, lim);
+  return { text: (b * q) + " ÷ " + b + " =", answer: q };
+}
+function __xfMakeOne(type, R) {
+  if (type === "sub") return __xfMakeSub(R);
+  if (type === "mul") return __xfMakeMul(R);
+  if (type === "div") return __xfMakeDiv(R);
+  if (type === "mix") {
+    var kinds = ["add", "sub", "mul", "div"];
+    return __xfMakeOne(kinds[__xfRandInt(0, 3)], R);
+  }
+  return __xfMakeAdd(R);
+}
+function __xfMakePaper(type, R, count) {
+  var c = Number(count); if (isNaN(c)) c = 20;
+  var n = Math.max(1, Math.min(100, Math.floor(c)));
+  var out = [];
+  for (var i = 0; i < n; i++) out.push(__xfMakeOne(type, R));
+  return out;
+}
+function run() {
+  var R = Number($("range").value) || 20;
+  var list = __xfMakePaper($("type").value, R, $("count").value);
+  var show = $("show").value === "yes";
+  $("tip").textContent = "✅ 已生成 " + list.length + " 道题" + (show ? "（含答案）" : "，答案已隐藏");
+  $("res").innerHTML = list.map(function (q, i) {
+    var no = (i + 1 < 10 ? "0" : "") + (i + 1);
+    return "<div>" + no + ".　" + q.text + (show ? "　" + q.answer : "　＿＿＿") + "</div>";
+  }).join("");
+  return list;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

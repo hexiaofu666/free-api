@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线文本去除空行 - 词海工具箱</title>
+<meta name="description" content="在线文本去除空行工具，一键删除空白行与多余空行，支持同时去除行首尾空格与重复行。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/rmblankline.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="rmblankline" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文本</label><textarea id="src" rows="7" placeholder="粘贴多行文本"></textarea></div>
+      <div class="fitem"><label>处理选项</label>
+        <select id="mode">
+          <option value="blank">去除空白行</option>
+          <option value="trim">去除空白行 + 行首尾空格</option>
+          <option value="uniq">去除空白行 + 重复行</option>
+          <option value="all">全部处理（空白行 + 空格 + 重复行）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">处理</button><button class="fbtn plain" id="demoBtn">填入示例</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">处理结果</strong></div>
+      <textarea id="res" rows="7" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于在线文本去除空行介绍：</h4>
+    <ol>
+      <li>「空白行」指去除首尾空白后仍为空的行，纯空格或制表符行也会被删除。</li>
+      <li>选择「重复行」时会保留首次出现的行，删除其后完全相同的行（区分大小写）。</li>
+      <li>同时提供原始行数、处理后行数与删除行数统计。</li>
+      <li>所有处理都在浏览器本地完成，文本不会上传到服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSplitLines(text) { return String(text).replace(/\r\n?/g, "\n").split("\n"); }
+function __xfRmBlank(text, opts) {
+  opts = opts || {};
+  var lines = __xfSplitLines(text);
+  var before = lines.length;
+  if (opts.trim) lines = lines.map(function (l) { return l.trim(); });
+  if (opts.uniq) {
+    var seen = {};
+    lines = lines.filter(function (l) { if (seen[l]) return false; seen[l] = 1; return true; });
+  }
+  lines = lines.filter(function (l) { return l.trim() !== ""; });
+  return { text: lines.join("\n"), before: before, after: lines.length, removed: before - lines.length, lines: lines };
+}
+function __xfCountBlank(text) {
+  var lines = __xfSplitLines(text);
+  return lines.filter(function (l) { return l.trim() === ""; }).length;
+}
+function run() {
+  var mode = $("mode").value;
+  var o = __xfRmBlank($("src").value, { trim: mode === "trim" || mode === "all", uniq: mode === "uniq" || mode === "all" });
+  $("res").value = o.text;
+  $("tip").textContent = "✅ 原 " + o.before + " 行 → 处理后 " + o.after + " 行（删除 " + o.removed + " 行）";
+  return o;
+}
+$("runBtn").onclick = run;
+$("demoBtn").onclick = function () {
+  $("src").value = "第一行\n\n\n第二行\n   \n第二行\n\t\n第三行  ";
+  return run();
+};
+run();
+</script>
+</body>
+</html>

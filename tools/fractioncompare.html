@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分数大小比较工具 - 词海工具箱</title>
+<meta name="description" content="在线分数大小比较工具，对比两个或多个分数的大小并按升序排列，同时给出通分后的分子对照。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/fractioncompare.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="fractioncompare" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>分数列表</label><input type="text" id="src" value="3/4, 2/3, 5/7" placeholder="多个分数用逗号分隔"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">比较排序</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">交叉相乘比较，避免浮点误差</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于分数大小比较工具介绍：</h4>
+    <ol>
+      <li>使用交叉相乘比较大小，即 a/b 与 c/d 比较 ad 与 cb，完全避免浮点误差。</li>
+      <li>结果按从小到大排序，并标出最大与最小的分数。</li>
+      <li>相等分数会同时并列显示，并给出一致提示。</li>
+      <li>通分后分子对照可帮助理解比较过程，适合教学演示。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+function __xfParseList(text) {
+  return String(text).split(/[,\s]+/).filter(function (s) { return s !== ""; }).map(function (s) {
+    var m = s.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+    if (m) { var n = Number(m[1]), d = Number(m[2]); return d === 0 ? null : { n: n, d: d, text: n + "/" + d }; }
+    if (/^-?\d+$/.test(s)) return { n: Number(s), d: 1, text: s };
+    return null;
+  });
+}
+function __xfCompareFrac(x, y) { return x.n * y.d - y.n * x.d; }
+function __xfSortFractions(list) {
+  var arr = list.slice();
+  arr.sort(function (a, b) { return __xfCompareFrac(a, b); });
+  return arr;
+}
+function __xfCommonDenom(list) {
+  var d = 1;
+  list.forEach(function (f) { d = d / __xfGcd(d, f.d) * f.d; });
+  return { den: d, items: list.map(function (f) { return { text: f.text, n: f.n * (d / f.d), d: d }; }) };
+}
+function __xfGcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a || 1; }
+function run() {
+  var list = __xfParseList($("src").value), dec = Number($("dec").value) || 0;
+  if (list.length < 2) { $("tip").textContent = "⚠️ 请至少输入两个分数"; $("res").innerHTML = ""; return; }
+  if (list.some(function (f) { return !f; })) { $("tip").textContent = "⚠️ 存在格式错误或分母为 0 的分数"; $("res").innerHTML = ""; return; }
+  var sorted = __xfSortFractions(list), cd = __xfCommonDenom(list);
+  var min = sorted[0], max = sorted[sorted.length - 1];
+  $("tip").textContent = "✅ 已按从小到大排序";
+  $("res").innerHTML =
+    "<div>升序：<b style='color:#4d8bb8;'>" + sorted.map(function (f) { return f.text; }).join(" &lt; ") + "</b></div>" +
+    "<div>最小值 " + min.text + "（" + __xfRound(min.n / min.d, dec) + "）　最大值 " + max.text + "（" + __xfRound(max.n / max.d, dec) + "）</div>" +
+    "<div style='color:#888;'>通分公分母 " + cd.den + " → " + cd.items.map(function (x) { return x.n + "/" + x.d; }).join("、") + "</div>" +
+    "<div style='color:#888;'>" + (__xfCompareFrac(min, max) === 0 ? "所有分数相等。" : "最大与最小之差为 " + __xfRound(max.n / max.d - min.n / min.d, dec) + "。") + "</div>";
+  return sorted;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

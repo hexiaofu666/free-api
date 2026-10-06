@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地砖用量计算器 - 词海工具箱</title>
+<meta name="description" content="在线地砖用量计算器，按房间尺寸与瓷砖规格逐行逐列计算所需砖数，支持留缝宽度、损耗率与水泥砂浆用量估算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/tilecalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="tilecalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>房间长（米）</label><input type="number" id="len" value="5" step="0.01"></div>
+      <div class="fitem"><label>房间宽（米）</label><input type="number" id="wid" value="4" step="0.01"></div>
+      <div class="fitem"><label>瓷砖长边（米）</label><input type="number" id="ta" value="0.8" step="0.01"></div>
+      <div class="fitem"><label>瓷砖短边（米）</label><input type="number" id="tb" value="0.8" step="0.01"></div>
+      <div class="fitem"><label>留缝宽度（毫米）</label><input type="number" id="gap" value="2" step="0.1"></div>
+      <div class="fitem"><label>损耗率（%）</label><input type="number" id="loss" value="5" step="1"></div>
+      <div class="fitem"><label>砂浆用量（kg/㎡）</label><input type="number" id="mortar" value="12" step="0.5"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算用量</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">按铺设行列数计算地砖片数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于地砖用量计算器介绍：</h4>
+    <ol>
+      <li>列数 = 房间长 ÷（砖长 + 留缝）向上取整，行数 = 房间宽 ÷（砖宽 + 留缝）向上取整，两者相乘得总片数。</li>
+      <li>留缝宽度按毫米输入，2 毫米是常见墙地砖标准缝宽，仿古砖可加大到 3 至 5 毫米。</li>
+      <li>地砖损耗率一般取 5%，斜铺或拼花造型建议提高到 8% 至 10%。</li>
+      <li>水泥砂浆用量按每平方米公斤数估算，仅作备料参考，实际需以施工配比为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfTileCols(len, a, gap) {
+  var step = a + (gap || 0);
+  if (!(len > 0) || !(step > 0)) return 0;
+  return Math.ceil(len / step - 1e-9);
+}
+function __xfTileRows(wid, b, gap) {
+  var step = b + (gap || 0);
+  if (!(wid > 0) || !(step > 0)) return 0;
+  return Math.ceil(wid / step - 1e-9);
+}
+function __xfTileTotal(len, wid, a, b, gap) {
+  return __xfTileCols(len, a, gap) * __xfTileRows(wid, b, gap);
+}
+function __xfTileWithLoss(total, loss) {
+  if (!(total > 0)) return 0;
+  return Math.ceil(total * (1 + (loss || 0)) - 1e-9);
+}
+function __xfTileMortar(area, coef) {
+  if (!(area > 0) || !(coef > 0)) return 0;
+  return area * coef;
+}
+function run() {
+  var len = Number($("len").value), wid = Number($("wid").value);
+  var a = Number($("ta").value), b = Number($("tb").value);
+  var gap = (Number($("gap").value) || 0) / 1000;
+  var loss = (Number($("loss").value) || 0) / 100;
+  var coef = Number($("mortar").value) || 0;
+  if (!(len > 0) || !(wid > 0) || !(a > 0) || !(b > 0)) {
+    $("tip").textContent = "⚠️ 房间与瓷砖尺寸必须为正数"; $("res").innerHTML = ""; return null;
+  }
+  var cols = __xfTileCols(len, a, gap), rows = __xfTileRows(wid, b, gap);
+  var total = cols * rows, buy = __xfTileWithLoss(total, loss);
+  var area = len * wid, mortar = __xfTileMortar(area, coef);
+  $("tip").textContent = "✅ 共需地砖 " + buy + " 片";
+  $("res").innerHTML =
+    "<div>房间面积：<b>" + __xfRound(area, 2) + "</b> ㎡</div>" +
+    "<div>铺设行列：<b>" + cols + " 列 × " + rows + " 行</b>" +
+    "（砖 " + a + " 米 × " + b + " 米，留缝 " + __xfRound(gap * 1000, 1) + " 毫米）</div>" +
+    "<div>理论片数：<b>" + total + "</b> 片</div>" +
+    "<div style='color:#c0392b;'>含 " + __xfRound(loss * 100, 1) + "% 损耗需购买：<b>" + buy + "</b> 片</div>" +
+    (coef ? "<div>水泥砂浆参考用量：<b>" + __xfRound(mortar, 1) + "</b> kg</div>" : "") +
+    "<div style='color:#888;'>购买片数对应可铺面积约 " + __xfRound(buy * a * b, 2) + " ㎡。</div>";
+  return { cols: cols, rows: rows, total: total, buy: buy };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

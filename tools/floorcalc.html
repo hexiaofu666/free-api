@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地板用量计算器 - 词海工具箱</title>
+<meta name="description" content="在线地板用量计算器，按房间面积与地板单片规格计算所需片数与整箱数量，支持自定义损耗率与每箱片数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/floorcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="floorcalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>房间长（米）</label><input type="number" id="len" value="5" step="0.01"></div>
+      <div class="fitem"><label>房间宽（米）</label><input type="number" id="wid" value="4" step="0.01"></div>
+      <div class="fitem"><label>地板长（米）</label><input type="number" id="pl" value="0.9" step="0.01"></div>
+      <div class="fitem"><label>地板宽（米）</label><input type="number" id="pw" value="0.12" step="0.01"></div>
+      <div class="fitem"><label>损耗率（%）</label><input type="number" id="loss" value="8" step="1"></div>
+      <div class="fitem"><label>每箱片数</label><input type="number" id="per" value="8" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算用量</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">按房间面积与单片面积估算地板片数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于地板用量计算器介绍：</h4>
+    <ol>
+      <li>单片地板面积 = 地板长 × 地板宽，房间面积 = 房间长 × 房间宽。</li>
+      <li>理论片数向上取整后再乘损耗系数，最后再向上取整，避免出现半片地板。</li>
+      <li>强化复合地板损耗率一般取 5% 至 8%，工字拼或斜铺建议取 10% 以上。</li>
+      <li>整箱数量按每箱片数向上取整，下单时以整箱数为准更贴近实际报价。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfFloorArea(l, w) {
+  if (!(l > 0) || !(w > 0)) return 0;
+  return l * w;
+}
+function __xfFloorPieceArea(pl, pw) {
+  if (!(pl > 0) || !(pw > 0)) return 0;
+  return pl * pw;
+}
+function __xfFloorPieces(area, pl, pw, loss) {
+  var one = __xfFloorPieceArea(pl, pw);
+  if (!(area > 0) || !(one > 0)) return 0;
+  var base = Math.ceil(area / one - 1e-9);
+  return Math.ceil(base * (1 + (loss || 0)) - 1e-9);
+}
+function __xfFloorBoxes(pieces, perBox) {
+  if (!(pieces > 0) || !(perBox > 0)) return 0;
+  return Math.ceil(pieces / perBox - 1e-9);
+}
+function __xfFloorCovered(pieces, pl, pw) {
+  var one = __xfFloorPieceArea(pl, pw);
+  return pieces * one;
+}
+function run() {
+  var l = Number($("len").value), w = Number($("wid").value);
+  var pl = Number($("pl").value), pw = Number($("pw").value);
+  var loss = (Number($("loss").value) || 0) / 100;
+  var per = Math.floor(Number($("per").value) || 0);
+  if (!(l > 0) || !(w > 0) || !(pl > 0) || !(pw > 0)) {
+    $("tip").textContent = "⚠️ 房间与地板尺寸必须为正数"; $("res").innerHTML = ""; return null;
+  }
+  var area = __xfFloorArea(l, w), one = __xfFloorPieceArea(pl, pw);
+  var base = Math.ceil(area / one - 1e-9), pieces = __xfFloorPieces(area, pl, pw, loss);
+  var boxes = __xfFloorBoxes(pieces, per);
+  $("tip").textContent = "✅ 共需地板 " + pieces + " 片" + (boxes ? "，约 " + boxes + " 箱" : "");
+  $("res").innerHTML =
+    "<div>房间面积：<b>" + __xfRound(area, 2) + "</b> ㎡</div>" +
+    "<div>单片面积：<b>" + __xfRound(one, 4) + "</b> ㎡（" + pl + " 米 × " + pw + " 米）</div>" +
+    "<div>理论片数（不含损耗）：<b>" + base + "</b> 片</div>" +
+    "<div style='color:#c0392b;'>含 " + __xfRound(loss * 100, 1) + "% 损耗需购买：<b>" + pieces + "</b> 片</div>" +
+    (per ? "<div>按每箱 " + per + " 片计，共需 <b>" + boxes + "</b> 箱，实得 " + (boxes * per) + " 片</div>" : "") +
+    "<div style='color:#888;'>购买片数对应可铺面积约 " + __xfRound(__xfFloorCovered(pieces, pl, pw), 2) + " ㎡。</div>";
+  return { pieces: pieces, boxes: boxes, area: area };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

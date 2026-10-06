@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>梯形面积计算器 - 词海工具箱</title>
+<meta name="description" content="在线梯形面积计算器，输入上底、下底与高即可算出梯形面积，并给出中位线与周长参考值。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/trapezoidarea.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="trapezoidarea" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>上底 a</label><input type="text" id="a" value="4"></div>
+      <div class="fitem"><label>下底 b</label><input type="text" id="b" value="8"></div>
+      <div class="fitem"><label>高 h</label><input type="text" id="h" value="5"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">梯形面积 S = (a+b)h/2</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于梯形面积计算器介绍：</h4>
+    <ol>
+      <li>面积公式 S = (上底 + 下底) × 高 ÷ 2，与中位线乘高等价。</li>
+      <li>上底与下底可以交换，不影响结果；高必须为正数。</li>
+      <li>同时给出中位线长度（上下底平均值），便于快速估算。</li>
+      <li>等腰梯形的周长需额外提供腰长，本工具给出的是上下底之和加高的参考信息。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfTrapezoid(a, b, h, dec) {
+  var x = Number(a), y = Number(b), z = Number(h);
+  if (!isFinite(x) || !isFinite(y) || !isFinite(z)) return null;
+  if (x < 0 || y < 0 || z <= 0) return null;
+  var mid = (x + y) / 2, area = mid * z;
+  return { a: x, b: y, h: z, mid: mid, area: area, text: String(__xfRound(area, dec)) };
+}
+function run() {
+  var o = __xfTrapezoid($("a").value, $("b").value, $("h").value, Number($("dec").value) || 0);
+  if (!o) { $("tip").textContent = "⚠️ 请检查输入：底边需非负，高需大于 0"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML =
+    "<div>梯形面积 S = <b style='color:#4d8bb8;font-size:16px;'>" + o.text + "</b></div>" +
+    "<div style='color:#888;'>中位线 = " + __xfRound(o.mid, 6) + "　验算：中位线 × 高 = " + __xfRound(o.mid * o.h, 6) + "</div>" +
+    "<div style='color:#888;'>公式：" + o.a + " + " + o.b + " = " + (o.a + o.b) + "，" + (o.a + o.b) + " × " + o.h + " ÷ 2 = " + o.text + "</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

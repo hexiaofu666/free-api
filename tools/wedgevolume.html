@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>楔形体积计算器 - 词海工具箱</title>
+<meta name="description" content="在线楔形体积计算器，输入底面长宽与高算出楔形体体积、斜面面积与楔角，适合楔块垫块估算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/wedgevolume.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="wedgevolume" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>底面长 L</label><input type="text" id="L" value="10"></div>
+      <div class="fitem"><label>底面宽 W</label><input type="text" id="W" value="6"></div>
+      <div class="fitem"><label>楔高 H</label><input type="text" id="H" value="3"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="10"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">楔形体积 V = ½ × L × W × H</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于楔形体积计算器介绍：</h4>
+    <ol>
+      <li>标准楔形（一侧直角、对侧收成斜刃）体积为 V = ½ × 底长 × 底宽 × 楔高。</li>
+      <li>等效于同底同高的长方体体积的一半，可快速口算核对。</li>
+      <li>斜面长度 = √(W² + H²)，用于裁板、算斜面面积。</li>
+      <li>做机械垫铁、木楔、塞尺等零件下料计算时可直接使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfWedge(L, W, H, dec) {
+  var l = Number(L), w = Number(W), h = Number(H);
+  if (!isFinite(l) || !isFinite(w) || !isFinite(h) || l <= 0 || w <= 0 || h <= 0) return null;
+  var vol = 0.5 * l * w * h;
+  var slope = Math.sqrt(w * w + h * h);
+  var slopeArea = l * slope;
+  return {
+    L: l, W: w, H: h, volume: vol, box: l * w * h, slope: slope, slopeArea: slopeArea,
+    angle: Math.atan2(h, w) * 180 / Math.PI,
+    text: { volume: String(__xfRound(vol, dec)), box: String(__xfRound(l * w * h, dec)), slope: String(__xfRound(slope, dec)), slopeArea: String(__xfRound(slopeArea, dec)), angle: String(__xfRound(Math.atan2(h, w) * 180 / Math.PI, 4)) }
+  };
+}
+function run() {
+  var o = __xfWedge($("L").value, $("W").value, $("H").value, Number($("dec").value) || 0);
+  if (!o) { $("tip").textContent = "⚠️ 请输入大于 0 的底面长宽与楔高"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML =
+    "<div>楔形体积 V = <b style='color:#4d8bb8;font-size:16px;'>" + o.text.volume + "</b></div>" +
+    "<div>等效长方体体积 = " + o.text.box + "（楔形恰为其一半）</div>" +
+    "<div style='color:#888;'>斜面长度 = " + o.text.slope + "，斜面面积 = " + o.text.slopeArea + "，楔角 = " + o.text.angle + "°</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

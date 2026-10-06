@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自然对数计算器 - 词海工具箱</title>
+<meta name="description" content="在线自然对数计算器，计算 ln、log10、log2 与 e 的幂，支持批量输入与任意底数对数换算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/natlog.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="natlog" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值列表</label><input type="text" id="src" value="1, 2, 10, 100"></div>
+      <div class="fitem"><label>自定底数</label><input type="text" id="base" value="3"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算对数</button><button class="fbtn blue" id="expBtn">计算 e 的幂</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">ln / log10 / log2 / 任意底数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于自然对数计算器介绍：</h4>
+    <ol>
+      <li>自然对数 ln 以常数 e ≈ 2.718281828 为底，是指数函数的反函数。</li>
+      <li>换底公式 log_a(x) = ln(x) / ln(a)，工具已按此计算任意底数对数。</li>
+      <li>真数必须大于 0，输入 0 或负数会提示无实数解。</li>
+      <li>e 的幂与 ln 互为逆运算，可用来验算结果是否正确。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+function __xfLogTable(x, dec) {
+  var v = Number(x);
+  if (!isFinite(v) || v <= 0) return null;
+  return { x: v, ln: Math.log(v), log10: Math.log10(v), log2: Math.log2(v), text: { ln: String(__xfRound(Math.log(v), dec)), log10: String(__xfRound(Math.log10(v), dec)), log2: String(__xfRound(Math.log2(v), dec)) } };
+}
+function __xfLogBase(x, base) {
+  var v = Number(x), b = Number(base);
+  if (!isFinite(v) || !isFinite(b) || v <= 0 || b <= 0 || b === 1) return null;
+  return Math.log(v) / Math.log(b);
+}
+function __xfExpTable(x, dec) {
+  var v = Number(x);
+  if (!isFinite(v)) return null;
+  return { x: v, exp: Math.exp(v), pow2: Math.pow(2, v), text: { exp: String(__xfRound(Math.exp(v), dec)), pow2: String(__xfRound(Math.pow(2, v), dec)) } };
+}
+function __xfParseNums(text) {
+  var parts = String(text).split(/[^0-9.eE+\-]+/), out = [];
+  for (var i = 0; i < parts.length; i++) { if (!parts[i] || parts[i] === "-" || parts[i] === "+") continue; var v = Number(parts[i]); if (isFinite(v)) out.push(v); }
+  return out;
+}
+function run() {
+  var nums = __xfParseNums($("src").value), dec = Number($("dec").value) || 0, base = Number($("base").value);
+  if (!nums.length) { $("tip").textContent = "⚠️ 请输入正数"; $("res").innerHTML = ""; return; }
+  var rows = [];
+  $("res").innerHTML = nums.map(function (n) {
+    var o = __xfLogTable(n, dec);
+    if (!o) return "<div style='color:#c00;'>" + n + " 不是正数，无实数对数</div>";
+    var custom = __xfLogBase(n, base);
+    rows.push(o);
+    return "<div><b>" + n + "</b>：ln = " + o.text.ln + "　lg = " + o.text.log10 + "　log₂ = " + o.text.log2 +
+      (custom === null ? "" : "　log" + base + " = " + __xfRound(custom, dec)) + "</div>";
+  }).join("");
+  $("tip").textContent = "✅ 计算完成";
+  return rows;
+}
+function runExp() {
+  var nums = __xfParseNums($("src").value), dec = Number($("dec").value) || 0;
+  var rows = [];
+  $("res").innerHTML = nums.map(function (n) {
+    var o = __xfExpTable(n, dec);
+    rows.push(o);
+    return "<div>e^<b>" + n + "</b> = " + o.text.exp + "　2^" + n + " = " + o.text.pow2 + "</div>";
+  }).join("");
+  $("tip").textContent = "✅ e 的幂计算完成";
+  return rows;
+}
+$("runBtn").onclick = run;
+$("expBtn").onclick = runExp;
+run();
+</script>
+</body>
+</html>

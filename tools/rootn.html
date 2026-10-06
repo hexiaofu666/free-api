@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N次方根计算器 - 词海工具箱</title>
+<meta name="description" content="在线 N 次方根计算器，可计算任意次方根（含四次方根），自动处理负数奇次根的符号问题。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/rootn.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="rootn" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>被开方数</label><input type="text" id="src" value="16"></div>
+      <div class="fitem"><label>根指数 n</label><input type="number" id="n" value="4" min="1" max="99"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算</button>
+      <button class="fbtn brown" id="tableBtn">各次根一览</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">n 次方根计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于N次方根计算器介绍：</h4>
+    <ol>
+      <li>根指数为正整数，n=2 即平方根，n=3 即立方根，n=4 即四次方根。</li>
+      <li>负数只有奇数次的根在实数范围内有定义，偶数次根会提示无实数解。</li>
+      <li>采用 Math.pow 配合符号提取实现，避免了负底数取分数次幂得到 NaN 的问题。</li>
+      <li>各次根一览会一次列出 2 到 10 次根的结果，便于对比观察数列趋势。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+function __xfNthRoot(x, n, dec) {
+  var v = Number(x), k = Math.floor(Number(n));
+  if (!isFinite(v) || !isFinite(k) || k < 1) return null;
+  if (v < 0 && k % 2 === 0) return null;
+  var sign = v < 0 ? -1 : 1;
+  var mag = Math.pow(Math.abs(v), 1 / k);
+  var r = sign * mag;
+  var ri = Math.round(r);
+  if (Math.abs(r - ri) < 1e-9) r = ri;
+  return { value: r, text: String(__xfRound(r, dec === undefined ? 6 : dec)) };
+}
+function __xfRootTable(x, maxN, dec) {
+  var out = [];
+  for (var n = 2; n <= maxN; n++) out.push({ n: n, r: __xfNthRoot(x, n, dec) });
+  return out;
+}
+function run() {
+  var n = Number($("n").value), dec = Number($("dec").value) || 0;
+  var r = __xfNthRoot($("src").value, n, dec);
+  if (!r) { $("tip").textContent = "⚠️ 偶数次根下负数无实数解，或参数不合法"; $("res").innerHTML = ""; return; }
+  var v = Number($("src").value);
+  $("tip").textContent = "✅ " + n + " 次方根计算完成";
+  $("res").innerHTML = "<div>" + n + " 次根号下 <b>" + v + "</b> = <b style='color:#4d8bb8;font-size:16px;'>" + r.text + "</b></div>" +
+    "<div style='color:#888;'>验算：" + r.text + " 的 " + n + " 次方 ≈ " + __xfRound(Math.pow(r.value, n), 6) + "</div>";
+  return r;
+}
+function runTable() {
+  var v = Number($("src").value), dec = Number($("dec").value) || 0;
+  var list = __xfRootTable(v, 10, dec);
+  $("tip").textContent = "✅ " + v + " 的 2~10 次方根";
+  $("res").innerHTML = list.map(function (x) {
+    return "<div>" + x.n + " 次根 = " + (x.r ? x.r.text : "<span style='color:#c00;'>无实数解</span>") + "</div>";
+  }).join("");
+  return list;
+}
+$("runBtn").onclick = run;
+$("tableBtn").onclick = runTable;
+run();
+</script>
+</body>
+</html>

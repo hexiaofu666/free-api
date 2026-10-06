@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>平均数计算器 - 词海工具箱</title>
+<meta name="description" content="在线平均数计算器，一次算出算术平均数、中位数、众数、方差、标准差与极差等统计量。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/averagecalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="averagecalc" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数据</label><input type="text" id="src" value="85, 90, 78, 92, 88, 90" placeholder="用逗号、空格或换行分隔"></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="4" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">统计</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">均值 / 中位数 / 众数 / 标准差</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于平均数计算器介绍：</h4>
+    <ol>
+      <li>算术平均数 = 全部数据之和 ÷ 数据个数，是最常用的集中趋势指标。</li>
+      <li>中位数是排序后位于中间的数，偶数个时取中间两个数的平均值。</li>
+      <li>众数是出现次数最多的数，可能不唯一；没有重复数据时不显示众数。</li>
+      <li>标准差（总体）反映数据离散程度，值越大说明数据越分散。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 4 : dec); return Math.round(v * p) / p; }
+function __xfParseNums(text) {
+  var parts = String(text).split(/[^0-9.eE+\-]+/), out = [];
+  for (var i = 0; i < parts.length; i++) { if (!parts[i] || parts[i] === "-" || parts[i] === "+") continue; var v = Number(parts[i]); if (isFinite(v)) out.push(v); }
+  return out;
+}
+function __xfMean(arr) { if (!arr.length) return null; var s = 0; for (var i = 0; i < arr.length; i++) s += arr[i]; return s / arr.length; }
+function __xfMedian(arr) {
+  if (!arr.length) return null;
+  var s = arr.slice().sort(function (a, b) { return a - b; }), m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+function __xfMode(arr) {
+  if (!arr.length) return [];
+  var map = {}, max = 0;
+  arr.forEach(function (v) { map[v] = (map[v] || 0) + 1; if (map[v] > max) max = map[v]; });
+  if (max === 1) return [];
+  var out = [];
+  Object.keys(map).forEach(function (k) { if (map[k] === max) out.push(Number(k)); });
+  return out.sort(function (a, b) { return a - b; });
+}
+function __xfVariance(arr) {
+  var m = __xfMean(arr);
+  if (m === null) return null;
+  var s = 0;
+  for (var i = 0; i < arr.length; i++) s += Math.pow(arr[i] - m, 2);
+  return s / arr.length;
+}
+function __xfStdDev(arr) { var v = __xfVariance(arr); return v === null ? null : Math.sqrt(v); }
+function __xfRange(arr) {
+  if (!arr.length) return null;
+  return Math.max.apply(null, arr) - Math.min.apply(null, arr);
+}
+function __xfSummary(arr) {
+  if (!arr.length) return null;
+  return {
+    count: arr.length, sum: arr.reduce(function (a, b) { return a + b; }, 0),
+    mean: __xfMean(arr), median: __xfMedian(arr), mode: __xfMode(arr),
+    variance: __xfVariance(arr), std: __xfStdDev(arr), range: __xfRange(arr),
+    min: Math.min.apply(null, arr), max: Math.max.apply(null, arr)
+  };
+}
+function run() {
+  var arr = __xfParseNums($("src").value), dec = Number($("dec").value) || 0;
+  var o = __xfSummary(arr);
+  if (!o) { $("tip").textContent = "⚠️ 请输入至少一个数值"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 共 " + o.count + " 个数据";
+  $("res").innerHTML =
+    "<div>算术平均数：<b style='color:#4d8bb8;font-size:16px;'>" + __xfRound(o.mean, dec) + "</b></div>" +
+    "<div>中位数：" + __xfRound(o.median, dec) + "　众数：" + (o.mode.length ? o.mode.join("、") : "无（各数据均只出现一次）") + "</div>" +
+    "<div>总和：" + __xfRound(o.sum, dec) + "　最小值：" + o.min + "　最大值：" + o.max + "　极差：" + __xfRound(o.range, dec) + "</div>" +
+    "<div style='color:#888;'>总体方差：" + __xfRound(o.variance, dec) + "　总体标准差：" + __xfRound(o.std, dec) + "</div>";
+  return o;
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

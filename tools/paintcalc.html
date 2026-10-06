@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>涂料用量计算器 - 词海工具箱</title>
+<meta name="description" content="在线涂料用量计算器，按房间周长层高与门窗面积估算涂刷面积，结合遍数与涂布率换算所需涂料升数与桶数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/paintcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="paintcalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>房间长（米）</label><input type="number" id="len" value="5" step="0.01"></div>
+      <div class="fitem"><label>房间宽（米）</label><input type="number" id="wid" value="4" step="0.01"></div>
+      <div class="fitem"><label>层高（米）</label><input type="number" id="hgt" value="2.8" step="0.01"></div>
+      <div class="fitem"><label>门窗面积（㎡）</label><input type="number" id="door" value="6" step="0.01"></div>
+      <div class="fitem"><label>涂刷遍数</label><input type="number" id="coats" value="2" step="1"></div>
+      <div class="fitem"><label>涂布率（㎡/L 每遍）</label><input type="number" id="cover" value="10" step="0.5"></div>
+      <div class="fitem"><label>单桶容量（L）</label><input type="number" id="bucket" value="5" step="1"></div>
+      <div class="fitem"><label>含顶面（1 是 0 否）</label><input type="number" id="ceil" value="1" step="1"></div>
+    </div>
+    <div class="abar"><button class="fbtn teal" id="runBtn">计算用量</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">按涂刷面积与涂布率换算涂料用量</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于涂料用量计算器介绍：</h4>
+    <ol>
+      <li>墙面涂刷面积 = 房间周长 × 层高 − 门窗面积，勾选含顶面时会再加一个房间长乘宽。</li>
+      <li>所需升数 = 涂刷面积 × 遍数 ÷ 涂布率，涂布率一般乳胶漆标注为每升 8 至 12 平方米每遍。</li>
+      <li>桶数 = 所需升数 ÷ 单桶容量向上取整，5L 与 18L 规格请分别核算后取更划算的组合。</li>
+      <li>深色漆、旧墙翻新或多孔基层会明显增大耗漆量，建议在此基础上再加 10% 余量。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, d) { var p = Math.pow(10, d === undefined ? 2 : d); return Math.round(v * p) / p; }
+function __xfPaintWallArea(l, w, h, door) {
+  if (!(l > 0) || !(w > 0) || !(h > 0)) return 0;
+  var a = 2 * (l + w) * h - (door || 0);
+  return a > 0 ? a : 0;
+}
+function __xfPaintCeilArea(l, w) {
+  if (!(l > 0) || !(w > 0)) return 0;
+  return l * w;
+}
+function __xfPaintLiters(area, coats, cover) {
+  if (!(area > 0) || !(coats > 0) || !(cover > 0)) return 0;
+  return area * coats / cover;
+}
+function __xfPaintBuckets(liters, size) {
+  if (!(liters > 0) || !(size > 0)) return 0;
+  return Math.ceil(liters / size - 1e-9);
+}
+function run() {
+  var l = Number($("len").value), w = Number($("wid").value), h = Number($("hgt").value);
+  var door = Number($("door").value) || 0;
+  var coats = Math.max(1, Math.floor(Number($("coats").value) || 1));
+  var cover = Number($("cover").value), size = Number($("bucket").value);
+  var withCeil = Number($("ceil").value) === 1;
+  if (!(l > 0) || !(w > 0) || !(h > 0) || !(cover > 0) || !(size > 0)) {
+    $("tip").textContent = "⚠️ 请输入合法的尺寸与涂布参数"; $("res").innerHTML = ""; return null;
+  }
+  var wall = __xfPaintWallArea(l, w, h, door);
+  var ceil = withCeil ? __xfPaintCeilArea(l, w) : 0;
+  var area = wall + ceil;
+  var liters = __xfPaintLiters(area, coats, cover);
+  var buckets = __xfPaintBuckets(liters, size);
+  $("tip").textContent = "✅ 需涂料约 " + __xfRound(liters, 2) + " L，约 " + buckets + " 桶";
+  $("res").innerHTML =
+    "<div>墙面涂刷面积：<b>" + __xfRound(wall, 2) + "</b> ㎡</div>" +
+    (withCeil ? "<div>顶面涂刷面积：<b>" + __xfRound(ceil, 2) + "</b> ㎡</div>" : "") +
+    "<div>合计涂刷面积：<b>" + __xfRound(area, 2) + "</b> ㎡（共 " + coats + " 遍）</div>" +
+    "<div style='color:#c0392b;'>所需涂料：<b>" + __xfRound(liters, 2) + "</b> L（涂布率 " + cover + " ㎡/L 每遍）</div>" +
+    "<div>按每桶 " + size + " L 计，需购买 <b>" + buckets + "</b> 桶，实得 " + __xfRound(buckets * size, 2) + " L</div>" +
+    "<div style='color:#888;'>18L 大桶折算需 " + __xfPaintBuckets(liters, 18) + " 桶，5L 小桶折算需 " + __xfPaintBuckets(liters, 5) + " 桶。</div>";
+  return { liters: liters, buckets: buckets, area: area };
+}
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

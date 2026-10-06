@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>速度单位换算 - 词海工具箱</title>
+<meta name="description" content="在线速度单位换算器，米每秒、千米每小时、英里每小时、节、英尺每秒、马赫等速度单位互相换算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.8.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.8.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/unitspeed.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="unitspeed" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="100"></div>
+      <div class="fitem"><label>源单位</label><select id="from"></select></div>
+      <div class="fitem"><label>小数位</label><input type="number" id="dec" value="6" min="0" max="12"></div>
+    </div>
+    <div class="abar"><button class="fbtn green" id="runBtn">换算</button></div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">以米每秒为基准换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于速度单位换算介绍：</h4>
+    <ol>
+      <li>以米每秒为基准，覆盖常用速度单位与航海航空专用单位。</li>
+      <li>1 米每秒 = 3.6 千米每小时，这是最常用的换算关系。</li>
+      <li>1 节 = 1 海里每小时 = 0.514444 米每秒，用于船舶与航空。</li>
+      <li>马赫取海平面标准声速 340.29 米每秒，高空音速会明显降低。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.8.0"></script>
+<script src="../assets/chrome.js?v=1.8.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound(v, dec) { var p = Math.pow(10, dec === undefined ? 6 : dec); return Math.round(v * p) / p; }
+var SPEED = [
+  { k: "ms", n: "米/秒", f: 1 }, { k: "kmh", n: "千米/小时", f: 1 / 3.6 },
+  { k: "mph", n: "英里/小时", f: 0.44704 }, { k: "fts", n: "英尺/秒", f: 0.3048 },
+  { k: "knot", n: "节（海里/小时）", f: 1852 / 3600 }, { k: "mach", n: "马赫（标准声速）", f: 340.29 },
+  { k: "mms", n: "毫米/秒", f: 0.001 }, { k: "kms", n: "千米/秒", f: 1000 }
+];
+function __xfSpeedUnit(key) { for (var i = 0; i < SPEED.length; i++) if (SPEED[i].k === key) return SPEED[i]; return null; }
+function __xfSpeedConvert(v, from) {
+  var u = __xfSpeedUnit(from), n = Number(v);
+  if (!u || !isFinite(n)) return null;
+  var base = n * u.f, out = {};
+  SPEED.forEach(function (x) { out[x.k] = base / x.f; });
+  return out;
+}
+function __xfSpeedList() { return SPEED; }
+function run() {
+  var dec = Number($("dec").value) || 0;
+  var o = __xfSpeedConvert($("val").value, $("from").value);
+  if (!o) { $("tip").textContent = "⚠️ 请输入合法数值"; $("res").innerHTML = ""; return; }
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = SPEED.map(function (u) {
+    return "<div>" + u.n + "：" + __xfRound(o[u.k], dec) + "</div>";
+  }).join("");
+  return o;
+}
+(function init() {
+  var sel = $("from");
+  SPEED.forEach(function (u) { var op = document.createElement("option"); op.value = u.k; op.textContent = u.n; sel.appendChild(op); });
+  sel.value = "kmh";
+})();
+$("runBtn").onclick = run;
+run();
+</script>
+</body>
+</html>

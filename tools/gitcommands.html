@@ -5,8 +5,8 @@
 <title>Git常用命令速查 - 词海工具箱</title>
 <meta name="description" content="在线Git常用命令速查表，收录初始化、提交、分支、合并、回滚与远端同步等高频命令，支持关键词即时筛选便于随查随用。">
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.9.0"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script src="../assets/theme.js?v=1.9.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.1">
 <script>
 var _hmt = _hmt || [];
 (function() {
@@ -44,8 +44,8 @@ s.parentNode.insertBefore(hm, s);
     </ol>
   </div>
 </div></div></div>
-<script src="../assets/tools-data.js?v=1.9.0"></script>
-<script src="../assets/chrome.js?v=1.9.0"></script>
+<script src="../assets/tools-data.js?v=1.9.1"></script>
+<script src="../assets/chrome.js?v=1.9.1"></script>
 <script>
 var $ = function (id) { return document.getElementById(id); };
 var DATA = [{"k":"git init","v":"初始化本地仓库","d":"在当前目录创建 .git 目录，开始版本管理"},{"k":"git clone <url>","v":"克隆远程仓库","d":"把远端仓库完整复制到本地"},{"k":"git status","v":"查看工作区状态","d":"显示已修改、已暂存与未跟踪文件"},{"k":"git add <file>","v":"暂存指定文件","d":"把改动加入暂存区，准备提交"},{"k":"git add -A","v":"暂存全部改动","d":"包含新增、修改与删除"},{"k":"git commit -m <msg>","v":"提交暂存区内容","d":"生成一次提交记录，-m 后跟提交说明"},{"k":"git commit --amend","v":"修补上一次提交","d":"修改提交信息或补入漏提交的文件"},{"k":"git log --oneline","v":"查看提交历史","d":"每个提交压缩为一行显示"},{"k":"git diff","v":"查看未暂存改动","d":"对比工作区与暂存区的差异"},{"k":"git diff --cached","v":"查看已暂存改动","d":"对比暂存区与最后一次提交"},{"k":"git branch","v":"列出本地分支","d":"显示全部分支，当前分支前有星号"},{"k":"git branch -a","v":"列出含远端的分支","d":"同时显示远程跟踪分支"},{"k":"git checkout -b <name>","v":"创建并切换分支","d":"新建分支后立即切过去"},{"k":"git switch <name>","v":"切换分支","d":"新版命令，语义比 checkout 更清晰"},{"k":"git merge <branch>","v":"合并分支","d":"把指定分支合并进当前分支"},{"k":"git rebase <branch>","v":"变基","d":"把当前分支的提交搬到目标分支之上"},{"k":"git pull","v":"拉取并合并","d":"等价于 git fetch 加 git merge"},{"k":"git pull --rebase","v":"拉取并变基","d":"保持提交历史为一条直线"},{"k":"git push","v":"推送到远端","d":"把本地提交同步到远程仓库"},{"k":"git push -u origin main","v":"推送并建立跟踪","d":"首次推送时设置上游分支"},{"k":"git remote -v","v":"查看远程地址","d":"显示 fetch 与 push 的远端 URL"},{"k":"git fetch","v":"仅拉取不合并","d":"更新远程跟踪分支，不改动工作区"},{"k":"git reset --hard HEAD","v":"丢弃全部改动","d":"危险操作，工作区回到上次提交状态"},{"k":"git reset --soft HEAD~1","v":"撤销提交保留改动","d":"保留改动到暂存区，撤销最后一次提交"},{"k":"git revert <commit>","v":"反向提交","d":"生成一个新提交来抵消指定提交"},{"k":"git stash","v":"暂存当前改动","d":"临时保存未提交改动，便于切换分支"},{"k":"git stash pop","v":"恢复暂存改动","d":"把 stash 内容取出并删除记录"},{"k":"git tag v1.0.0","v":"打标签","d":"为当前提交打上版本标签"},{"k":"git show <commit>","v":"查看提交详情","d":"显示提交信息与文件改动"},{"k":"git rm <file>","v":"删除文件并暂存","d":"同时从工作区与版本库移除"}];

@@ -5,8 +5,8 @@
 <title>Linux命令大全速查 - 词海工具箱</title>
 <meta name="description" content="在线Linux命令大全速查表，涵盖文件管理、文本处理、进程管理、磁盘与服务运维等常用命令，支持关键词即时筛选。">
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.9.0"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script src="../assets/theme.js?v=1.9.1"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.1">
 <script>
 var _hmt = _hmt || [];
 (function() {
@@ -44,8 +44,8 @@ s.parentNode.insertBefore(hm, s);
     </ol>
   </div>
 </div></div></div>
-<script src="../assets/tools-data.js?v=1.9.0"></script>
-<script src="../assets/chrome.js?v=1.9.0"></script>
+<script src="../assets/tools-data.js?v=1.9.1"></script>
+<script src="../assets/chrome.js?v=1.9.1"></script>
 <script>
 var $ = function (id) { return document.getElementById(id); };
 var DATA = [{"k":"ls -al","v":"列出目录详细内容","d":"-a 显示隐藏文件，-l 显示详细信息"},{"k":"cd <dir>","v":"切换目录","d":"cd .. 返回上级，cd - 回到上一个目录"},{"k":"pwd","v":"显示当前路径","d":"输出当前工作目录的绝对路径"},{"k":"cp -r <src> <dst>","v":"递归复制","d":"-r 用于复制整个目录"},{"k":"mv <src> <dst>","v":"移动或重命名","d":"同目录内移动即为重命名"},{"k":"rm -rf <dir>","v":"强制递归删除","d":"危险命令，删除前务必确认路径"},{"k":"mkdir -p <dir>","v":"创建目录","d":"-p 自动创建不存在的父目录"},{"k":"touch <file>","v":"创建空文件","d":"也用于更新文件时间戳"},{"k":"cat <file>","v":"查看文件内容","d":"适合查看小文件"},{"k":"less <file>","v":"分页查看文件","d":"按 q 退出，支持上下翻页与搜索"},{"k":"tail -f <file>","v":"实时跟踪日志","d":"持续输出文件新增内容，看日志常用"},{"k":"head -n 20 <file>","v":"查看文件前若干行","d":"-n 指定行数"},{"k":"grep -rn <kw> <dir>","v":"递归搜索文本","d":"-r 递归，-n 显示行号"},{"k":"find <dir> -name <pat>","v":"按名称查找文件","d":"支持通配符，如 *.log"},{"k":"chmod 755 <file>","v":"修改文件权限","d":"755 表示属主读写执行，其他读执行"},{"k":"chown user:group <file>","v":"修改属主与属组","d":"需要 root 权限"},{"k":"ps aux","v":"查看全部进程","d":"显示所有用户的进程与资源占用"},{"k":"top","v":"实时查看资源占用","d":"按 q 退出，按 M 按内存排序"},{"k":"kill -9 <pid>","v":"强制结束进程","d":"-9 为不可捕获的终止信号"},{"k":"df -h","v":"查看磁盘使用","d":"-h 以人类可读单位显示"},{"k":"du -sh <dir>","v":"统计目录大小","d":"-s 只显示汇总值"},{"k":"tar -czvf a.tar.gz <dir>","v":"打包并压缩","d":"c 创建、z gzip、v 显示过程、f 指定文件名"},{"k":"tar -xzvf a.tar.gz","v":"解压 tar.gz","d":"x 解包，常用参数组合"},{"k":"unzip <file.zip>","v":"解压 zip","d":"-d 指定解压目录"},{"k":"systemctl status <svc>","v":"查看服务状态","d":"start、stop、restart 分别控制启停"},{"k":"journalctl -u <svc> -f","v":"跟踪服务日志","d":"systemd 环境下查看服务日志"},{"k":"crontab -e","v":"编辑定时任务","d":"crontab -l 查看已有任务"},{"k":"netstat -tunlp","v":"查看端口监听","d":"显示 TCP UDP 端口与对应进程"},{"k":"curl -I <url>","v":"查看响应头","d":"-I 只发 HEAD 请求"},{"k":"sed -i 's/a/b/g' <file>","v":"批量替换文本","d":"-i 直接修改文件，注意先备份"}];

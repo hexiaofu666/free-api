@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>狗屁不通文章生成器 - 词海工具箱</title>
+<meta name="description" content="在线狗屁不通文章生成器，输入一个主题即可随机拼出一篇句式工整却言之无物的长文，适合活动暖场与文案占位。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/goupiwen.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="goupiwen" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>文章主题</label><input type="text" id="topic" value="如何提高工作效率"></div>
+      <div class="fitem"><label>段落数</label><input type="text" id="paras" value="4"></div>
+      <div class="fitem"><label>随机种子</label><input type="text" id="seed" value="2026"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成文章</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击按钮开始生成</strong></div>
+      <textarea id="res" rows="10" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;line-height:1.8;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于狗屁不通文章生成器介绍：</h4>
+    <ol>
+      <li>生成原理是把常用套话与连接句式随机组合，形成语法通顺但内容空洞的文字。</li>
+      <li>相同随机种子与相同参数会得到完全一样的结果，便于复现与对比。</li>
+      <li>更换种子即可得到不同版本，段落数决定文章长度。</li>
+      <li>生成内容仅用于娱乐与占位，不具备任何事实参考价值。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var PHRASES = [
+  "众所周知", "不可否认", "综上所述", "总而言之", "毫无疑问", "值得一提的是",
+  "从某种意义上说", "就目前而言", "在此基础上", "与此同时", "由此可见", "不言而喻"
+];
+var ACTIONS = [
+  "我们应当深入理解", "需要重新审视", "必须系统梳理", "有待进一步探讨", "应当辩证看待",
+  "要从全局出发把握", "需从细节入手优化", "应当保持清醒认识"
+];
+var OBJECTS = [
+  "事物发展的内在规律", "问题的核心要义", "整体的运行逻辑", "关键的若干要素",
+  "实践中的具体表现", "理论层面的基本框架", "过程中的主要矛盾", "方法上的有效路径"
+];
+function __xfRand(seed) {
+  var s = seed >>> 0;
+  return function () {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+function __xfPick(arr, rnd) {
+  var i = Math.floor(rnd() * arr.length);
+  if (i >= arr.length) i = arr.length - 1;
+  return arr[i];
+}
+function __xfGoupi(topic, paras, seed) {
+  var rnd = __xfRand(seed);
+  var out = [topic + "，是许多人关心的话题。"];
+  for (var p = 0; p < paras; p++) {
+    var buf = [];
+    for (var s = 0; s < 3; s++) {
+      buf.push(__xfPick(PHRASES, rnd) + "，" + __xfPick(ACTIONS, rnd) + __xfPick(OBJECTS, rnd) + "。");
+    }
+    out.push(buf.join(""));
+  }
+  out.push("综上所述，" + topic + "值得我们持续思考与实践。");
+  return out.join("\n\n");
+}
+function run() {
+  var topic = $("topic").value.trim() || "这个话题";
+  var paras = parseInt($("paras").value, 10) || 4;
+  var seed = parseInt($("seed").value, 10) || 0;
+  if (paras < 1 || paras > 20) { $("tip").textContent = "⚠️ 段落数需在 1 到 20 之间"; return null; }
+  var out = __xfGoupi(topic, paras, seed);
+  $("res").value = out;
+  $("tip").textContent = "✅ 已生成 " + (paras + 2) + " 段，共 " + out.length + " 字";
+  return out;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("topic").value = ""; $("res").value = ""; };
+run();
+</script>
+</body>
+</html>

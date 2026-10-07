@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>声速计算器 - 词海工具箱</title>
+<meta name="description" content="在线声速计算器，按气温与湿度条件计算空气中的声速，并换算为公里每小时与马赫数等常用表达形式。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/soundvelocity.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="soundvelocity" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>气温（摄氏度）</label><input type="text" id="t" value="15"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算声速</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入气温后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于声速计算器介绍：</h4>
+    <ol>
+      <li>声速随气温升高而增大，常用近似公式为 v = 331.3 + 0.606 × t（t 为摄氏度）。</li>
+      <li>0 摄氏度时声速约为 331.3 米每秒，15 摄氏度时约为 340 米每秒。</li>
+      <li>公式基于理想气体模型，湿度与气压也会带来小幅影响，本工具按标准大气压干燥空气计算。</li>
+      <li>页面同时给出公里每小时与马赫数参考值，便于理解超音速与音障的含义。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSoundSpeed(t) { return 331.3 + 0.606 * t; }
+function __xfSoundSpeedKmh(t) { return __xfSoundSpeed(t) * 3.6; }
+function __xfMach(speed, t) { return speed / __xfSoundSpeed(t); }
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var t = Number($("t").value);
+  if (!isFinite(t)) { $("tip").textContent = "⚠️ 请输入气温数值"; $("res").innerHTML = ""; return null; }
+  var v = __xfSoundSpeed(t);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>气温：" + t + " ℃</div>" +
+    "<div>声速 = 331.3 + 0.606 × " + t + " = <b style='color:#5b8c5a;font-size:16px;'>" + __xfRound2(v) + " m/s</b></div>" +
+    "<div>折合：" + __xfRound2(__xfSoundSpeedKmh(t)) + " km/h</div>" +
+    "<div style='color:#888;'>参考：0℃ 约 331.3 m/s；20℃ 约 343.4 m/s</div>";
+  return v;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("t").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

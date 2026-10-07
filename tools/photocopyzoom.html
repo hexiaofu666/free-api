@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>复印纸缩放比例计算器 - 词海工具箱</title>
+<meta name="description" content="在线复印纸缩放比例计算器，按A、B系列纸张的面积比算出复印缩放百分比，让文稿在不同尺寸纸张间精准缩放。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/photocopyzoom.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="photocopyzoom" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原稿纸张</label>
+        <select id="from"><option value="a3">A3</option><option value="a4" selected>A4</option><option value="a5">A5</option><option value="b4">B4</option><option value="b5">B5</option></select>
+      </div>
+      <div class="fitem"><label>目标纸张</label>
+        <select id="to"><option value="a3">A3</option><option value="a4">A4</option><option value="a5" selected>A5</option><option value="b4">B4</option><option value="b5">B5</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算缩放比例</button>
+      <button class="fbtn blue" id="listBtn">常用比例速查</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">选择纸张后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于复印纸缩放比例计算器介绍：</h4>
+    <ol>
+      <li>缩放比例按两张纸的面积比开平方计算，因为复印机是等比缩放长与宽。</li>
+      <li>常见结果：A3 缩到 A4 约为 71%，A4 放大到 A3 约为 141%。</li>
+      <li>A 系列纸张每降一级面积减半，因此相邻等级之间的缩放比例都是 71% 或 141%。</li>
+      <li>本工具按标准 ISO 216 纸张尺寸计算，非标准纸张请以实际尺寸为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var SIZES = { a3: [297, 420], a4: [210, 297], a5: [148, 210], b4: [250, 353], b5: [176, 250] };
+function __xfPaperArea(k) { var s = SIZES[k]; return s ? s[0] * s[1] : null; }
+function __xfZoomRatio(from, to) {
+  var a = __xfPaperArea(from), b = __xfPaperArea(to);
+  if (a === null || b === null) return null;
+  return Math.sqrt(b / a) * 100;
+}
+function __xfRound1(v) { return Math.round(v * 10) / 10; }
+function run() {
+  var f = $("from").value, t = $("to").value;
+  var r = __xfZoomRatio(f, t);
+  if (r === null) { $("tip").textContent = "⚠️ 纸张类型无效"; $("res").innerHTML = ""; return null; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>" + f.toUpperCase() + " 复印到 " + t.toUpperCase() + "</div>" +
+    "<div>缩放比例 = <b style='color:#607d8b;font-size:16px;'>" + __xfRound1(r) + "%</b></div>" +
+    "<div style='color:#888;'>" + (r > 100 ? "为放大复印" : r < 100 ? "为缩小复印" : "为原尺寸") + "</div>";
+  return r;
+}
+function runList() {
+  var pairs = [["a3", "a4"], ["a4", "a3"], ["a4", "a5"], ["a5", "a4"], ["b4", "a4"], ["a4", "b5"]];
+  $("tip").textContent = "✅ 常用缩放比例速查";
+  $("res").innerHTML = pairs.map(function (p) {
+    return "<div>" + p[0].toUpperCase() + " → " + p[1].toUpperCase() + "：" + __xfRound1(__xfZoomRatio(p[0], p[1])) + "%</div>";
+  }).join("");
+  return pairs.length;
+}
+$("runBtn").onclick = run;
+$("listBtn").onclick = runList;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

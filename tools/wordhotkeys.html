@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word快捷键大全 - 词海工具箱</title>
+<meta name="description" content="在线Word快捷键大全速查表，汇总文档编辑、排版对齐、查找替换与格式设置等常用快捷键，助你摆脱鼠标高效写文档。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/wordhotkeys.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="wordhotkeys" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="例如：对齐、字号、替换"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 35 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Word快捷键大全介绍：</h4>
+    <ol>
+      <li>覆盖文档操作、字符格式、段落排版与查找替换四大类高频快捷键。</li>
+      <li>搜索支持按键与说明文字，输入对齐可列出全部对齐相关组合键。</li>
+      <li>样式类快捷键（如 Ctrl+Alt+1）需光标位于对应段落内才生效。</li>
+      <li>冲突时以当前 Office 版本说明为准，部分笔记本需配合 Fn 键使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"Ctrl + N","v":"新建文档"},{"k":"Ctrl + S","v":"保存文档"},{"k":"Ctrl + P","v":"打印"},{"k":"Ctrl + Z","v":"撤销"},{"k":"Ctrl + Y","v":"重做"},{"k":"Ctrl + C","v":"复制"},{"k":"Ctrl + V","v":"粘贴"},{"k":"Ctrl + Shift + V","v":"粘贴为纯文本"},{"k":"Ctrl + B","v":"加粗"},{"k":"Ctrl + I","v":"斜体"},{"k":"Ctrl + U","v":"下划线"},{"k":"Ctrl + Shift + >","v":"放大字号"},{"k":"Ctrl + Shift + <","v":"缩小字号"},{"k":"Ctrl + L","v":"段落左对齐"},{"k":"Ctrl + E","v":"段落居中"},{"k":"Ctrl + R","v":"段落右对齐"},{"k":"Ctrl + J","v":"两端对齐"},{"k":"Ctrl + 1","v":"单倍行距"},{"k":"Ctrl + 2","v":"双倍行距"},{"k":"Ctrl + F","v":"查找"},{"k":"Ctrl + H","v":"替换"},{"k":"Ctrl + G","v":"定位到页"},{"k":"Ctrl + Enter","v":"插入分页符"},{"k":"Ctrl + Shift + Enter","v":"插入分栏符"},{"k":"Alt + Ctrl + M","v":"插入批注"},{"k":"Ctrl + Alt + 1","v":"应用标题 1 样式"},{"k":"Shift + F5","v":"返回上次编辑位置"},{"k":"F7","v":"拼写和语法检查"},{"k":"Ctrl + A","v":"全选"},{"k":"Ctrl + D","v":"打开字体对话框"},{"k":"Ctrl + Shift + C","v":"复制格式"},{"k":"Ctrl + Shift + V","v":"粘贴格式"},{"k":"Ctrl + K","v":"插入超链接"},{"k":"Alt + Shift + D","v":"插入日期域"},{"k":"Ctrl + W","v":"关闭当前文档"}];
+var COLS = ["快捷方式","功能说明"];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#3f6d9e;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+</script>
+</body>
+</html>

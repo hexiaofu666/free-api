@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>通知存款利息计算器 - 词海工具箱</title>
+<meta name="description" content="在线通知存款利息计算器，支持一天通知与七天通知两种类型，按实际存期天数算出利息与本息合计金额。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/tongzhicunkuan.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="tongzhicunkuan" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>存款类型</label>
+        <select id="type"><option value="7">七天通知存款</option><option value="1">一天通知存款</option></select>
+      </div>
+      <div class="fitem"><label>本金（元）</label><input type="text" id="p" value="200000"></div>
+      <div class="fitem"><label>年利率（%）</label><input type="text" id="rate" value="1.1"></div>
+      <div class="fitem"><label>存款天数</label><input type="text" id="days" value="30"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算利息</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于通知存款利息计算器介绍：</h4>
+    <ol>
+      <li>通知存款需在支取前按约定提前通知银行，分为一天通知与七天通知两种。</li>
+      <li>计息公式：利息 = 本金 × 年利率 × 实际存期天数 ÷ 360。</li>
+      <li>七天通知存款利率通常高于一天通知，但需提前七天预约支取。</li>
+      <li>提前支取部分或未按约定通知支取的部分，可能按活期利率计息。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfNoticeInterest(p, ratePct, days) { return p * ratePct / 100 * days / 360; }
+function __xfNoticeRate(type) { return type === "1" ? 0.55 : 1.1; }
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var p = Number($("p").value), rate = Number($("rate").value), days = Number($("days").value);
+  var type = $("type").value || "7";
+  if (!(p > 0) || !(rate > 0) || !(days > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的本金、利率与天数"; $("res").innerHTML = ""; return null; }
+  var interest = __xfNoticeInterest(p, rate, days);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>类型：" + (type === "1" ? "一天通知存款" : "七天通知存款") + "（参考利率 " + __xfNoticeRate(type) + "%）</div>" +
+    "<div>本金 " + p + " 元，利率 " + rate + "%，存期 " + days + " 天</div>" +
+    "<div>应得利息：<b style='color:#3f9e5a;font-size:16px;'>" + __xfRound2(interest) + " 元</b></div>" +
+    "<div>本息合计：" + __xfRound2(p + interest) + " 元</div>";
+  return interest;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

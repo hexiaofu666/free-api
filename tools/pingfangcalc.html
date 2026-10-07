@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>平方计算器 - 词海工具箱</title>
+<meta name="description" content="在线平方计算器，支持一次输入多个数字批量求平方值，自动处理负数与小数，并给出完整计算式。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/pingfangcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="pingfangcalc" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数字列表</label><input type="text" id="src" placeholder="例如：5, -3, 0.5（逗号、空格或换行分隔）" value="5, -3, 0.5"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算平方</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入数字后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于平方计算器介绍：</h4>
+    <ol>
+      <li>支持一次输入多个数字，用逗号、空格或换行分隔，例如 5 12 25。</li>
+      <li>负数平方后为正数，小数按浮点精度计算，结果区会列出每一项的平方值。</li>
+      <li>平方即同一个数自乘一次，记作 a²，常用于面积计算与方差公式。</li>
+      <li>如需反向求平方根，请使用站内的平方根计算器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSquare(n) { return n * n; }
+function __xfParseList(text) {
+  var parts = String(text).split(/[^0-9.\-]+/);
+  var arr = [];
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i] === "" || parts[i] === "-" || parts[i] === "." || parts[i] === "-.") continue;
+    var v = Number(parts[i]);
+    if (!isFinite(v)) continue;
+    arr.push(v);
+  }
+  return arr;
+}
+function __xfSquareList(arr) { return arr.map(__xfSquare); }
+function __xfFmt(v) {
+  if (Number.isInteger(v)) return String(v);
+  var s = v.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+  return s;
+}
+function run() {
+  var nums = __xfParseList($("src").value);
+  if (!nums.length) { $("tip").textContent = "⚠️ 请输入至少一个数字"; $("res").innerHTML = ""; return; }
+  var out = nums.map(function (n) { return "<div>" + __xfFmt(n) + " ² = <b style='color:#4d8bb8;'>" + __xfFmt(__xfSquare(n)) + "</b></div>"; });
+  $("tip").textContent = "✅ 共计算 " + nums.length + " 个数字";
+  $("res").innerHTML = out.join("");
+  return __xfSquareList(nums);
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").innerHTML = ""; $("tip").textContent = "输入数字后点击计算"; };
+run();
+</script>
+</body>
+</html>

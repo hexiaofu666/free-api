@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>站点更新日志 - 词海工具箱</title>
 <link rel="stylesheet" href="../assets/layui/icon.css">
-<script src="../assets/theme.js?v=1.8.1"></script>
-<link rel="stylesheet" href="../assets/style.css?v=1.8.1">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
 <style>
 .chg-wrap { max-width: 760px; margin: 5px auto 0; }
 .chg-item { position: relative; padding: 0 0 26px 30px; }
@@ -68,13 +68,32 @@ s.parentNode.insertBefore(hm, s);
   </div>
 </div>
 </div></div>
-<script src="../assets/tools-data.js?v=1.8.1"></script>
-<script src="../assets/chrome.js?v=1.8.1"></script>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
 <script>
 const $=id=>document.getElementById(id);
 
 /* 版本记录：新版本往数组最前面加即可 */
 const LOGS = [
+  {
+    ver: "v1.9.0", date: "2026-10-06",
+    items: [
+      ["new", "一次性新增 100 款工具（工具总数 404 → 504），站点工具规模正式突破 500 款。"],
+      ["new", "基础数学与时间换算 10 款：平方计算、立方计算、求模取余、半球体积、半球体曲面面积、半球体总表面积、经纬度与度分秒互转、当年第几天第几周、进制转换、Unix 时间戳转换"],
+      ["new", "单位换算与工程计算 10 款：功率单位换算、密度单位换算、航速单位换算、声速计算、布氏硬度、屏幕 PPI、水的硬度、纸张克重与厚度转换、复印纸缩放比例、增程车油电费用计算"],
+      ["new", "文本创意与格式工具 10 款：蚂蚁文生成、ASCII 线条字生成、数字前置补 0 格式化、批量去除数字前导零、随机点名、文本规则生成、数字及英文转粗体、敏感词检测、文字仿古文竖排排版、狗屁不通文章生成器"],
+      ["new", "开发与办公速查手册 10 款：cURL 转 jQuery、HTML 与 VBNET 互转、JavaScript 一行代码大全、Git 常用命令、Linux 命令大全、Excel 函数大全、Excel 快捷键、Word 快捷键、PPT 快捷键、VSCode 快捷键"],
+      ["new", "存款与收益计算 10 款：二手房税费、复利计算、活期存款利息、整存整取利息、定活两便利息、通知存款利息、教育储蓄利息、年月日利率互转、民间借贷利率换算、年化收益率"],
+      ["new", "健康与体质计算 10 款：基础代谢率、体脂率、身体表面积、每日饮水量、燃脂心率、运动消耗卡路里、血液酒精含量、肺龄、预产期、睡眠周期"],
+      ["new", "尺码与对照表 10 款：衬衫、裤子、鞋子、文胸、内裤、男士西装尺码对照表，戒指尺寸参考表、儿童标准身高体重参考表、中国历史朝代对照表、六十甲子速查表"],
+      ["new", "实用查询数据表 10 款：全国长途区号、世界各国区号与时差、中国省份简称及省会、五十六个民族分布、节日大全、纸张标准尺寸、NTP 时间服务器地址、公共 DNS 服务器地址、英文缩写速查、元素周期表速查"],
+      ["new", "随机生成与生肖干支 10 款：姓名生成、古风名字生成、随机英文名生成、幸运数字计算、幸运大转盘、答案之书、生肖婚姻配对、生肖三合贵人、日期天干地支计算、鸡兔同笼计算"],
+      ["new", "贷款与债券收益 10 款：公积金贷款、商业贷款、反算贷款金额、反算贷款利率、反算贷款期数、零存整取、整存零取、存本取息、附息国债收益、零息国债收益"],
+      ["opt", "分类规模：生活工具 79 → 137 款、编程开发 137 → 148 款、数学工具 57 → 73 款、效率办公 51 → 66 款，图片颜色 35 款与站长工具 45 款保持不变，合计 504 款"],
+      ["opt", "本批 100 款工具的算法全部经过双端独立复算对拍（浏览器沙箱运行结果与独立脚本复算交叉验证），金融公式、几何体积、单位换算等数值口径逐条核对"],
+      ["opt", "全站资源版本号由 v1.8.1 统一升级至 v1.9.0（共 2015 处引用），首页工具数量口径同步由 400+ 更新为 500+，访问过的旧缓存会自动失效更新"],
+    ]
+  },
   {
     ver: "v1.8.1", date: "2026-10-06",
     items: [

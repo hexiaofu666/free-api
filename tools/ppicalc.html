@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕PPI计算器 - 词海工具箱</title>
+<meta name="description" content="在线屏幕PPI计算器，输入分辨率与屏幕尺寸即可算出像素密度与点距，帮助你判断显示器细腻程度与观看体验。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ppicalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ppicalc" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>水平分辨率（px）</label><input type="text" id="w" value="1920"></div>
+      <div class="fitem"><label>垂直分辨率（px）</label><input type="text" id="h" value="1080"></div>
+      <div class="fitem"><label>屏幕对角线（英寸）</label><input type="text" id="d" value="24"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算 PPI</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于屏幕PPI计算器介绍：</h4>
+    <ol>
+      <li>PPI（每英寸像素数）= √(水平像素² + 垂直像素²) ÷ 对角线英寸，数值越大显示越细腻。</li>
+      <li>人眼在常规观看距离下约 300 PPI 开始难以分辨单个像素，手机屏幕普遍在 300 以上。</li>
+      <li>点距 = 25.4 ÷ PPI，单位为毫米，点距越小像素越密。</li>
+      <li>同一分辨率下屏幕越大 PPI 越低，24 英寸 1080P 约为 92 PPI，属于常规水平。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfPpi(w, h, diag) {
+  if (!(w > 0) || !(h > 0) || !(diag > 0)) return null;
+  return Math.sqrt(w * w + h * h) / diag;
+}
+function __xfDotPitch(ppi) { return ppi > 0 ? 25.4 / ppi : null; }
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var w = Number($("w").value), h = Number($("h").value), d = Number($("d").value);
+  if (!isFinite(w) || !isFinite(h) || !isFinite(d)) { $("tip").textContent = "⚠️ 请输入数字"; $("res").innerHTML = ""; return null; }
+  var p = __xfPpi(w, h, d);
+  if (p === null) { $("tip").textContent = "⚠️ 分辨率与尺寸都必须大于 0"; $("res").innerHTML = ""; return null; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>分辨率：" + w + " × " + h + "，对角线：" + d + " 英寸</div>" +
+    "<div>PPI = <b style='color:#607d8b;font-size:16px;'>" + __xfRound2(p) + "</b></div>" +
+    "<div>点距 = " + __xfRound2(__xfDotPitch(p)) + " mm</div>" +
+    "<div style='color:#888;'>宽高比：" + __xfRound2(w / h) + " : 1</div>";
+  return p;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("w").value = ""; $("h").value = ""; $("d").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

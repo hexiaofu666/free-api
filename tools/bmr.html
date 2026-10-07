@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基础代谢率计算器 - 词海工具箱</title>
+<meta name="description" content="在线基础代谢率 BMR 计算器，按性别、体重、身高、年龄用 Mifflin-St Jeor 与 Harris-Benedict 两套公式估算静息热量消耗，并换算每日总消耗。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/bmr.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="bmr" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>性别</label>
+        <select id="sex"><option value="m">男</option><option value="f">女</option></select>
+      </div>
+      <div class="fitem"><label>体重（kg）</label><input type="text" id="kg" value="70"></div>
+      <div class="fitem"><label>身高（cm）</label><input type="text" id="cm" value="175"></div>
+      <div class="fitem"><label>年龄（岁）</label><input type="text" id="age" value="30"></div>
+      <div class="fitem"><label>日常活动量</label>
+        <select id="act">
+          <option value="1.2">久坐少动（几乎不运动）</option>
+          <option value="1.375" selected>轻度活动（每周 1-3 次）</option>
+          <option value="1.55">中度活动（每周 3-5 次）</option>
+          <option value="1.725">高强度活动（每周 6-7 次）</option>
+          <option value="1.9">极高强度（体力劳动/运动员）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算代谢</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于基础代谢率计算器介绍：</h4>
+    <ol>
+      <li>Mifflin-St Jeor 公式：男性 BMR = 10×体重 + 6.25×身高 − 5×年龄 + 5；女性为 10×体重 + 6.25×身高 − 5×年龄 − 161。</li>
+      <li>Harris-Benedict 修订公式：男性 88.362 + 13.397×体重 + 4.799×身高 − 5.677×年龄；女性 447.593 + 9.247×体重 + 3.098×身高 − 4.330×年龄。</li>
+      <li>每日总消耗（TDEE）= 基础代谢率 × 活动系数，活动系数从 1.2（久坐）到 1.9（极高强度）。</li>
+      <li>减脂建议在 TDEE 基础上减少约 500 千卡，增肌建议增加约 300 千卡，结果仅为估算值，个体差异较大。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfBmr(sex, kg, cm, age) {
+  var base = 10 * kg + 6.25 * cm - 5 * age;
+  return sex === "f" ? base - 161 : base + 5;
+}
+function __xfBmrHarris(sex, kg, cm, age) {
+  if (sex === "f") return 447.593 + 9.247 * kg + 3.098 * cm - 4.330 * age;
+  return 88.362 + 13.397 * kg + 4.799 * cm - 5.677 * age;
+}
+function __xfTdee(bmr, act) { return bmr * act; }
+function __xfCut(tdee) { return tdee - 500; }
+function __xfBulk(tdee) { return tdee + 300; }
+function __xfRound0(v) { return Math.round(v); }
+function run() {
+  var sex = $("sex").value || "m";
+  var kg = Number($("kg").value), cm = Number($("cm").value), age = Number($("age").value);
+  var act = Number($("act").value) || 1.375;
+  if (!(kg > 0) || !(cm > 0) || !(age > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的体重、身高与年龄"; $("res").innerHTML = ""; return null; }
+  var mif = __xfBmr(sex, kg, cm, age), har = __xfBmrHarris(sex, kg, cm, age);
+  var tdee = __xfTdee(mif, act);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>" + (sex === "f" ? "女" : "男") + "性 " + kg + " kg / " + cm + " cm / " + age + " 岁</div>" +
+    "<div>基础代谢（Mifflin）：<b style='color:#e0514a;font-size:16px;'>" + __xfRound0(mif) + " 千卡/天</b></div>" +
+    "<div>基础代谢（Harris）：" + __xfRound0(har) + " 千卡/天</div>" +
+    "<div>每日总消耗 TDEE：<b style='color:#e0514a;font-size:16px;'>" + __xfRound0(tdee) + " 千卡/天</b></div>" +
+    "<div style='color:#888;'>减脂参考 " + __xfRound0(__xfCut(tdee)) + " 千卡，增肌参考 " + __xfRound0(__xfBulk(tdee)) + " 千卡</div>";
+  return mif;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

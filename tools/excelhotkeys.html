@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Excel快捷键大全 - 词海工具箱</title>
+<meta name="description" content="在线Excel快捷键大全速查表，收录编辑、选择、填充、格式与工作表切换等常用快捷键，帮助提升表格操作效率。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/excelhotkeys.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="excelhotkeys" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="例如：填充、选中、格式"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 40 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Excel快捷键大全介绍：</h4>
+    <ol>
+      <li>按编辑、选择、格式与导航四类场景整理，覆盖日常表格操作高频按键。</li>
+      <li>搜索支持按键组合与功能说明，输入填充即可找到全部填充相关快捷键。</li>
+      <li>部分快捷键在 Mac 版本中需把 Ctrl 替换为 Command。</li>
+      <li>带 Shift 的组合键多为扩展功能，如 Ctrl+Shift+$ 设置货币格式。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"Ctrl + N","v":"新建工作簿"},{"k":"Ctrl + O","v":"打开文件"},{"k":"Ctrl + S","v":"保存"},{"k":"F12","v":"另存为"},{"k":"Ctrl + Z","v":"撤销"},{"k":"Ctrl + Y","v":"重做"},{"k":"Ctrl + C","v":"复制"},{"k":"Ctrl + V","v":"粘贴"},{"k":"Ctrl + X","v":"剪切"},{"k":"Ctrl + Shift + V","v":"选择性粘贴"},{"k":"Ctrl + B","v":"加粗"},{"k":"Ctrl + I","v":"斜体"},{"k":"Ctrl + U","v":"下划线"},{"k":"Ctrl + 1","v":"打开单元格格式设置"},{"k":"Ctrl + Shift + $","v":"设为货币格式"},{"k":"Ctrl + Shift + %","v":"设为百分比格式"},{"k":"Ctrl + Home","v":"回到 A1 单元格"},{"k":"Ctrl + End","v":"跳到已用区域末尾"},{"k":"Ctrl + 方向键","v":"跳到数据区边缘"},{"k":"Shift + 方向键","v":"扩展选择区域"},{"k":"Ctrl + Space","v":"选中整列"},{"k":"Shift + Space","v":"选中整行"},{"k":"Ctrl + A","v":"选中整张表"},{"k":"Alt + =","v":"自动求和"},{"k":"Ctrl + ;","v":"插入当前日期"},{"k":"Ctrl + Shift + ;","v":"插入当前时间"},{"k":"Alt + Enter","v":"单元格内换行"},{"k":"Ctrl + Enter","v":"批量填充选中区域"},{"k":"Ctrl + D","v":"向下填充"},{"k":"Ctrl + R","v":"向右填充"},{"k":"Ctrl + F","v":"查找"},{"k":"Ctrl + H","v":"替换"},{"k":"Ctrl + G","v":"定位"},{"k":"Ctrl + T","v":"创建表格"},{"k":"Alt + F1","v":"快速生成图表"},{"k":"F2","v":"编辑当前单元格"},{"k":"F4","v":"切换引用方式"},{"k":"Ctrl + PageDown","v":"切换到下一工作表"},{"k":"Ctrl + PageUp","v":"切换到上一工作表"},{"k":"Ctrl + 9","v":"隐藏选中行"}];
+var COLS = ["快捷方式","功能说明"];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#3f9e5a;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+</script>
+</body>
+</html>

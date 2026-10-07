@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>衬衫尺码对照表 - 词海工具箱</title>
+<meta name="description" content="在线衬衫尺码对照表，按身高与净胸围自动推荐国标号型与国际码，并给出各尺码对应的胸围、领围与衣长参考数据。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/shirtsize.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="shirtsize" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>身高（cm）</label><input type="text" id="h" value="175"></div>
+      <div class="fitem"><label>净胸围（cm）</label><input type="text" id="chest" value="92"></div>
+      <div class="fitem"><label>净腰围（cm）</label><input type="text" id="waist" value="78"></div>
+      <div class="fitem"><label>搜索尺码表</label><input type="text" id="kw" placeholder="输入号型或尺码筛选"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">推荐我的尺码</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写身材数据后点击推荐</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+      <div id="table" style="padding:0 0 10px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于衬衫尺码对照表介绍：</h4>
+    <ol>
+      <li>国标服装号型格式为「身高/净胸围+体型」，例如 175/92A 表示适合身高约 175cm、净胸围约 92cm 的 A 体型人群。</li>
+      <li>体型代号按胸腰差划分：Y 型大于 17cm、A 型 12 至 17cm、B 型 7 至 12cm、C 型 3 至 7cm。</li>
+      <li>身高档以 5cm 为一档、胸围档以 4cm 为一档，取最接近的档位组合即为你的推荐号型。</li>
+      <li>衬衫还需关注领围，一般领围比净颈围大 1.5 至 2cm 较为舒适，正装衬衫以扣上第一颗纽扣能伸入两根手指为宜。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var SHIRT = [
+  { k: "160/80A", v: "XS 码｜净胸围 78~82cm｜领围 37cm｜衣长 68cm", d: "适合身高 156~163cm，体重约 45~52kg" },
+  { k: "165/84A", v: "S 码｜净胸围 82~86cm｜领围 38cm｜衣长 70cm", d: "适合身高 161~168cm，体重约 50~58kg" },
+  { k: "170/88A", v: "M 码｜净胸围 86~90cm｜领围 39cm｜衣长 72cm", d: "适合身高 166~173cm，体重约 55~65kg" },
+  { k: "175/92A", v: "L 码｜净胸围 90~94cm｜领围 40cm｜衣长 74cm", d: "适合身高 171~178cm，体重约 62~72kg" },
+  { k: "180/96A", v: "XL 码｜净胸围 94~98cm｜领围 41cm｜衣长 76cm", d: "适合身高 176~183cm，体重约 70~80kg" },
+  { k: "185/100A", v: "2XL 码｜净胸围 98~102cm｜领围 42cm｜衣长 78cm", d: "适合身高 181~188cm，体重约 78~90kg" },
+  { k: "190/104A", v: "3XL 码｜净胸围 102~106cm｜领围 43cm｜衣长 80cm", d: "适合身高 186~193cm，体重约 88~100kg" },
+  { k: "B 型（胸腰差 7~12cm）", v: "同身高下可选小一号，偏宽松版型", d: "体型偏壮，建议按胸围选码、腰围放量" },
+  { k: "C 型（胸腰差 3~7cm）", v: "建议选大一码，注意腰腹放量", d: "梨形或腹部较丰满体型" }
+];
+function __xfSH(h) { return Math.round(h / 5) * 5; }
+function __xfSC(c) { return Math.round(c / 4) * 4; }
+function __xfSBody(chest, waist) {
+  var d = chest - waist;
+  if (d > 17) return "Y";
+  if (d >= 12) return "A";
+  if (d >= 7) return "B";
+  return "C";
+}
+function __xfSCode(chest) {
+  var m = { 80: "XS", 84: "S", 88: "M", 92: "L", 96: "XL", 100: "2XL", 104: "3XL" };
+  return m[chest] || "—";
+}
+function __xfSSize(h, chest, waist) { return __xfSH(h) + "/" + __xfSC(chest) + __xfSBody(chest, waist); }
+function __xfCollar(chest) {
+  var m = { 80: 37, 84: 38, 88: 39, 92: 40, 96: 41, 100: 42, 104: 43 };
+  return m[chest] || 0;
+}
+function renderTable(kw) {
+  var k = String(kw || "").trim().toLowerCase();
+  var list = SHIRT.filter(function (it) {
+    if (!k) return true;
+    return (it.k + " " + it.v + " " + it.d).toLowerCase().indexOf(k) >= 0;
+  });
+  var box = $("table");
+  if (!box) return list;
+  if (!list.length) { box.innerHTML = "<div style='padding:14px 15px;color:#999;'>没有匹配尺码</div>"; return list; }
+  box.innerHTML = list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#3b82c4;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div></div>";
+  }).join("");
+  return list;
+}
+function run() {
+  var h = Number($("h").value), chest = Number($("chest").value), waist = Number($("waist").value);
+  if (!(h > 0) || !(chest > 0) || !(waist > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的身高、胸围与腰围"; return null; }
+  var size = __xfSSize(h, chest, waist), code = __xfSCode(__xfSC(chest));
+  $("tip").textContent = "✅ 推荐完成，可在下方继续筛选";
+  $("res").innerHTML = "<div>推荐号型：<b style='color:#3b82c4;font-size:16px;'>" + size + "</b>（国际码 " + code + "）</div>" +
+    "<div>对应净胸围档：" + __xfSC(chest) + " cm，推荐领围：" + __xfCollar(__xfSC(chest)) + " cm</div>" +
+    "<div style='color:#888;'>体型判定：胸腰差 " + (chest - waist) + " cm，属 " + __xfSBody(chest, waist) + " 型</div>";
+  return size;
+}
+renderTable("");
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; $("kw").value = ""; return renderTable(""); };
+$("kw").oninput = function () { return renderTable($("kw").value); };
+</script>
+</body>
+</html>

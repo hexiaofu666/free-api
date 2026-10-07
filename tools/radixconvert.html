@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>进制转换工具 - 词海工具箱</title>
+<meta name="description" content="在线进制转换工具，支持二、八、十、十六进制的任意互转，采用大整数运算，超长数字也能精确换算不丢精度。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/radixconvert.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="radixconvert" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>源进制</label>
+        <select id="from"><option value="2">2 进制</option><option value="8">8 进制</option><option value="10" selected>10 进制</option><option value="16">16 进制</option></select>
+      </div>
+      <div class="fitem"><label>输入数值</label><input type="text" id="src" value="255"></div>
+      <div class="fitem"><label>目标进制</label>
+        <select id="to"><option value="2">2 进制</option><option value="8">8 进制</option><option value="10">10 进制</option><option value="16" selected>16 进制</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换</button>
+      <button class="fbtn blue" id="allBtn">同时显示四种进制</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入数值后点击转换</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于进制转换工具介绍：</h4>
+    <ol>
+      <li>支持 2、8、10、16 四种进制的任意互转，输入与输出均支持负数。</li>
+      <li>内部使用大整数运算，超过 2^53 的超长数字也能精确转换，不会出现精度丢失。</li>
+      <li>16 进制输入不区分大小写，输出的字母统一为小写。</li>
+      <li>十六进制常用于内存地址、颜色值；二进制常用于位运算与权限掩码。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DIGITS = "0123456789abcdef";
+function __xfValid(s, base) {
+  var t = String(s).trim().replace(/^-/, "");
+  if (!t) return false;
+  for (var i = 0; i < t.length; i++) {
+    var v = DIGITS.indexOf(t.charAt(i).toLowerCase());
+    if (v < 0 || v >= base) return false;
+  }
+  return true;
+}
+function __xfToBig(s, base) {
+  var t = String(s).trim();
+  if (!__xfValid(t, base)) return null;
+  var neg = t.charAt(0) === "-";
+  if (neg) t = t.slice(1);
+  var prefix = base === 2 ? "0b" : base === 8 ? "0o" : base === 16 ? "0x" : "";
+  var v = BigInt(prefix + t);
+  return neg ? -v : v;
+}
+function __xfFromBig(v, base) {
+  return v.toString(base).toLowerCase();
+}
+function __xfConvert(s, from, to) {
+  var v = __xfToBig(s, from);
+  if (v === null) return null;
+  return __xfFromBig(v, to);
+}
+function run() {
+  var from = Number($("from").value), to = Number($("to").value);
+  var t = $("src").value.trim();
+  if (!__xfValid(t, from)) { $("tip").textContent = "⚠️ 输入不是合法的 " + from + " 进制数"; $("res").innerHTML = ""; return null; }
+  var out = __xfConvert(t, from, to);
+  $("tip").textContent = "✅ 转换完成";
+  $("res").innerHTML = "<div>" + from + " 进制 " + t + " = " + to + " 进制 <b style='color:#607d8b;font-size:16px;'>" + out + "</b></div>";
+  return out;
+}
+function runAll() {
+  var from = Number($("from").value);
+  var t = $("src").value.trim();
+  if (!__xfValid(t, from)) { $("tip").textContent = "⚠️ 输入不是合法的 " + from + " 进制数"; $("res").innerHTML = ""; return null; }
+  var v = __xfToBig(t, from);
+  var rows = [[2, "二进制"], [8, "八进制"], [10, "十进制"], [16, "十六进制"]]
+    .map(function (p) { return "<div>" + p[1] + "：" + __xfFromBig(v, p[0]) + "</div>"; });
+  $("tip").textContent = "✅ 已输出四种进制结果";
+  $("res").innerHTML = rows.join("");
+  return v.toString();
+}
+$("runBtn").onclick = run;
+$("allBtn").onclick = runAll;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").innerHTML = ""; $("tip").textContent = "输入数值后点击转换"; };
+run();
+</script>
+</body>
+</html>

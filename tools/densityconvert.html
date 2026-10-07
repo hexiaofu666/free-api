@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>密度单位换算器 - 词海工具箱</title>
+<meta name="description" content="在线密度单位换算器，支持千克每立方米、克每立方厘米、克每升、磅每立方英尺等常用密度单位的精确互换。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/densityconvert.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="densityconvert" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="1"></div>
+      <div class="fitem"><label>源单位</label>
+        <select id="unit">
+          <option value="kgm3">千克每立方米 kg/m³</option>
+          <option value="gcm3" selected>克每立方厘米 g/cm³</option>
+          <option value="gl">克每升 g/L</option>
+          <option value="kgl">千克每升 kg/L</option>
+          <option value="lbft3">磅每立方英尺 lb/ft³</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入数值后点击换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于密度单位换算器介绍：</h4>
+    <ol>
+      <li>水的密度约为 1 g/cm³，即 1000 kg/m³，常用作密度对比的基准。</li>
+      <li>1 g/cm³ = 1000 kg/m³ = 1 kg/L = 1000 g/L，这四者之间的换算在工程中最常见。</li>
+      <li>磅每立方英尺（lb/ft³）为英制密度单位，1 lb/ft³ 约等于 16.0185 kg/m³。</li>
+      <li>换算结果保留六位小数，材料密度表中常见的小数位都能完整呈现。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var TO_KGM3 = { kgm3: 1, gcm3: 1000, gl: 1, kgl: 1000, lbft3: 16.0184633739601 };
+var NAMES = { kgm3: "千克每立方米 kg/m³", gcm3: "克每立方厘米 g/cm³", gl: "克每升 g/L", kgl: "千克每升 kg/L", lbft3: "磅每立方英尺 lb/ft³" };
+function __xfRound6(v) { return Math.round(v * 1e6) / 1e6; }
+function __xfDensityConvert(v, unit) {
+  if (!(unit in TO_KGM3)) return null;
+  var k = v * TO_KGM3[unit];
+  return { kgm3: __xfRound6(k), gcm3: __xfRound6(k / 1000), gl: __xfRound6(k), kgl: __xfRound6(k / 1000), lbft3: __xfRound6(k / TO_KGM3.lbft3) };
+}
+function run() {
+  var v = Number($("val").value), unit = $("unit").value || "gcm3";
+  if (!isFinite(v)) { $("tip").textContent = "⚠️ 请输入数字"; $("res").innerHTML = ""; return null; }
+  var o = __xfDensityConvert(v, unit);
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = ["kgm3", "gcm3", "gl", "kgl", "lbft3"]
+    .map(function (k) { return "<div>" + NAMES[k] + "：<b style='color:#4d8bb8;'>" + o[k] + "</b></div>"; }).join("");
+  return o;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("val").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

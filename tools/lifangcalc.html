@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>立方计算器 - 词海工具箱</title>
+<meta name="description" content="在线立方计算器，批量计算数字的三次方，负数结果为负，可同时输出立方值与计算公式便于核对。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/lifangcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="lifangcalc" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数字列表</label><input type="text" id="src" placeholder="例如：3, -2, 1.5（逗号、空格或换行分隔）" value="3, -2, 1.5"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算立方</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入数字后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于立方计算器介绍：</h4>
+    <ol>
+      <li>立方的定义是一个数自乘两次，记作 a³，例如 3³ = 3×3×3 = 27。</li>
+      <li>负数立方结果为负数，如 -2³ = -8；正数立方结果为正数。</li>
+      <li>支持一次输入多个数字批量计算，用逗号、空格或换行分隔。</li>
+      <li>立方常用于体积计算，如正方体体积等于棱长的立方。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfCube(n) { return n * n * n; }
+function __xfParseList(text) {
+  var parts = String(text).split(/[^0-9.\-]+/);
+  var arr = [];
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i] === "" || parts[i] === "-" || parts[i] === "." || parts[i] === "-.") continue;
+    var v = Number(parts[i]);
+    if (!isFinite(v)) continue;
+    arr.push(v);
+  }
+  return arr;
+}
+function __xfCubeList(arr) { return arr.map(__xfCube); }
+function __xfFmt(v) {
+  if (Number.isInteger(v)) return String(v);
+  return v.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+}
+function run() {
+  var nums = __xfParseList($("src").value);
+  if (!nums.length) { $("tip").textContent = "⚠️ 请输入至少一个数字"; $("res").innerHTML = ""; return; }
+  var out = nums.map(function (n) { return "<div>" + __xfFmt(n) + " ³ = <b style='color:#5b8c5a;'>" + __xfFmt(__xfCube(n)) + "</b></div>"; });
+  $("tip").textContent = "✅ 共计算 " + nums.length + " 个数字";
+  $("res").innerHTML = out.join("");
+  return __xfCubeList(nums);
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").innerHTML = ""; $("tip").textContent = "输入数字后点击计算"; };
+run();
+</script>
+</body>
+</html>

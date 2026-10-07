@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTP 时间服务器地址大全 - 词海工具箱</title>
+<meta name="description" content="在线 NTP 网络时间服务器地址大全，收录国内主流云厂商与教育网、公共池的授时服务器域名，方便校时配置使用。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ntp.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ntp" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="输入域名或机构名筛选"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 20 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于NTP 时间服务器地址大全介绍：</h4>
+    <ol>
+      <li>NTP 即网络时间协议，用于让计算机与授时服务器同步时间，端口为 UDP 123，多数操作系统已内置同步功能。</li>
+      <li>国内用户建议优先使用阿里云、腾讯云或国家授时中心的服务器，延迟低且稳定性好，可获得毫秒级精度。</li>
+      <li>Windows 系统可在时间和语言设置中修改 Internet 时间服务器；Linux 系统可编辑 chrony 或 ntp 配置文件添加域名。</li>
+      <li>企业内网若无法直接访问外网，可搭建本地 NTP 服务器向上游同步，再由内网设备统一指向本地服务器，减少外网依赖。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"ntp.aliyun.com","v":"阿里云公共 NTP 服务","d":"国内访问速度快，推荐优先使用"},{"k":"ntp1.aliyun.com","v":"阿里云公共 NTP 服务（备用 1）","d":""},{"k":"ntp2.aliyun.com","v":"阿里云公共 NTP 服务（备用 2）","d":""},{"k":"time1.cloud.tencent.com","v":"腾讯云公共 NTP 服务","d":"国内多线路接入"},{"k":"time2.cloud.tencent.com","v":"腾讯云公共 NTP 服务（备用 1）","d":""},{"k":"time3.cloud.tencent.com","v":"腾讯云公共 NTP 服务（备用 2）","d":""},{"k":"ntp.ntsc.ac.cn","v":"中国科学院国家授时中心","d":"国内权威授时源"},{"k":"cn.pool.ntp.org","v":"NTP 公共池中国节点","d":"由志愿者服务器组成，稳定性高"},{"k":"asia.pool.ntp.org","v":"NTP 公共池亚洲节点","d":""},{"k":"pool.ntp.org","v":"NTP 公共池全球入口","d":"自动解析到就近节点"},{"k":"ntp.sjtu.edu.cn","v":"上海交通大学授时服务器","d":"教育网用户访问较快"},{"k":"ntp.neu.edu.cn","v":"东北大学授时服务器","d":"教育网用户访问较快"},{"k":"s1a.time.edu.cn","v":"中国教育和科研计算机网授时服务","d":"CERNET 官方授时"},{"k":"s2a.time.edu.cn","v":"中国教育和科研计算机网授时服务（备用）","d":""},{"k":"time.windows.com","v":"微软 Windows 默认时间服务器","d":"Windows 系统默认配置"},{"k":"time.apple.com","v":"苹果设备默认时间服务器","d":"macOS 与 iOS 默认配置"},{"k":"time.google.com","v":"Google 公共 NTP 服务","d":"支持闰秒平滑处理"},{"k":"time.nist.gov","v":"美国国家标准与技术研究院","d":"国际权威授时源"},{"k":"time.cloudflare.com","v":"Cloudflare 公共 NTP 服务","d":"全球 Anycast 节点"},{"k":"jp.pool.ntp.org","v":"NTP 公共池日本节点","d":"亚太地区延迟较低"}];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#3b82c4;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+function __xfNtp(host) {
+  var k = String(host == null ? "" : host).trim().toLowerCase();
+  for (var i = 0; i < DATA.length; i++) { if (DATA[i].k.toLowerCase() === k) return DATA[i]; }
+  return null;
+}
+function __xfNtpProvider(host) {
+  var r = __xfNtp(host);
+  return r ? r.v : "";
+}
+function __xfIsPoolHost(host) { return /pool\.ntp\.org$/.test(String(host).trim().toLowerCase()); }
+function __xfDomains() { return DATA.map(function (it) { return it.k; }); }
+</script>
+</body>
+</html>

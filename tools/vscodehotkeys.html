@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VSCode快捷键大全 - 词海工具箱</title>
+<meta name="description" content="在线VSCode快捷键大全速查表，收录文件导航、多光标编辑、代码格式化与调试等VS Code高频快捷键，提升编码效率。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/vscodehotkeys.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="vscodehotkeys" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="例如：格式化、多光标、查找"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 33 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于VSCode快捷键大全介绍：</h4>
+    <ol>
+      <li>围绕文件导航、编辑操作、代码理解与窗口管理四类场景整理。</li>
+      <li>多光标相关快捷键是提升批量编辑效率的关键，建议优先掌握。</li>
+      <li>Mac 系统下把 Ctrl 替换为 Command，部分组合键另有差异。</li>
+      <li>支持自定义键位绑定，可在快捷键设置中搜索命令名进行修改。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"Ctrl + P","v":"快速打开文件"},{"k":"Ctrl + Shift + P","v":"打开命令面板"},{"k":"Ctrl + `","v":"切换集成终端"},{"k":"Ctrl + B","v":"显示或隐藏侧边栏"},{"k":"Ctrl + Shift + E","v":"聚焦资源管理器"},{"k":"Ctrl + Shift + F","v":"全局搜索"},{"k":"Ctrl + Shift + H","v":"全局替换"},{"k":"Ctrl + F","v":"文件内查找"},{"k":"Ctrl + H","v":"文件内替换"},{"k":"Alt + 上/下","v":"整行上移或下移"},{"k":"Shift + Alt + 上/下","v":"向上或向下复制整行"},{"k":"Ctrl + Shift + K","v":"删除整行"},{"k":"Ctrl + /","v":"切换行注释"},{"k":"Shift + Alt + A","v":"切换块注释"},{"k":"Alt + 点击","v":"添加多光标"},{"k":"Ctrl + Alt + 上/下","v":"向上或向下添加光标"},{"k":"Ctrl + D","v":"选中下一个相同单词"},{"k":"Ctrl + Shift + L","v":"选中所有相同单词"},{"k":"Shift + Alt + F","v":"格式化文档"},{"k":"Ctrl + K Ctrl + F","v":"格式化选中代码"},{"k":"F2","v":"重命名符号"},{"k":"F12","v":"跳转到定义"},{"k":"Alt + F12","v":"查看定义预览"},{"k":"Shift + F12","v":"查看所有引用"},{"k":"Ctrl + G","v":"跳转到指定行"},{"k":"Ctrl + Home","v":"跳到文件开头"},{"k":"Ctrl + End","v":"跳到文件结尾"},{"k":"Ctrl + K Ctrl + 0","v":"折叠所有代码块"},{"k":"Ctrl + K Ctrl + J","v":"展开所有代码块"},{"k":"Ctrl + ` 或 F5","v":"调试相关快捷键入口"},{"k":"Ctrl + Shift + N","v":"新建窗口"},{"k":"Ctrl + W","v":"关闭当前编辑器"},{"k":"Ctrl + Tab","v":"切换打开的编辑器"}];
+var COLS = ["快捷方式","功能说明"];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#3f8fbf;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>反算贷款金额计算器 - 词海工具箱</title>
+<meta name="description" content="在线反算贷款金额计算器，根据可承受的月供、年利率与贷款年限，反推出最多可以贷到多少本金。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/fansuandkje.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="fansuandkje" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>可承受月供（元）</label><input type="text" id="pay" value="5000"></div>
+      <div class="fitem"><label>年利率（%）</label><input type="text" id="rate" value="3.5"></div>
+      <div class="fitem"><label>贷款年限（年）</label><input type="text" id="years" value="30"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">反算可贷金额</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写月供与利率后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于反算贷款金额计算器介绍：</h4>
+    <ol>
+      <li>反算公式：贷款本金 = 月供 × ((1+月利率)^期数 − 1) ÷ (月利率 × (1+月利率)^期数)，与等额本息月供公式互为逆运算。</li>
+      <li>在固定月供预算下，期限越长可贷本金越多，但累计支付的利息也会同步增加。</li>
+      <li>银行审批额度还会参考收入证明、征信状况与首付比例，本工具计算结果仅为理论可贷上限。</li>
+      <li>一般建议月供不超过家庭月收入的 50%，留出足够余量应对利率变化与收入波动。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfMonthlyPayment(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  if (i <= 0) return P / months;
+  var p = Math.pow(1 + i, months);
+  return P * i * p / (p - 1);
+}
+function __xfTotalRepay(P, ratePct, months) {
+  return __xfMonthlyPayment(P, ratePct, months) * months;
+}
+function __xfTotalInterest(P, ratePct, months) {
+  return __xfTotalRepay(P, ratePct, months) - P;
+}
+function __xfPrincipalFirst(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return P / months + P * i;
+}
+function __xfPrincipalPrincipal(P, months) { return P / months; }
+function __xfPrincipalTotalInterest(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return i * P * (months + 1) / 2;
+}
+function __xfPrincipalLast(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return P / months + (P / months) * i;
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function __xfWan(v) { return v / 10000; }
+function __xfLoanFromPayment(M, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  if (i <= 0) return M * months;
+  var p = Math.pow(1 + i, months);
+  return M * (p - 1) / (i * p);
+}
+function run() {
+  var M = Number($("pay").value), rate = Number($("rate").value), years = Number($("years").value);
+  if (!(M > 0) || !(rate >= 0) || !(years > 0)) { $("tip").textContent = "⚠️ 请填写有效的月供、利率与年限"; $("res").innerHTML = ""; return null; }
+  var months = Math.round(years * 12);
+  var P = __xfLoanFromPayment(M, rate, months);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>月供 " + M + " 元，年利率 " + rate + "%，期限 " + years + " 年（" + months + " 期）</div>" +
+    "<div>理论可贷金额：<b style='color:#c9a227;font-size:16px;'>" + __xfRound2(P) + " 元</b>（约 " + __xfRound2(P / 10000) + " 万元）</div>" +
+    "<div>累计还款总额：" + __xfRound2(M * months) + " 元</div>" +
+    "<div>其中利息总额：" + __xfRound2(M * months - P) + " 元</div>" +
+    "<div style='color:#888;'>验算月供：" + __xfRound2(__xfMonthlyPayment(P, rate, months)) + " 元</div>";
+  return P;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

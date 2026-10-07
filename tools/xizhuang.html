@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>男士西装尺码对照表 - 词海工具箱</title>
+<meta name="description" content="在线男士西装尺码对照表，按身高与净胸围推荐国标号型与西服国际码，并解析号型含义、给出肩宽与衣长参考数据。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/xizhuang.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="xizhuang" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>身高（cm）</label><input type="text" id="h" value="178"></div>
+      <div class="fitem"><label>净胸围（cm）</label><input type="text" id="c" value="95"></div>
+      <div class="fitem"><label>解析号型（备用）</label><input type="text" id="code" value="175/92A" placeholder="如 175/92A"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">推荐西服尺码</button>
+      <button class="fbtn plain" id="clrBtn">解析号型</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写身材数据后点击推荐</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+      <div id="table" style="padding:0 0 10px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于男士西装尺码对照表介绍：</h4>
+    <ol>
+      <li>西服国标号型格式为身高斜杠净胸围加体型代号，175/92A 即适合身高 175 厘米左右、净胸围 92 厘米左右的 A 体型男士。</li>
+      <li>西服国际码由胸围档决定：84 厘米对应 S、88 厘米对应 M、92 厘米对应 L、96 厘米对应 XL、100 厘米对应 2XL。</li>
+      <li>选购成衣西服时胸围应比净胸围大 6 至 8 厘米，量体时保持自然呼吸放松站立，穿一件薄衬衫为基准测量。</li>
+      <li>西服肩宽需与自身肩宽基本一致，衣长一般落在臀部下缘，袖长以露出 1 至 1.5 厘米衬衫袖口为宜。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var SUIT = [
+  { k: "165/84A", v: "S 码｜肩宽 43.5cm｜衣长 70cm｜袖长 60cm", d: "适合身高 161~168cm，体重约 52~60kg" },
+  { k: "170/88A", v: "M 码｜肩宽 44.5cm｜衣长 72cm｜袖长 61cm", d: "适合身高 166~173cm，体重约 58~68kg" },
+  { k: "175/92A", v: "L 码｜肩宽 45.5cm｜衣长 74cm｜袖长 62cm", d: "适合身高 171~178cm，体重约 65~76kg" },
+  { k: "180/96A", v: "XL 码｜肩宽 46.5cm｜衣长 76cm｜袖长 63cm", d: "适合身高 176~183cm，体重约 73~85kg" },
+  { k: "185/100A", v: "2XL 码｜肩宽 47.5cm｜衣长 78cm｜袖长 64cm", d: "适合身高 181~188cm，体重约 82~94kg" },
+  { k: "190/104A", v: "3XL 码｜肩宽 48.5cm｜衣长 80cm｜袖长 65cm", d: "适合身高 186~193cm，体重约 90~104kg" },
+  { k: "195/108A", v: "4XL 码｜肩宽 49.5cm｜衣长 82cm｜袖长 66cm", d: "适合身高 191~198cm，体重约 100~115kg" }
+];
+var SUIT_INTL = { 84: "S", 88: "M", 92: "L", 96: "XL", 100: "2XL", 104: "3XL", 108: "4XL" };
+function __xfSH(h) { return Math.round(h / 5) * 5; }
+function __xfSC(c) { return Math.round(c / 4) * 4; }
+function __xfSuitCode(h, c) { return __xfSH(h) + "/" + __xfSC(c) + "A"; }
+function __xfSuitIntl(chest) {
+  var v = SUIT_INTL[chest];
+  return v == null ? "—" : v;
+}
+function __xfParseCode(code) {
+  var m = /^(\d{3})\/(\d{2,3})([YABC])$/.exec(String(code == null ? "" : code).trim().toUpperCase());
+  if (!m) return null;
+  return { h: +m[1], chest: +m[2], body: m[3] };
+}
+function renderTable() {
+  var box = $("table");
+  if (!box) return;
+  box.innerHTML = SUIT.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#4a5568;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div></div>";
+  }).join("");
+}
+function run() {
+  var h = Number($("h").value), c = Number($("c").value);
+  if (!(h > 0) || !(c > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的身高与净胸围"; $("res").innerHTML = ""; return null; }
+  var code = __xfSuitCode(h, c), intl = __xfSuitIntl(__xfSC(c));
+  $("tip").textContent = "✅ 推荐完成";
+  $("res").innerHTML = "<div>推荐西服号型：<b style='color:#4a5568;font-size:16px;'>" + code + "</b>（国际码 " + intl + "）</div>" +
+    "<div>身高档：" + __xfSH(h) + " cm　胸围档：" + __xfSC(c) + " cm</div>" +
+    "<div style='color:#888;'>成衣胸围参考：" + (__xfSC(c) + 7) + " cm 左右，预留约 7 cm 活动量</div>";
+  return code;
+}
+function parseRun() {
+  var p = __xfParseCode($("code").value);
+  if (!p) { $("tip").textContent = "⚠️ 号型格式不正确，示例 175/92A"; $("res").innerHTML = ""; return null; }
+  $("tip").textContent = "✅ 解析完成";
+  $("res").innerHTML = "<div>号型 " + $("code").value + " 解析结果：</div>" +
+    "<div>适合身高：" + p.h + " cm　净胸围：" + p.chest + " cm　体型：" + p.body + " 型</div>" +
+    "<div>对应国际码：" + __xfSuitIntl(p.chest) + "</div>";
+  return p;
+}
+renderTable();
+$("runBtn").onclick = run;
+$("clrBtn").onclick = parseRun;
+run();
+</script>
+</body>
+</html>

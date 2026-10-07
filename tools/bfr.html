@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体脂率计算器 - 词海工具箱</title>
+<meta name="description" content="在线体脂率计算器，用美国海军围度法按腰围、颈围与身高（女性另加臀围）估算体脂百分比，并给出胖瘦分级与理想体重区间。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/bfr.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="bfr" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>性别</label>
+        <select id="sex"><option value="m">男</option><option value="f">女</option></select>
+      </div>
+      <div class="fitem"><label>身高（cm）</label><input type="text" id="h" value="175"></div>
+      <div class="fitem"><label>体重（kg）</label><input type="text" id="w" value="70"></div>
+      <div class="fitem"><label>颈围（cm）</label><input type="text" id="neck" value="38"></div>
+      <div class="fitem"><label>腰围（cm）</label><input type="text" id="waist" value="85"></div>
+      <div class="fitem"><label>臀围（cm，女性填）</label><input type="text" id="hip" value="95"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算体脂率</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于体脂率计算器介绍：</h4>
+    <ol>
+      <li>美国海军围度法：男性体脂率 = 495 ÷ (1.0324 − 0.19077×log10(腰围−颈围) + 0.15456×log10(身高)) − 450，单位厘米。</li>
+      <li>女性公式：495 ÷ (1.29579 − 0.35004×log10(腰围+臀围−颈围) + 0.22100×log10(身高)) − 450。</li>
+      <li>成年人参考区间：男性 10%~20% 为健康，20%~25% 偏高，超过 25% 属肥胖；女性 18%~28% 为健康，28%~32% 偏高，超过 32% 属肥胖。</li>
+      <li>围度测量请贴身水平环绕，腰围取肚脐水平一周，颈围取喉结下方最细处，测量误差会明显影响结果。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfBfrNavy(sex, waist, neck, height, hip) {
+  if (sex === "f") {
+    var d = waist + (hip || 0) - neck;
+    if (d <= 0) return NaN;
+    return 495 / (1.29579 - 0.35004 * Math.log10(d) + 0.22100 * Math.log10(height)) - 450;
+  }
+  var m = waist - neck;
+  if (m <= 0) return NaN;
+  return 495 / (1.0324 - 0.19077 * Math.log10(m) + 0.15456 * Math.log10(height)) - 450;
+}
+function __xfBfrBmi(sex, w, h, age) {
+  var bmi = __xfBmi(w, h);
+  return 1.20 * bmi + 0.23 * age - 10.8 * (sex === "f" ? 0 : 1) - 5.4;
+}
+function __xfBmi(w, h) { return w / Math.pow(h / 100, 2); }
+function __xfLeanMass(w, bfrPct) { return w * (1 - bfrPct / 100); }
+function __xfFatMass(w, bfrPct) { return w * bfrPct / 100; }
+function __xfLevel(sex, pct) {
+  var hi = sex === "f" ? [28, 32] : [20, 25];
+  if (pct < hi[0]) return "健康区间";
+  if (pct < hi[1]) return "偏高";
+  return "肥胖区间";
+}
+function __xfIdealW(h, sex) {
+  var base = (h - 100) * 0.9;
+  return sex === "f" ? base * 0.95 : base;
+}
+function __xfRound1(v) { return Math.round(v * 10) / 10; }
+function run() {
+  var sex = $("sex").value || "m";
+  var h = Number($("h").value), w = Number($("w").value);
+  var neck = Number($("neck").value), waist = Number($("waist").value), hip = Number($("hip").value) || 0;
+  if (!(h > 0) || !(w > 0) || !(neck > 0) || !(waist > 0)) { $("tip").textContent = "⚠️ 请填写身高、体重、颈围与腰围"; $("res").innerHTML = ""; return null; }
+  if (sex === "f" && !(hip > 0)) { $("tip").textContent = "⚠️ 女性请补填臀围"; $("res").innerHTML = ""; return null; }
+  var pct = __xfBfrNavy(sex, waist, neck, h, hip);
+  if (!isFinite(pct) || pct < 0) { $("tip").textContent = "⚠️ 围度输入不合理，请检查腰围与颈围"; $("res").innerHTML = ""; return null; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>体脂率（海军围度法）：<b style='color:#2f9e6e;font-size:16px;'>" + __xfRound1(pct) + "%</b></div>" +
+    "<div>评级：" + __xfLevel(sex, pct) + "</div>" +
+    "<div>脂肪重量约：" + __xfRound1(__xfFatMass(w, pct)) + " kg</div>" +
+    "<div>去脂体重约：" + __xfRound1(__xfLeanMass(w, pct)) + " kg</div>" +
+    "<div>BMI 约：" + __xfRound1(__xfBmi(w, h)) + "，理想体重约：" + __xfRound1(__xfIdealW(h, sex)) + " kg</div>" +
+    "<div style='color:#888;'>Deurenberg 公式估算：" + __xfRound1(__xfBfrBmi(sex, w, h, 30)) + "%（按 30 岁）</div>";
+  return pct;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

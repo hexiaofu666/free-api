@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>纸张克重与厚度转换 - 词海工具箱</title>
+<meta name="description" content="在线纸张克重与厚度转换工具，按纸张紧度系数在定量与厚度之间双向换算，是印刷排版与选纸的实用参考工具。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/paperweight.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="paperweight" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>换算方向</label>
+        <select id="mode"><option value="g2u">克重 → 厚度</option><option value="u2g">厚度 → 克重</option></select>
+      </div>
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="80"></div>
+      <div class="fitem"><label>紧度（g/cm³）</label><input type="text" id="den" value="0.8"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">选择方向后点击换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于纸张克重与厚度转换介绍：</h4>
+    <ol>
+      <li>克重指每平方米纸张的重量，单位为 g/m²，是印刷行业选纸的主要指标。</li>
+      <li>厚度与克重通过紧度换算：厚度（μm）= 克重 ÷ 紧度，紧度单位为 g/cm³。</li>
+      <li>常见纸张紧度：书写纸约 0.8、铜版纸约 1.0、新闻纸约 0.6，不同纸种差异较大。</li>
+      <li>例如 80 g/m² 的书写纸约 100 μm 厚，折合 0.1 毫米。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfPaperThickness(gsm, density) { return gsm / density; }
+function __xfPaperWeight(um, density) { return um * density; }
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var mode = $("mode").value, v = Number($("val").value), den = Number($("den").value);
+  if (!isFinite(v) || !isFinite(den) || v <= 0 || den <= 0) { $("tip").textContent = "⚠️ 请输入大于 0 的数值"; $("res").innerHTML = ""; return null; }
+  if (mode === "g2u") {
+    var um = __xfPaperThickness(v, den);
+    $("tip").textContent = "✅ 已换算为厚度";
+    $("res").innerHTML = "<div>克重：" + v + " g/m²，紧度：" + den + " g/cm³</div>" +
+      "<div>厚度 = <b style='color:#b87f4d;font-size:16px;'>" + __xfRound2(um) + " μm</b>（" + __xfRound2(um / 1000) + " mm）</div>";
+    return um;
+  }
+  var g = __xfPaperWeight(v, den);
+  $("tip").textContent = "✅ 已换算为克重";
+  $("res").innerHTML = "<div>厚度：" + v + " μm（" + __xfRound2(v / 1000) + " mm），紧度：" + den + " g/cm³</div>" +
+    "<div>克重 = <b style='color:#b87f4d;font-size:16px;'>" + __xfRound2(g) + " g/m²</b></div>";
+  return g;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("val").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

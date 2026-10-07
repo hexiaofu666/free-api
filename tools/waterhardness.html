@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水的硬度计算器 - 词海工具箱</title>
+<meta name="description" content="在线水的硬度计算器，输入钙镁离子浓度即可换算总硬度并判定软水硬水等级，为饮用水与锅炉用水提供参考。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/waterhardness.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="waterhardness" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>钙离子浓度（mg/L）</label><input type="text" id="ca" value="40"></div>
+      <div class="fitem"><label>镁离子浓度（mg/L）</label><input type="text" id="mg" value="12"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算硬度</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入钙镁浓度后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于水的硬度计算器介绍：</h4>
+    <ol>
+      <li>总硬度（以碳酸钙计）= 钙浓度 × 2.497 + 镁浓度 × 4.118，单位为 mg/L。</li>
+      <li>硬度分级：0 至 60 为软水，60 至 120 为中等硬水，120 至 180 为硬水，超过 180 为极硬水。</li>
+      <li>硬度主要来自水中的钙镁离子，硬水易结水垢，软水口感偏淡，两者各有适用场景。</li>
+      <li>若水质报告给出的是 mmol/L，可乘以 100.09 换算为以碳酸钙计的 mg/L 后再输入。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfWaterHardness(ca, mg) { return ca * 2.497 + mg * 4.118; }
+function __xfHardnessLevel(v) {
+  if (v < 60) return "软水";
+  if (v < 120) return "中等硬水";
+  if (v < 180) return "硬水";
+  return "极硬水";
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var ca = Number($("ca").value), mg = Number($("mg").value);
+  if (!isFinite(ca) || !isFinite(mg) || ca < 0 || mg < 0) { $("tip").textContent = "⚠️ 请输入非负的钙镁浓度"; $("res").innerHTML = ""; return null; }
+  var h = __xfWaterHardness(ca, mg);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>钙 " + ca + " mg/L × 2.497 = " + __xfRound2(ca * 2.497) + "</div>" +
+    "<div>镁 " + mg + " mg/L × 4.118 = " + __xfRound2(mg * 4.118) + "</div>" +
+    "<div>总硬度 = <b style='color:#4d8bb8;font-size:16px;'>" + __xfRound2(h) + " mg/L</b>（以 CaCO₃ 计）</div>" +
+    "<div>水质判定：<b>" + __xfHardnessLevel(h) + "</b></div>";
+  return h;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("ca").value = ""; $("mg").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>戒指尺寸参考表 - 词海工具箱</title>
+<meta name="description" content="在线戒指尺寸参考表，支持戒指内周长与内直径互相换算并换算成大陆号数，附各号数对应的周长直径完整对照数据。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jiezhilong.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jiezhilong" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>换算方式</label>
+        <select id="mode">
+          <option value="circ">已知内周长（mm），算号数</option>
+          <option value="dia">已知内直径（mm），算号数</option>
+          <option value="no">已知号数，算周长直径</option>
+        </select>
+      </div>
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="50"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算戒指尺寸</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写数值后点击换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+      <div id="table" style="padding:0 0 10px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于戒指尺寸参考表介绍：</h4>
+    <ol>
+      <li>大陆戒指号数与内周长的换算关系为号数等于内周长毫米数减 40，例如内周长 50 毫米对应 10 号戒指。</li>
+      <li>内直径与内周长的换算按圆周长公式计算，直径等于周长除以圆周率，50 毫米周长对应直径约 15.9 毫米。</li>
+      <li>测量时用细线绕手指根部一周量取周长，注意避开指关节最粗处，早晨手指偏细、傍晚偏粗，建议傍晚测量。</li>
+      <li>戒指过紧会影响血液循环，过松则容易滑落，建议按测量结果加半号到一号，宽版戒指需再放大半号。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var RING = (function () {
+  var out = [];
+  for (var no = 9; no <= 24; no++) {
+    var circ = no + 40;
+    out.push({ k: no + " 号", v: "内周长 " + circ.toFixed(1) + "mm｜内直径 " + (Math.round(circ / Math.PI * 10) / 10).toFixed(1) + "mm", d: "" });
+  }
+  return out;
+})();
+function __xfRound1(v) { return Math.round(v * 10) / 10; }
+function __xfRingNo(circ) { return Math.round(circ) - 40; }
+function __xfRingCirc(no) { return __xfRound1(no + 40); }
+function __xfRingDia(circ) { return __xfRound1(circ / Math.PI); }
+function __xfRingCircFromDia(dia) { return __xfRound1(dia * Math.PI); }
+function __xfRingNoFromDia(dia) { return Math.round(dia * Math.PI) - 40; }
+function renderTable() {
+  var box = $("table");
+  if (!box) return;
+  box.innerHTML = RING.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#b8860b;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span></div>";
+  }).join("");
+}
+function run() {
+  var mode = $("mode").value || "circ";
+  var v = Number($("val").value);
+  if (!(v > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的数值"; $("res").innerHTML = ""; return null; }
+  var circ, dia, no;
+  if (mode === "dia") { dia = v; circ = __xfRingCircFromDia(v); no = __xfRingNoFromDia(v); }
+  else if (mode === "no") { no = v; circ = __xfRingCirc(v); dia = __xfRingDia(circ); }
+  else { circ = v; no = __xfRingNo(v); dia = __xfRingDia(v); }
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = "<div>戒指号数：<b style='color:#b8860b;font-size:16px;'>" + no + " 号</b></div>" +
+    "<div>内周长：" + __xfRound1(circ) + " mm　内直径：" + __xfRound1(dia) + " mm</div>" +
+    "<div style='color:#888;'>换算关系：号数 = 内周长(mm) − 40，内直径 = 内周长 ÷ π</div>";
+  return no;
+}
+renderTable();
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

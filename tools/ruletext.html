@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文本规则生成器 - 词海工具箱</title>
+<meta name="description" content="在线文本规则生成器，用方括号与竖线组合出所有可能的文本排列，一次生成批量候选名称编号便于批量测试与命名。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ruletext.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ruletext" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>规则表达式</label><input type="text" id="src" value="第[一|二|三]组[甲|乙|丙]"></div>
+      <div class="fitem" style="color:#888;font-size:12px;">用竖线分隔可选项，用方括号包裹，例如 A[1|2]B 会生成 A1B 与 A2B</div>
+      <div class="fitem"><label>最多生成条数</label><input type="text" id="limit" value="100"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成文本</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击按钮开始生成</strong></div>
+      <textarea id="res" rows="8" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;font-family:Consolas,monospace;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文本规则生成器介绍：</h4>
+    <ol>
+      <li>方括号内用竖线分隔多个可选项，生成时会与其它括号做笛卡尔积组合。</li>
+      <li>支持多个括号组合，例如 第[1|2]组[甲|乙] 会生成 4 条结果。</li>
+      <li>括号外的文字会原样保留，可以自由拼接前后缀。</li>
+      <li>组合数量可能迅速膨胀，工具会按最多生成条数进行截断保护。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfFindGroup(s) {
+  var start = s.indexOf("[");
+  if (start < 0) return null;
+  var depth = 0;
+  for (var i = start; i < s.length; i++) {
+    if (s.charAt(i) === "[") depth++;
+    else if (s.charAt(i) === "]") { depth--; if (depth === 0) return { start: start, end: i }; }
+  }
+  return null;
+}
+function __xfExpand(rule, limit) {
+  var max = limit || 1000;
+  var out = [String(rule)];
+  var guard = 0;
+  while (guard++ < 50) {
+    var changed = false, next = [];
+    for (var i = 0; i < out.length; i++) {
+      var g = __xfFindGroup(out[i]);
+      if (!g) { next.push(out[i]); continue; }
+      changed = true;
+      var head = out[i].slice(0, g.start);
+      var body = out[i].slice(g.start + 1, g.end);
+      var tail = out[i].slice(g.end + 1);
+      var opts = body.split("|");
+      for (var k = 0; k < opts.length; k++) next.push(head + opts[k] + tail);
+      if (next.length > max) { next = next.slice(0, max); break; }
+    }
+    out = next;
+    if (!changed) break;
+  }
+  return out;
+}
+function run() {
+  var limit = parseInt($("limit").value, 10) || 100;
+  if (limit < 1 || limit > 5000) { $("tip").textContent = "⚠️ 生成上限需在 1 到 5000 之间"; return null; }
+  var out = __xfExpand($("src").value, limit);
+  $("res").value = out.join("\n");
+  $("tip").textContent = "✅ 共生成 " + out.length + " 条";
+  return out;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").value = ""; };
+run();
+</script>
+</body>
+</html>

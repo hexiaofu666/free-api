@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>布氏硬度计算器 - 词海工具箱</title>
+<meta name="description" content="在线布氏硬度计算器，按试验力、钢球直径与压痕直径算出 HBW 硬度值，并给出压痕深度与常用材料参考范围。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/brinellhardness.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="brinellhardness" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>试验力 F（kgf）</label><input type="text" id="f" value="3000"></div>
+      <div class="fitem"><label>钢球直径 D（mm）</label><input type="text" id="d" value="10"></div>
+      <div class="fitem"><label>压痕直径 d（mm）</label><input type="text" id="ind" value="3"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算硬度</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入试验参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于布氏硬度计算器介绍：</h4>
+    <ol>
+      <li>布氏硬度公式：HBW = 2F ÷ (π × D × (D - √(D² - d²)))，其中 F 为试验力、D 为钢球直径、d 为压痕直径。</li>
+      <li>压痕直径必须小于钢球直径，否则公式无解，工具会给出提示。</li>
+      <li>常用标尺为 3000kgf 配 10mm 钢球，适用于铸铁、退火钢等较软材料。</li>
+      <li>布氏硬度值越高表示材料越硬，换算结果保留两位小数。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfBrinell(F, D, d) {
+  if (!(D > 0) || !(d > 0) || d >= D) return null;
+  var inner = D * D - d * d;
+  if (inner <= 0) return null;
+  return 2 * F / (Math.PI * D * (D - Math.sqrt(inner)));
+}
+function __xfIndentDepth(D, d) { return (D - Math.sqrt(D * D - d * d)) / 2; }
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var F = Number($("f").value), D = Number($("d").value), d = Number($("ind").value);
+  if (!isFinite(F) || !isFinite(D) || !isFinite(d)) { $("tip").textContent = "⚠️ 请输入数字"; $("res").innerHTML = ""; return null; }
+  var hb = __xfBrinell(F, D, d);
+  if (hb === null) { $("tip").textContent = "⚠️ 压痕直径必须小于钢球直径且都大于 0"; $("res").innerHTML = ""; return null; }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>试验力 F = " + F + " kgf，钢球 D = " + D + " mm，压痕 d = " + d + " mm</div>" +
+    "<div>压痕深度 h = " + __xfRound2(__xfIndentDepth(D, d)) + " mm</div>" +
+    "<div>HBW = <b style='color:#8a6d5b;font-size:16px;'>" + __xfRound2(hb) + "</b></div>" +
+    "<div style='color:#888;'>参考：退火钢约 120~180，铸铁约 150~250</div>";
+  return hb;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("f").value = ""; $("d").value = ""; $("ind").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

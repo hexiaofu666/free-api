@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>存本取息计算器 - 词海工具箱</title>
+<meta name="description" content="在线存本取息利息计算器，一次存入本金后按期支取利息、到期取回本金，算出每期可领利息与累计总利息。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/cuibenquxi.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="cuibenquxi" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>存入本金（元）</label><input type="text" id="amt" value="200000"></div>
+      <div class="fitem"><label>年利率（%）</label><input type="text" id="rate" value="1.35"></div>
+      <div class="fitem"><label>存期（月）</label>
+        <select id="months"><option>6</option><option selected>12</option><option>24</option><option>36</option><option>60</option></select>
+      </div>
+      <div class="fitem"><label>取息频率</label>
+        <select id="freq"><option value="m">每月取息</option><option value="q">每季取息</option><option value="y">每年取息</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算利息</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于存本取息计算器介绍：</h4>
+    <ol>
+      <li>存本取息指一次存入本金，之后按约定周期支取利息，到期时一次性取回本金，本金在整个存期内不动。</li>
+      <li>每期利息 = 本金 × 年利率 ÷ 每年取息次数，例如按月取息则按年利率除以 12 计算。</li>
+      <li>取息频率可选每月、每季或每年，频率越高现金流越平稳，但累计利息总额与频率无关。</li>
+      <li>存本取息适合希望保留本金、仅用利息补充日常开销的人群，如退休后的稳定现金流安排。</li>
+      <li>利率请按银行最新挂牌利率或存单约定填写，本工具只做公式计算，结果仅供参考。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var FREQ = { m: 12, q: 4, y: 1 };
+var FREQ_NAME = { m: "每月", q: "每季", y: "每年" };
+function __xfTimesPerYear(freq) { return FREQ[freq] == null ? 12 : FREQ[freq]; }
+function __xfPeriodInterest(amt, ratePct, freq) {
+  return amt * ratePct / 100 / __xfTimesPerYear(freq);
+}
+function __xfTotalInterest(amt, ratePct, months, freq) {
+  var i = ratePct / 100 / __xfTimesPerYear(freq);
+  return amt * i * (months / (12 / __xfTimesPerYear(freq)));
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var amt = Number($("amt").value), rate = Number($("rate").value);
+  var months = Number($("months").value) || 12;
+  var freq = $("freq").value || "m";
+  if (!(amt > 0) || !(rate >= 0) || !(months > 0)) { $("tip").textContent = "⚠️ 请填写有效的本金、利率与存期"; $("res").innerHTML = ""; return null; }
+  var per = __xfPeriodInterest(amt, rate, freq), total = __xfTotalInterest(amt, rate, months, freq);
+  var times = months / (12 / __xfTimesPerYear(freq));
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>存入本金 " + amt + " 元，存期 " + months + " 个月，年利率 " + rate + "%</div>" +
+    "<div>" + FREQ_NAME[freq] + "可取利息：<b style='color:#c9a227;font-size:16px;'>" + __xfRound2(per) + " 元</b></div>" +
+    "<div>取息次数：" + __xfRound2(times) + " 次</div>" +
+    "<div>累计利息总额：<b style='color:#c9a227;font-size:16px;'>" + __xfRound2(total) + " 元</b></div>" +
+    "<div>到期取回本金：" + amt + " 元，本息合计 " + __xfRound2(amt + total) + " 元</div>";
+  return total;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

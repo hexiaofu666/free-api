@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>血液酒精含量计算器 - 词海工具箱</title>
+<meta name="description" content="在线血液酒精含量计算器，用 Widmark 公式按饮酒量、酒精度、体重与性别估算血液酒精浓度，并判断是否达到饮酒驾驶或醉酒驾驶标准。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/bloodalcohol.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="bloodalcohol" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>酒类</label>
+        <select id="drink">
+          <option value="custom">自定义（下方填写）</option>
+          <option value="beer">啤酒 330ml / 5%</option>
+          <option value="beerbig">大瓶啤酒 500ml / 5%</option>
+          <option value="wine">红酒 150ml / 12%</option>
+          <option value="baijiu">白酒 50ml / 52%</option>
+          <option value="whisky">威士忌 45ml / 40%</option>
+        </select>
+      </div>
+      <div class="fitem"><label>饮用量（ml）</label><input type="text" id="ml" value="330"></div>
+      <div class="fitem"><label>酒精度（%vol）</label><input type="text" id="abv" value="5"></div>
+      <div class="fitem"><label>体重（kg）</label><input type="text" id="kg" value="70"></div>
+      <div class="fitem"><label>性别</label>
+        <select id="sex"><option value="m">男</option><option value="f">女</option></select>
+      </div>
+      <div class="fitem"><label>饮酒后经过（小时）</label><input type="text" id="hours" value="0"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算酒精含量</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于血液酒精含量计算器介绍：</h4>
+    <ol>
+      <li>纯酒精克数 = 饮用量（毫升）× 酒精度 × 0.789，其中 0.789 为酒精密度（克/毫升）。</li>
+      <li>Widmark 公式：血液酒精浓度（%）= 酒精克数 ÷ (体重克数 × r) × 100，男性 r 取 0.68，女性 r 取 0.55。</li>
+      <li>人体每小时约代谢 0.015 个百分点的血液酒精浓度，因此实际浓度需在计算值基础上减去 0.015 × 已过小时数。</li>
+      <li>中国标准：血液酒精含量达到 20mg/100ml 属饮酒驾驶，达到 80mg/100ml 属醉酒驾驶，酒后请勿驾车。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var __xfDrinks = { beer: [330, 5], beerbig: [500, 5], wine: [150, 12], baijiu: [50, 52], whisky: [45, 40] };
+var __xfRate = { m: 0.68, f: 0.55 };
+function __xfAlcoholGram(ml, abv) { return ml * (abv / 100) * 0.789; }
+function __xfWidmark(gram, kg, sex) {
+  var r = __xfRate[sex] == null ? 0.68 : __xfRate[sex];
+  return gram / (r * kg * 1000) * 100;
+}
+function __xfBac(ml, abv, kg, sex, hours) {
+  var g = __xfAlcoholGram(ml, abv);
+  var raw = __xfWidmark(g, kg, sex) - 0.015 * (hours > 0 ? hours : 0);
+  return raw > 0 ? raw : 0;
+}
+function __xfLevel(bac) {
+  if (bac < 0.02) return "未达到饮酒驾驶标准";
+  if (bac < 0.08) return "饮酒驾驶（酒驾）";
+  return "醉酒驾驶（醉驾）";
+}
+function __xfSoberHours(bac) { return bac / 0.015; }
+function __xfRound4(v) { return Math.round(v * 10000) / 10000; }
+function __xfRound1(v) { return Math.round(v * 10) / 10; }
+function run() {
+  var dk = $("drink").value || "custom";
+  var preset = __xfDrinks[dk];
+  var ml = preset ? preset[0] : Number($("ml").value);
+  var abv = preset ? preset[1] : Number($("abv").value);
+  var kg = Number($("kg").value);
+  var sex = $("sex").value || "m";
+  var hours = Number($("hours").value) || 0;
+  if (!(ml > 0) || !(abv > 0) || !(kg > 0)) { $("tip").textContent = "⚠️ 请填写有效的饮用量、酒精度与体重"; $("res").innerHTML = ""; return null; }
+  var bac = __xfBac(ml, abv, kg, sex, hours);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>" + ml + " 毫升 " + abv + "% 酒饮，" + kg + " kg " + (sex === "f" ? "女" : "男") + "性，已过 " + hours + " 小时</div>" +
+    "<div>纯酒精摄入约：" + __xfRound1(__xfAlcoholGram(ml, abv)) + " 克</div>" +
+    "<div>血液酒精浓度：<b style='color:#c0392b;font-size:16px;'>" + __xfRound4(bac) + "%</b>（约 " + __xfRound1(bac * 1000) + " mg/100ml）</div>" +
+    "<div>判定：<b style='color:#c0392b;'>" + __xfLevel(bac) + "</b></div>" +
+    (bac > 0 ? "<div style='color:#888;'>按每小时代谢 0.015% 估算，约需 " + __xfRound1(__xfSoberHours(bac)) + " 小时代谢至零</div>" : "<div style='color:#888;'>当前估算浓度已为零，仍建议充分休息后再驾车</div>");
+  return bac;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

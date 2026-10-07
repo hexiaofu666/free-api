@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全国长途区号查询 - 词海工具箱</title>
+<meta name="description" content="在线全国长途电话区号查询表，收录直辖市、省会与主要城市的固定电话区号，支持按城市名或区号双向检索。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/areacode.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="areacode" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="输入城市名或区号，如 北京、0755"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 55 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于全国长途区号查询介绍：</h4>
+    <ol>
+      <li>国内长途区号以 0 开头，直辖市与大城市多为三位（如北京 010、上海 021），一般城市为四位（如石家庄 0311）。</li>
+      <li>手机号码在全国范围内拨打无需加区号，跨区拨打固定电话时需在号码前加拨区号。</li>
+      <li>从境外拨打中国大陆固定电话的格式为 +86 加去掉首位 0 的区号加电话号码，例如北京为 +86 10 加号码。</li>
+      <li>部分省份实行全省统一区号，如海南省全省使用 0898，此时同一区号可覆盖多个城市。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"010","v":"北京市｜直辖市","d":"覆盖北京全市"},{"k":"021","v":"上海市｜直辖市","d":"覆盖上海全市"},{"k":"022","v":"天津市｜直辖市","d":"覆盖天津全市"},{"k":"023","v":"重庆市｜直辖市","d":"覆盖重庆全市"},{"k":"020","v":"广州市｜广东省","d":"广东省省会"},{"k":"024","v":"沈阳市｜辽宁省","d":"辽宁省省会"},{"k":"025","v":"南京市｜江苏省","d":"江苏省省会"},{"k":"027","v":"武汉市｜湖北省","d":"湖北省省会"},{"k":"028","v":"成都市｜四川省","d":"四川省省会"},{"k":"029","v":"西安市｜陕西省","d":"陕西省省会"},{"k":"0311","v":"石家庄市｜河北省","d":"河北省省会"},{"k":"0312","v":"保定市｜河北省","d":""},{"k":"0315","v":"唐山市｜河北省","d":""},{"k":"0351","v":"太原市｜山西省","d":"山西省省会"},{"k":"0411","v":"大连市｜辽宁省","d":"副省级市"},{"k":"0431","v":"长春市｜吉林省","d":"吉林省省会"},{"k":"0451","v":"哈尔滨市｜黑龙江省","d":"黑龙江省省会"},{"k":"0471","v":"呼和浩特市｜内蒙古自治区","d":"自治区首府"},{"k":"0510","v":"无锡市｜江苏省","d":""},{"k":"0512","v":"苏州市｜江苏省","d":""},{"k":"0513","v":"南通市｜江苏省","d":""},{"k":"0516","v":"徐州市｜江苏省","d":""},{"k":"0531","v":"济南市｜山东省","d":"山东省省会"},{"k":"0532","v":"青岛市｜山东省","d":"副省级市"},{"k":"0533","v":"淄博市｜山东省","d":""},{"k":"0535","v":"烟台市｜山东省","d":""},{"k":"0536","v":"潍坊市｜山东省","d":""},{"k":"0551","v":"合肥市｜安徽省","d":"安徽省省会"},{"k":"0571","v":"杭州市｜浙江省","d":"浙江省省会"},{"k":"0574","v":"宁波市｜浙江省","d":"副省级市"},{"k":"0577","v":"温州市｜浙江省","d":""},{"k":"0591","v":"福州市｜福建省","d":"福建省省会"},{"k":"0592","v":"厦门市｜福建省","d":"副省级市"},{"k":"0595","v":"泉州市｜福建省","d":""},{"k":"0631","v":"威海市｜山东省","d":""},{"k":"0710","v":"襄阳市｜湖北省","d":""},{"k":"0717","v":"宜昌市｜湖北省","d":""},{"k":"0731","v":"长沙市｜湖南省","d":"湖南省省会"},{"k":"0755","v":"深圳市｜广东省","d":"副省级市"},{"k":"0756","v":"珠海市｜广东省","d":""},{"k":"0757","v":"佛山市｜广东省","d":""},{"k":"0760","v":"中山市｜广东省","d":""},{"k":"0769","v":"东莞市｜广东省","d":""},{"k":"0771","v":"南宁市｜广西壮族自治区","d":"自治区首府"},{"k":"0773","v":"桂林市｜广西壮族自治区","d":""},{"k":"0791","v":"南昌市｜江西省","d":"江西省省会"},{"k":"0816","v":"绵阳市｜四川省","d":""},{"k":"0851","v":"贵阳市｜贵州省","d":"贵州省省会"},{"k":"0871","v":"昆明市｜云南省","d":"云南省省会"},{"k":"0891","v":"拉萨市｜西藏自治区","d":"自治区首府"},{"k":"0898","v":"海口市、三亚市｜海南省","d":"海南省全省统一区号"},{"k":"0931","v":"兰州市｜甘肃省","d":"甘肃省省会"},{"k":"0951","v":"银川市｜宁夏回族自治区","d":"自治区首府"},{"k":"0971","v":"西宁市｜青海省","d":"青海省省会"},{"k":"0991","v":"乌鲁木齐市｜新疆维吾尔自治区","d":"自治区首府"}];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#2f9e6e;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+function __xfRowByK(code) {
+  for (var i = 0; i < DATA.length; i++) { if (DATA[i].k === String(code).trim()) return DATA[i]; }
+  return null;
+}
+function __xfCity(code) {
+  var r = __xfRowByK(code);
+  return r ? String(r.v).split("｜")[0] : "";
+}
+function __xfCode(city) {
+  var k = String(city == null ? "" : city).trim();
+  for (var i = 0; i < DATA.length; i++) {
+    if (String(DATA[i].v).indexOf(k) >= 0) return DATA[i].k;
+  }
+  return "";
+}
+function __xfVerifyAreaCode(c) {
+  return /^(0\d{2,3})$/.test(String(c == null ? "" : c).trim());
+}
+</script>
+</body>
+</html>

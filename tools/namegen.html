@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>姓名生成器 - 词海工具箱</title>
+<meta name="description" content="在线随机姓名生成器，可按性别与数量批量生成中文姓名，姓氏取自百家姓，名字用字从常用字库中随机组合。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/namegen.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="namegen" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>性别</label>
+        <select id="sex"><option value="m">男孩</option><option value="f">女孩</option><option value="a">不限</option></select>
+      </div>
+      <div class="fitem"><label>生成数量（1~50）</label><input type="text" id="num" value="10"></div>
+      <div class="fitem"><label>随机种子（可留空）</label><input type="text" id="seed" value="" placeholder="填相同数字可复现同一批名字"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成姓名</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击生成随机姓名</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2.2;font-size:15px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于姓名生成器介绍：</h4>
+    <ol>
+      <li>姓氏取自百家姓常见姓氏，名字用字从常用男孩名或女孩名字库中随机抽取，单字名与双字名按约三比七的比例生成。</li>
+      <li>填入相同的随机种子可以复现完全相同的姓名批次，便于对比与记录。</li>
+      <li>生成的姓名仅供起名参考、测试数据填充或文学创作使用，不含真实个人信息。</li>
+      <li>若用于给宝宝取名，建议再结合生辰八字、字义与音律做人工筛选，避免生僻字与不雅谐音。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRng(seed) {
+  var s = ((seed >>> 0) || 1) >>> 0;
+  return function () {
+    s = (s * 1664525 + 1013904223) % 4294967296;
+    return s / 4294967296;
+  };
+}
+var SURNAMES = ["王","李","张","刘","陈","杨","黄","赵","吴","周","徐","孙","马","朱","胡","林","郭","何","高","罗","郑","梁","谢","宋","唐","许","韩","冯","邓","曹","彭","曾","肖","田","董","袁","潘","于","蒋","蔡","余","杜","叶","程","苏","魏","吕","丁","任","沈","姚","卢","姜","崔","钟","谭","陆","汪","范","金","石","廖","贾","夏","韦","付","方","白","邹","孟","熊","秦","邱","江","尹","薛","闫","段","雷","侯","龙","史","陶","黎","贺","顾","毛","郝","龚","邵","万","钱","严","覃","武","戴","莫","孔","向","汤"];
+var GIVEN_M = ["伟","强","磊","军","洋","勇","杰","涛","明","超","刚","平","辉","健","俊","鹏","华","建","文","峰","波","世","广","义","兴","良","海","山","仁","宁","贵","福","生","龙","元","全","国","胜","学","祥","才","发","武","新","利","清","飞","彬","富","顺","信","子","昌","成","康","星","光","天","达","安","岩","中","茂","进","林","有","坚","和","彪","博","诚","先","敬","震","振","壮","会","思","群","豪","心","邦","承","乐","绍","功","松","善","厚","庆","民","友","裕","河","哲","江","浩","亮","政","谦","亨","奇","固","之","轮","翰","朗","伯","宏","言","若","鸣","朋","斌","梁","栋","维","启","克","伦","翔","旭","泽","晨","辰","士","以","致","树","炎","德","行","时","泰","盛","雄","琛","钧","冠","策","腾","楠","榕","风","航","弘"];
+var GIVEN_F = ["芳","娜","秀","英","敏","静","丽","娟","燕","玲","桂","兰","凤","洁","梅","琳","素","云","莲","真","环","雪","荣","爱","妹","霞","香","月","莺","媛","艳","瑞","凡","佳","嘉","琼","勤","珍","贞","莉","娣","叶","璐","娅","琦","晶","妍","茜","秋","珊","莎","锦","黛","青","倩","婷","姣","婉","娴","瑾","颖","露","瑶","怡","婵","雁","蓓","仪","荷","丹","蓉","眉","君","琴","蕊","薇","菁","梦","岚","苑","婕","馨","瑗","韵","融","园","艺","咏","卿","聪","澜","纯","毓","悦","昭","冰","爽","琬","茗","羽","希","宁","欣","飘","育","滢","馥","筠","柔","竹","霭","凝","晓","欢","霄","枫","芸","菲","寒","伊","亚","宜","可","姬","舒","影","荔","枝","思"];
+function __xfName(rnd, pool) {
+  var s = SURNAMES[Math.floor(rnd() * SURNAMES.length)];
+  var len = rnd() < 0.3 ? 1 : 2;
+  var n = "";
+  for (var j = 0; j < len; j++) n += pool[Math.floor(rnd() * pool.length)];
+  return s + n;
+}
+function __xfGenNames(seed, count, sex) {
+  var rnd = __xfRng(seed), out = [];
+  for (var i = 0; i < count; i++) {
+    var pool = sex === "f" ? GIVEN_F : sex === "m" ? GIVEN_M : (rnd() < 0.5 ? GIVEN_M : GIVEN_F);
+    out.push(__xfName(rnd, pool));
+  }
+  return out;
+}
+function __xfClampNum(v) {
+  var n = Math.floor(Number(v));
+  if (!isFinite(n) || n < 1) return 1;
+  if (n > 50) return 50;
+  return n;
+}
+function run() {
+  var sex = $("sex").value || "m";
+  var num = __xfClampNum($("num").value);
+  var seedRaw = String($("seed").value || "").trim();
+  var seed = seedRaw === "" ? (Date.now() & 0x7fffffff) : (Number(seedRaw) || 1);
+  var list = __xfGenNames(seed, num, sex);
+  $("tip").textContent = "✅ 已生成 " + list.length + " 个姓名（种子 " + seed + "）";
+  $("res").innerHTML = list.map(function (n) { return "<span style='display:inline-block;min-width:96px;'>" + n + "</span>"; }).join("");
+  return list;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

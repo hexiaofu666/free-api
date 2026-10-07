@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字及英文转粗体工具 - 词海工具箱</title>
+<meta name="description" content="在线数字及英文转粗体工具，利用Unicode数学加粗字符把英文字母与数字转为粗体样式，可用于昵称与文案排版。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/boldtext.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="boldtext" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原始文字</label><textarea id="src" rows="4">Hello 2026</textarea></div>
+      <div class="fitem"><label>样式</label>
+        <select id="style">
+          <option value="bold">数学加粗</option>
+          <option value="italic">数学斜体</option>
+          <option value="script">手写体</option>
+          <option value="mono">等宽体</option>
+          <option value="circled">圆圈字母</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击按钮开始转换</strong></div>
+      <textarea id="res" rows="5" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:15px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于数字及英文转粗体工具介绍：</h4>
+    <ol>
+      <li>原理是把普通字母映射为 Unicode 中的数学字型字符，视觉上呈现粗体效果。</li>
+      <li>仅对英文字母与数字有效，中文与标点会原样保留。</li>
+      <li>圆圈字母等样式在部分老设备上可能显示为方框，属字体支持差异。</li>
+      <li>转换结果是普通文本，可直接粘贴到微信昵称、游戏昵称等位置。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var MAPS = {
+  bold: { upper: 0x1D400, lower: 0x1D41A, digit: 0x1D7CE },
+  italic: { upper: 0x1D434, lower: 0x1D44E, digit: 0 },
+  script: { upper: 0x1D49C, lower: 0x1D4B6, digit: 0 },
+  mono: { upper: 0x1D670, lower: 0x1D68A, digit: 0x1D7F6 },
+  circled: { upper: 0x24B6, lower: 0x24D0, digit: 0x2460 }
+};
+function __xfMapChar(ch, m) {
+  var c = ch.charCodeAt(0);
+  if (c >= 65 && c <= 90 && m.upper) return String.fromCodePoint(m.upper + (c - 65));
+  if (c >= 97 && c <= 122 && m.lower) return String.fromCodePoint(m.lower + (c - 97));
+  if (c >= 48 && c <= 57 && m.digit) return String.fromCodePoint(m.digit + (c - 48));
+  return ch;
+}
+function __xfConvertStyle(text, style) {
+  var m = MAPS[style] || MAPS.bold;
+  var out = "";
+  for (var i = 0; i < text.length; i++) out += __xfMapChar(text.charAt(i), m);
+  return out;
+}
+function run() {
+  var style = $("style").value || "bold";
+  var out = __xfConvertStyle($("src").value, style);
+  $("res").value = out;
+  $("tip").textContent = "✅ 已转换为 " + style + " 样式";
+  return out;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").value = ""; };
+run();
+</script>
+</body>
+</html>

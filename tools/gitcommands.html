@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git常用命令速查 - 词海工具箱</title>
+<meta name="description" content="在线Git常用命令速查表，收录初始化、提交、分支、合并、回滚与远端同步等高频命令，支持关键词即时筛选便于随查随用。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/gitcommands.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="gitcommands" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="例如：分支、提交、push"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 30 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Git常用命令速查介绍：</h4>
+    <ol>
+      <li>按功能分组收录从仓库初始化到远端协作的全流程常用命令。</li>
+      <li>搜索支持命令本身与中文说明，输入分支即可筛出所有分支相关命令。</li>
+      <li>涉及数据丢失的命令（如 reset --hard）在说明中已标注风险，使用前请确认。</li>
+      <li>命令中的尖括号为占位符，实际使用时替换为真实的文件名或地址。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"git init","v":"初始化本地仓库","d":"在当前目录创建 .git 目录，开始版本管理"},{"k":"git clone <url>","v":"克隆远程仓库","d":"把远端仓库完整复制到本地"},{"k":"git status","v":"查看工作区状态","d":"显示已修改、已暂存与未跟踪文件"},{"k":"git add <file>","v":"暂存指定文件","d":"把改动加入暂存区，准备提交"},{"k":"git add -A","v":"暂存全部改动","d":"包含新增、修改与删除"},{"k":"git commit -m <msg>","v":"提交暂存区内容","d":"生成一次提交记录，-m 后跟提交说明"},{"k":"git commit --amend","v":"修补上一次提交","d":"修改提交信息或补入漏提交的文件"},{"k":"git log --oneline","v":"查看提交历史","d":"每个提交压缩为一行显示"},{"k":"git diff","v":"查看未暂存改动","d":"对比工作区与暂存区的差异"},{"k":"git diff --cached","v":"查看已暂存改动","d":"对比暂存区与最后一次提交"},{"k":"git branch","v":"列出本地分支","d":"显示全部分支，当前分支前有星号"},{"k":"git branch -a","v":"列出含远端的分支","d":"同时显示远程跟踪分支"},{"k":"git checkout -b <name>","v":"创建并切换分支","d":"新建分支后立即切过去"},{"k":"git switch <name>","v":"切换分支","d":"新版命令，语义比 checkout 更清晰"},{"k":"git merge <branch>","v":"合并分支","d":"把指定分支合并进当前分支"},{"k":"git rebase <branch>","v":"变基","d":"把当前分支的提交搬到目标分支之上"},{"k":"git pull","v":"拉取并合并","d":"等价于 git fetch 加 git merge"},{"k":"git pull --rebase","v":"拉取并变基","d":"保持提交历史为一条直线"},{"k":"git push","v":"推送到远端","d":"把本地提交同步到远程仓库"},{"k":"git push -u origin main","v":"推送并建立跟踪","d":"首次推送时设置上游分支"},{"k":"git remote -v","v":"查看远程地址","d":"显示 fetch 与 push 的远端 URL"},{"k":"git fetch","v":"仅拉取不合并","d":"更新远程跟踪分支，不改动工作区"},{"k":"git reset --hard HEAD","v":"丢弃全部改动","d":"危险操作，工作区回到上次提交状态"},{"k":"git reset --soft HEAD~1","v":"撤销提交保留改动","d":"保留改动到暂存区，撤销最后一次提交"},{"k":"git revert <commit>","v":"反向提交","d":"生成一个新提交来抵消指定提交"},{"k":"git stash","v":"暂存当前改动","d":"临时保存未提交改动，便于切换分支"},{"k":"git stash pop","v":"恢复暂存改动","d":"把 stash 内容取出并删除记录"},{"k":"git tag v1.0.0","v":"打标签","d":"为当前提交打上版本标签"},{"k":"git show <commit>","v":"查看提交详情","d":"显示提交信息与文件改动"},{"k":"git rm <file>","v":"删除文件并暂存","d":"同时从工作区与版本库移除"}];
+var COLS = ["快捷方式","功能说明"];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#e06c3c;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+</script>
+</body>
+</html>

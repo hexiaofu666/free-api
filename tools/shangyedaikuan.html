@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商业贷款计算器 - 词海工具箱</title>
+<meta name="description" content="在线商业贷款计算器，按贷款金额、年利率与年限计算等额本息或等额本金的月供、利息与还款总额，支持万元金额输入。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/shangyedaikuan.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="shangyedaikuan" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>贷款金额（万元）</label><input type="text" id="amt" value="100"></div>
+      <div class="fitem"><label>年利率（%）</label><input type="text" id="rate" value="3.5"></div>
+      <div class="fitem"><label>贷款年限（年）</label>
+        <select id="years"><option>5</option><option>10</option><option>15</option><option>20</option><option>25</option><option selected>30</option></select>
+      </div>
+      <div class="fitem"><label>还款方式</label>
+        <select id="method"><option value="benxi">等额本息（每月相同）</option><option value="benjin">等额本金（逐月递减）</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算月供</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于商业贷款计算器介绍：</h4>
+    <ol>
+      <li>商业贷款利率通常参考贷款市场报价利率（LPR）加减基点确定，实际执行利率以银行审批结果为准。</li>
+      <li>等额本息每月还款金额固定，便于安排家庭预算；等额本金逐月递减，总利息更少但前期压力大。</li>
+      <li>贷款期限越长月供越低，但累计支付的总利息显著增加，建议结合自身现金流选择期限。</li>
+      <li>本工具只计算按揭本金与利息，不包含保险、评估、担保等附加费用，实际支出以银行贷款合同为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfMonthlyPayment(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  if (i <= 0) return P / months;
+  var p = Math.pow(1 + i, months);
+  return P * i * p / (p - 1);
+}
+function __xfTotalRepay(P, ratePct, months) {
+  return __xfMonthlyPayment(P, ratePct, months) * months;
+}
+function __xfTotalInterest(P, ratePct, months) {
+  return __xfTotalRepay(P, ratePct, months) - P;
+}
+function __xfPrincipalFirst(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return P / months + P * i;
+}
+function __xfPrincipalPrincipal(P, months) { return P / months; }
+function __xfPrincipalTotalInterest(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return i * P * (months + 1) / 2;
+}
+function __xfPrincipalLast(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return P / months + (P / months) * i;
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function __xfWan(v) { return v / 10000; }
+function run() {
+  var wan = Number($("amt").value), rate = Number($("rate").value);
+  var years = Number($("years").value) || 30;
+  var method = $("method").value || "benxi";
+  if (!(wan > 0) || !(rate >= 0) || !(years > 0)) { $("tip").textContent = "⚠️ 请填写有效的贷款金额、利率与年限"; $("res").innerHTML = ""; return null; }
+  var P = wan * 10000, months = years * 12;
+  var rows, ret;
+  if (method === "benjin") {
+    var interest = __xfPrincipalTotalInterest(P, rate, months);
+    rows = "<div>每月偿还本金：" + __xfRound2(__xfPrincipalPrincipal(P, months)) + " 元</div>" +
+      "<div>首月月供：<b style='color:#3b82c4;font-size:16px;'>" + __xfRound2(__xfPrincipalFirst(P, rate, months)) + " 元</b></div>" +
+      "<div>末月月供：<b style='color:#3b82c4;font-size:16px;'>" + __xfRound2(__xfPrincipalLast(P, rate, months)) + " 元</b></div>" +
+      "<div>支付利息总额：" + __xfRound2(interest) + " 元</div>" +
+      "<div>累计还款总额：" + __xfRound2(P + interest) + " 元</div>";
+    ret = __xfRound2(__xfPrincipalFirst(P, rate, months));
+  } else {
+    var m = __xfMonthlyPayment(P, rate, months), ti = __xfTotalInterest(P, rate, months);
+    rows = "<div>每月月供：<b style='color:#3b82c4;font-size:16px;'>" + __xfRound2(m) + " 元</b></div>" +
+      "<div>支付利息总额：" + __xfRound2(ti) + " 元</div>" +
+      "<div>累计还款总额：" + __xfRound2(P + ti) + " 元</div>" +
+      "<div style='color:#888;'>折合每年还款约 " + __xfRound2(m * 12) + " 元</div>";
+    ret = __xfRound2(m);
+  }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>贷款 " + wan + " 万元，年利率 " + rate + "%，期限 " + years + " 年（" + months + " 期）</div>" + rows;
+  return ret;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

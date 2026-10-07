@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPT快捷键大全 - 词海工具箱</title>
+<meta name="description" content="在线PPT快捷键大全速查表，整理放映控制、幻灯片管理、文本格式与对象操作等常用快捷键，让演示制作与播放更流畅。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ppthotkeys.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ppthotkeys" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="例如：放映、幻灯片、字号"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 30 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于PPT快捷键大全介绍：</h4>
+    <ol>
+      <li>重点收录放映控制类快捷键，如 F5 从头播放、B 键黑屏等演示常用操作。</li>
+      <li>搜索支持按键与功能说明，输入放映可筛出全部播放相关快捷键。</li>
+      <li>放映时按数字键加回车可直接跳转到指定页。</li>
+      <li>组合对象与取消组合在整理复杂版式时非常实用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"Ctrl + M","v":"新建幻灯片"},{"k":"Ctrl + D","v":"复制当前幻灯片"},{"k":"Ctrl + N","v":"新建演示文稿"},{"k":"Ctrl + S","v":"保存"},{"k":"F5","v":"从头开始放映"},{"k":"Shift + F5","v":"从当前页开始放映"},{"k":"Esc","v":"结束放映"},{"k":"B","v":"放映时黑屏"},{"k":"W","v":"放映时白屏"},{"k":"Ctrl + Z","v":"撤销"},{"k":"Ctrl + C","v":"复制"},{"k":"Ctrl + V","v":"粘贴"},{"k":"Ctrl + B","v":"加粗"},{"k":"Ctrl + I","v":"斜体"},{"k":"Ctrl + U","v":"下划线"},{"k":"Ctrl + E","v":"文本居中"},{"k":"Ctrl + L","v":"文本左对齐"},{"k":"Ctrl + R","v":"文本右对齐"},{"k":"Ctrl + Shift + >","v":"增大字号"},{"k":"Ctrl + Shift + <","v":"减小字号"},{"k":"Alt + Shift + 上","v":"上移当前段落"},{"k":"Alt + Shift + 下","v":"下移当前段落"},{"k":"Ctrl + G","v":"打开网格与参考线设置"},{"k":"Ctrl + Shift + G","v":"组合所选对象"},{"k":"Ctrl + Shift + H","v":"取消组合"},{"k":"Tab","v":"切换选中对象与文本"},{"k":"Ctrl + A","v":"全选"},{"k":"Ctrl + K","v":"插入超链接"},{"k":"Ctrl + F","v":"查找"},{"k":"Ctrl + P","v":"打印"}];
+var COLS = ["快捷方式","功能说明"];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#c25a3c;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+</script>
+</body>
+</html>

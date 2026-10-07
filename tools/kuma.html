@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>裤子尺码对照表 - 词海工具箱</title>
+<meta name="description" content="在线裤子尺码对照表，支持英寸码与厘米、市尺腰围互相换算，给出每个码数对应的腰围大小与适合体重区间。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/kuma.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="kuma" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>换算方式</label>
+        <select id="mode">
+          <option value="inch">已知英寸码，算腰围</option>
+          <option value="cm">已知腰围厘米，算码数</option>
+          <option value="chi">已知市尺腰围，算码数</option>
+        </select>
+      </div>
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="32"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算尺码</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写数值后点击换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+      <div id="table" style="padding:0 0 10px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于裤子尺码对照表介绍：</h4>
+    <ol>
+      <li>裤子码数通常按英寸腰围标注，换算关系为 1 英寸等于 2.54 厘米，例如 32 码腰围约 81.3 厘米。</li>
+      <li>市尺与厘米的换算为 1 市尺等于 33.33 厘米，32 码约合 2 尺 4，40 码约合 3 尺。</li>
+      <li>同一码数在不同品牌间可能相差 1 至 2 厘米，选购时以品牌提供的具体腰围数据为准。</li>
+      <li>牛仔裤多为直筒或修身版型，腰围建议按自身净腰围再加 1 至 2 厘米放量，避免过紧影响活动。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var KUMA = [
+  { k: "28 码", v: "腰围 ≈ 71.1cm（2.1 市尺）", d: "适合体重 50~57kg" },
+  { k: "29 码", v: "腰围 ≈ 73.7cm（2.2 市尺）", d: "适合体重 53~60kg" },
+  { k: "30 码", v: "腰围 ≈ 76.2cm（2.3 市尺）", d: "适合体重 56~64kg" },
+  { k: "31 码", v: "腰围 ≈ 78.7cm（2.4 市尺）", d: "适合体重 60~68kg" },
+  { k: "32 码", v: "腰围 ≈ 81.3cm（2.4 市尺）", d: "适合体重 64~73kg" },
+  { k: "33 码", v: "腰围 ≈ 83.8cm（2.5 市尺）", d: "适合体重 68~77kg" },
+  { k: "34 码", v: "腰围 ≈ 86.4cm（2.6 市尺）", d: "适合体重 72~82kg" },
+  { k: "36 码", v: "腰围 ≈ 91.4cm（2.7 市尺）", d: "适合体重 80~90kg" },
+  { k: "38 码", v: "腰围 ≈ 96.5cm（2.9 市尺）", d: "适合体重 88~98kg" },
+  { k: "40 码", v: "腰围 ≈ 101.6cm（3.0 市尺）", d: "适合体重 95~108kg" }
+];
+function __xfRound1(v) { return Math.round(v * 10) / 10; }
+function __xfKumaCm(inch) { return __xfRound1(inch * 2.54); }
+function __xfKumaChi(inch) { return __xfRound1(inch * 2.54 / 33.3333); }
+function __xfKumaInch(cm) { return Math.round(cm / 2.54); }
+function __xfChiToInch(chi) { return Math.round(chi * 33.3333 / 2.54); }
+function __xfNearestKuma(inch) {
+  var best = KUMA[0], bi = 1e9;
+  for (var i = 0; i < KUMA.length; i++) {
+    var n = parseFloat(KUMA[i].k);
+    if (Math.abs(n - inch) < bi) { bi = Math.abs(n - inch); best = KUMA[i]; }
+  }
+  return best;
+}
+function renderTable() {
+  var box = $("table");
+  if (!box) return;
+  box.innerHTML = KUMA.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#8b5e3c;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div></div>";
+  }).join("");
+}
+function run() {
+  var mode = $("mode").value || "inch";
+  var v = Number($("val").value);
+  if (!(v > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的数值"; $("res").innerHTML = ""; return null; }
+  var inch, cm, chi;
+  if (mode === "cm") { cm = v; inch = __xfKumaInch(v); chi = __xfRound1(v / 33.3333); }
+  else if (mode === "chi") { chi = v; inch = __xfChiToInch(v); cm = __xfKumaCm(inch); }
+  else { inch = v; cm = __xfKumaCm(v); chi = __xfKumaChi(v); }
+  var ref = __xfNearestKuma(inch);
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = "<div>腰围：<b style='color:#8b5e3c;font-size:16px;'>" + cm + " cm</b>　约 " + chi + " 市尺　约 " + inch + " 码</div>" +
+    "<div>最接近的对照档：" + ref.k + "（" + ref.v + "）</div>" +
+    "<div style='color:#888;'>" + ref.d + "</div>";
+  return inch;
+}
+renderTable();
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

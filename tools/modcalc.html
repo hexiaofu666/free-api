@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>求模取余计算器 - 词海工具箱</title>
+<meta name="description" content="在线求模取余计算器，支持正负数的模运算，给出商、余数与取模结果，并说明与语言取余运算的区别。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/modcalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="modcalc" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>被除数 a</label><input type="text" id="a" value="17"></div>
+      <div class="fitem"><label>除数 b</label><input type="text" id="b" value="5"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算取余</button>
+      <button class="fbtn blue" id="modBtn">计算取模</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入被除数与除数</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于求模取余计算器介绍：</h4>
+    <ol>
+      <li>取余运算 a % b 的结果符号与被除数 a 相同，例如 (-7) % 3 = -1。</li>
+      <li>取模运算结果符号始终与除数 b 相同，例如 (-7) mod 3 = 2，数学上更常用。</li>
+      <li>本工具同时给出两种结果，方便对照不同语言与数学定义。</li>
+      <li>除数不能为 0，输入 0 时工具会给出提示。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRem(a, b) { if (b === 0) return null; return a % b; }
+function __xfMod(a, b) { if (b === 0) return null; return ((a % b) + b) % b; }
+function __xfQuot(a, b) { if (b === 0) return null; return Math.trunc(a / b); }
+function run(mode) {
+  var a = Number($("a").value), b = Number($("b").value);
+  if (!isFinite(a) || !isFinite(b)) { $("tip").textContent = "⚠️ 请输入数字"; $("res").innerHTML = ""; return null; }
+  if (b === 0) { $("tip").textContent = "⚠️ 除数不能为 0"; $("res").innerHTML = ""; return null; }
+  var r = mode === "mod" ? __xfMod(a, b) : __xfRem(a, b);
+  $("tip").textContent = mode === "mod" ? "✅ 取模（结果符号随除数）" : "✅ 取余（结果符号随被除数）";
+  $("res").innerHTML = "<div>算式：" + a + " " + (mode === "mod" ? "mod" : "%") + " " + b + " = <b style='color:#4d8bb8;font-size:16px;'>" + r + "</b></div>" +
+    "<div>整数商：" + __xfQuot(a, b) + "</div>" +
+    "<div style='color:#888;'>验算：" + a + " = " + b + " × " + __xfQuot(a, b) + " + " + __xfRem(a, b) + "</div>" +
+    "<div style='color:#888;'>取余结果 " + __xfRem(a, b) + "；取模结果 " + __xfMod(a, b) + "</div>";
+  return r;
+}
+$("runBtn").onclick = function () { return run("rem"); };
+$("modBtn").onclick = function () { return run("mod"); };
+$("clrBtn").onclick = function () { $("a").value = ""; $("b").value = ""; $("res").innerHTML = ""; $("tip").textContent = "输入被除数与除数"; };
+run("rem");
+</script>
+</body>
+</html>

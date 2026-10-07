@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>附息国债收益计算器 - 词海工具箱</title>
+<meta name="description" content="在线附息国债收益计算器，按买入价格、票面利率与剩余年限算出年息收入、总收益、单利年化与到期收益率。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/guozhaifuxi.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="guozhaifuxi" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>买入价格（每百元面值）</label><input type="text" id="price" value="100"></div>
+      <div class="fitem"><label>票面利率（%）</label><input type="text" id="coupon" value="3"></div>
+      <div class="fitem"><label>剩余年限（年）</label><input type="text" id="years" value="5"></div>
+      <div class="fitem"><label>购买面值总额（元）</label><input type="text" id="face" value="100000"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算收益</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于附息国债收益计算器介绍：</h4>
+    <ol>
+      <li>附息国债按票面利率每年支付一次利息，到期时归还全部本金，是最常见的记账式国债类型。</li>
+      <li>到期收益率指按当前买入价格持有到期的年化复合收益率，用二分法求解使未来现金流现值等于买入价格的利率。</li>
+      <li>买入价格低于面值（折价）时到期收益率高于票面利率，买入价格高于面值（溢价）时到期收益率低于票面利率。</li>
+      <li>单利年化收益是把总收益平均分摊到每年的简化口径，未考虑利息再投资收益，与到期收益率会存在差异。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfYearCoupon(couponPct) { return 100 * couponPct / 100; }
+function __xfTotalCoupon(couponPct, years) { return 100 * couponPct / 100 * years; }
+function __xfTotalProfit(price, couponPct, years) { return __xfTotalCoupon(couponPct, years) + (100 - price); }
+function __xfSimpleAnnual(price, couponPct, years) {
+  return __xfTotalProfit(price, couponPct, years) / price / years * 100;
+}
+function __xfYtm(price, couponPct, years) {
+  var C = __xfYearCoupon(couponPct), n = Math.round(years);
+  if (!(n > 0) || !(price > 0)) return NaN;
+  function pv(y) {
+    var s = 0;
+    for (var t = 1; t <= n; t++) s += C / Math.pow(1 + y, t);
+    s += 100 / Math.pow(1 + y, n);
+    return s;
+  }
+  var lo = -0.9, hi = 5;
+  if ((pv(lo) - price) * (pv(hi) - price) > 0) return NaN;
+  for (var k = 0; k < 300; k++) {
+    var mid = (lo + hi) / 2;
+    if (pv(mid) - price > 0) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2 * 100;
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function __xfRound3(v) { return Math.round(v * 1000) / 1000; }
+function run() {
+  var price = Number($("price").value), coupon = Number($("coupon").value);
+  var years = Number($("years").value), face = Number($("face").value);
+  if (!(price > 0) || !(coupon >= 0) || !(years > 0)) { $("tip").textContent = "⚠️ 请填写有效的价格、票面利率与年限"; $("res").innerHTML = ""; return null; }
+  var ytm = __xfYtm(price, coupon, years);
+  var share = face > 0 ? face / 100 : 0;
+  var totalProfit = __xfTotalProfit(price, coupon, years) * share;
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>买入价 " + price + " 元/百元面值，票面利率 " + coupon + "%，剩余 " + years + " 年</div>" +
+    "<div>到期收益率（复利年化）：<b style='color:#9c4221;font-size:16px;'>" + (isFinite(ytm) ? __xfRound3(ytm) + "%" : "无解") + "</b></div>" +
+    "<div>单利年化收益：<b style='color:#9c4221;'>" + __xfRound3(__xfSimpleAnnual(price, coupon, years)) + "%</b></div>" +
+    "<div>每百元面值年息：" + __xfRound2(__xfYearCoupon(coupon)) + " 元，到期价差：" + __xfRound2(100 - price) + " 元</div>" +
+    (share > 0 ? "<div>面值 " + face + " 元对应总收益约：" + __xfRound2(totalProfit) + " 元</div>" : "") +
+    "<div style='color:#888;'>收益率随市场价格波动，实际成交以交易时报价为准</div>";
+  return ytm;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

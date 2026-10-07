@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经纬度与度分秒互转 - 词海工具箱</title>
+<meta name="description" content="在线经纬度与度分秒互转工具，支持十进制度数与度分秒格式的双向精确换算，是地图坐标与GIS数据处理的常用助手。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jingweiconvert.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jingweiconvert" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>换算方向</label>
+        <select id="mode"><option value="d2dms">十进制度 → 度分秒</option><option value="dms2d">度分秒 → 十进制度</option></select>
+      </div>
+      <div class="fitem"><label>十进制度数</label><input type="text" id="dec" value="39.9042"></div>
+      <div class="fitem"><label>度 / 分 / 秒</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="d" value="39" style="flex:1;"><input type="text" id="m" value="54" style="flex:1;"><input type="text" id="s" value="15.12" style="flex:1;">
+        </div>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转换</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">选择方向后点击转换</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于经纬度与度分秒互转介绍：</h4>
+    <ol>
+      <li>十进制度（如 39.9042）换算为度分秒时，整数部分为度，小数部分乘 60 取整得分为分，余下乘 60 得秒。</li>
+      <li>度分秒转十进制度公式：度 + 分 ÷ 60 + 秒 ÷ 3600。</li>
+      <li>南纬与西经使用负号表示，例如西经 116° 记作 -116。</li>
+      <li>换算结果保留六位小数，精度满足常规地图与导航需求。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRound6(v) { return Math.round(v * 1e6) / 1e6; }
+function __xfDecToDms(dec) {
+  var neg = dec < 0;
+  var a = Math.abs(dec);
+  var d = Math.floor(a);
+  var mf = (a - d) * 60;
+  var m = Math.floor(mf);
+  var s = __xfRound6((mf - m) * 60);
+  if (s >= 60) { s -= 60; m += 1; }
+  if (m >= 60) { m -= 60; d += 1; }
+  return { d: neg ? -d : d, m: m, s: s, neg: neg };
+}
+function __xfDmsToDec(d, m, s) {
+  var neg = d < 0 || (d === 0 && (m < 0 || s < 0));
+  var v = Math.abs(d) + Math.abs(m) / 60 + Math.abs(s) / 3600;
+  return __xfRound6(neg ? -v : v);
+}
+function __xfFormatDms(dec) {
+  var o = __xfDecToDms(dec);
+  var sign = o.neg ? "-" : "";
+  return sign + Math.abs(o.d) + "°" + o.m + "'" + o.s + '"';
+}
+function run() {
+  var mode = $("mode").value;
+  if (mode === "d2dms") {
+    var dec = Number($("dec").value);
+    if (!isFinite(dec)) { $("tip").textContent = "⚠️ 请输入有效的十进制度数"; $("res").innerHTML = ""; return null; }
+    var o = __xfDecToDms(dec);
+    $("tip").textContent = "✅ 已转换为度分秒";
+    $("res").innerHTML = "<div>十进制度：" + dec + "</div><div>度分秒：<b style='color:#5b8c5a;font-size:16px;'>" + __xfFormatDms(dec) + "</b></div>";
+    return __xfFormatDms(dec);
+  }
+  var d = Number($("d").value), m = Number($("m").value), s = Number($("s").value);
+  if (!isFinite(d) || !isFinite(m) || !isFinite(s)) { $("tip").textContent = "⚠️ 请输入有效的度分秒"; $("res").innerHTML = ""; return null; }
+  var v = __xfDmsToDec(d, m, s);
+  var dmsTxt = d + "°" + m + "'" + s + '"';
+  $("tip").textContent = "✅ 已转换为十进制度";
+  $("res").innerHTML = "<div>度分秒：" + dmsTxt + "</div><div>十进制度：<b style='color:#5b8c5a;font-size:16px;'>" + v + "</b></div>";
+  return v;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("dec").value = ""; $("d").value = ""; $("m").value = ""; $("s").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

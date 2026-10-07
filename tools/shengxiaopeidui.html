@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生肖婚姻配对查询 - 词海工具箱</title>
+<meta name="description" content="在线生肖婚姻配对查询工具，按十二生肖的六合、三合、相冲、相害关系给出配对评分与相处建议，并可反查生肖年份。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/shengxiaopeidui.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="shengxiaopeidui" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>男方生肖</label>
+        <select id="a"><option>鼠</option><option>牛</option><option>虎</option><option>兔</option><option>龙</option><option>蛇</option><option>马</option><option>羊</option><option>猴</option><option>鸡</option><option>狗</option><option>猪</option></select>
+      </div>
+      <div class="fitem"><label>女方生肖</label>
+        <select id="b"><option>鼠</option><option>牛</option><option>虎</option><option>兔</option><option selected>龙</option><option>蛇</option><option>马</option><option>羊</option><option>猴</option><option>鸡</option><option>狗</option><option>猪</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查看配对</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">选择双方生肖后点击查看</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于生肖婚姻配对查询介绍：</h4>
+    <ol>
+      <li>生肖配对主要看六合、三合、相冲、相害四种关系：六合最合拍，三合次之，相冲与相害则需要更多磨合。</li>
+      <li>六合组合为鼠牛、虎猪、兔狗、龙鸡、蛇猴、马羊；三合组合为猴鼠龙、猪兔羊、虎马狗、蛇鸡牛。</li>
+      <li>相冲组合为鼠马、牛羊、虎猴、兔鸡、龙狗、蛇猪；相害组合为鼠羊、牛马、虎蛇、兔龙、猴猪、鸡狗。</li>
+      <li>生肖配对源自传统民俗与命理学说，可作为了解彼此性格差异的参考，但不应作为感情决策依据。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var ZODIAC = "鼠牛虎兔龙蛇马羊猴鸡狗猪".split("");
+var HE6 = [["鼠", "牛"], ["虎", "猪"], ["兔", "狗"], ["龙", "鸡"], ["蛇", "猴"], ["马", "羊"]];
+var SANHE = [["猴", "鼠", "龙"], ["猪", "兔", "羊"], ["虎", "马", "狗"], ["蛇", "鸡", "牛"]];
+var CHONG = [["鼠", "马"], ["牛", "羊"], ["虎", "猴"], ["兔", "鸡"], ["龙", "狗"], ["蛇", "猪"]];
+var HAI = [["鼠", "羊"], ["牛", "马"], ["虎", "蛇"], ["兔", "龙"], ["猴", "猪"], ["鸡", "狗"]];
+function __xfInPair(list, a, b) {
+  for (var i = 0; i < list.length; i++) {
+    var p = list[i];
+    if (p.length === 2 && ((p[0] === a && p[1] === b) || (p[0] === b && p[1] === a))) return true;
+  }
+  return false;
+}
+function __xfInTri(list, a, b) {
+  for (var i = 0; i < list.length; i++) {
+    var t = list[i];
+    if (t.indexOf(a) >= 0 && t.indexOf(b) >= 0) return true;
+  }
+  return false;
+}
+function __xfPair(a, b) {
+  if (a === b) return { score: 60, name: "同生肖", desc: "性格相近，容易理解彼此，也可能在同一件事上固执。" };
+  if (__xfInPair(HE6, a, b)) return { score: 95, name: "六合", desc: "传统上最相合的搭配，性格互补，相处顺遂。" };
+  if (__xfInTri(SANHE, a, b)) return { score: 88, name: "三合", desc: "志趣相投、默契度高，容易形成稳定的伙伴关系。" };
+  if (__xfInPair(CHONG, a, b)) return { score: 30, name: "相冲", desc: "观念差异较大，需要更多沟通与让步才能长久相处。" };
+  if (__xfInPair(HAI, a, b)) return { score: 45, name: "相害", desc: "容易在小事上产生摩擦，注意控制情绪与表达方式。" };
+  return { score: 65, name: "平配", desc: "关系平稳，没有明显相合或相冲，靠经营决定亲密度。" };
+}
+function __xfYears(animal, from, to) {
+  var out = [];
+  for (var y = from; y <= to; y++) {
+    if (ZODIAC[(((y - 4) % 12) + 12) % 12] === animal) out.push(y);
+  }
+  return out;
+}
+function run() {
+  var a = $("a").value || "鼠", b = $("b").value || "鼠";
+  var r = __xfPair(a, b);
+  var years = __xfYears(a, 1980, 2030).slice(-4).join("、");
+  $("tip").textContent = "✅ 配对结果：" + r.name + "（" + r.score + " 分）";
+  $("res").innerHTML = "<div>" + a + " 与 " + b + " 的配对：" + r.name + "</div>" +
+    "<div>配对指数：<b style='color:#d1718f;font-size:18px;'>" + r.score + " 分</b></div>" +
+    "<div>" + r.desc + "</div>" +
+    "<div style='color:#888;'>" + a + "年参考：" + years + "（每 12 年循环一次）</div>";
+  return r;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

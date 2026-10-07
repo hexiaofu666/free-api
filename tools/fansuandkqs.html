@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>反算贷款期数计算器 - 词海工具箱</title>
+<meta name="description" content="在线反算贷款期数计算器，根据贷款本金、月供与年利率推算需要多少期才能还清，并换算成对应的年月数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/fansuandkqs.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="fansuandkqs" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>贷款本金（元）</label><input type="text" id="amt" value="500000"></div>
+      <div class="fitem"><label>每月月供（元）</label><input type="text" id="pay" value="4000"></div>
+      <div class="fitem"><label>年利率（%）</label><input type="text" id="rate" value="3.5"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">反算期数</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写本金与月供后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于反算贷款期数计算器介绍：</h4>
+    <ol>
+      <li>反算公式：期数 = −ln(1 − 本金 × 月利率 ÷ 月供) ÷ ln(1 + 月利率)，由等额本息月供公式变形而来。</li>
+      <li>若本金乘月利率大于等于月供，说明月供不足以覆盖当期利息，贷款永远无法还清，此时公式无解。</li>
+      <li>计算所得期数通常不是整数，向上取整即得到实际需要的完整还款期数，最后一期金额会略少。</li>
+      <li>缩短期限最有效的办法是提高月供或选择更低利率，两者都能显著减少利息支出。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfMonthlyPayment(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  if (i <= 0) return P / months;
+  var p = Math.pow(1 + i, months);
+  return P * i * p / (p - 1);
+}
+function __xfTotalRepay(P, ratePct, months) {
+  return __xfMonthlyPayment(P, ratePct, months) * months;
+}
+function __xfTotalInterest(P, ratePct, months) {
+  return __xfTotalRepay(P, ratePct, months) - P;
+}
+function __xfPrincipalFirst(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return P / months + P * i;
+}
+function __xfPrincipalPrincipal(P, months) { return P / months; }
+function __xfPrincipalTotalInterest(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return i * P * (months + 1) / 2;
+}
+function __xfPrincipalLast(P, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return P / months + (P / months) * i;
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function __xfWan(v) { return v / 10000; }
+function __xfMonthsFromPayment(P, M, ratePct) {
+  if (!(P > 0) || !(M > 0)) return NaN;
+  var i = ratePct / 100 / 12;
+  if (i <= 0) return P / M;
+  var x = 1 - P * i / M;
+  if (x <= 0) return NaN;
+  return -Math.log(x) / Math.log(1 + i);
+}
+function run() {
+  var P = Number($("amt").value), M = Number($("pay").value), rate = Number($("rate").value);
+  if (!(P > 0) || !(M > 0) || !(rate >= 0)) { $("tip").textContent = "⚠️ 请填写有效的本金、月供与利率"; $("res").innerHTML = ""; return null; }
+  var n = __xfMonthsFromPayment(P, M, rate);
+  if (!isFinite(n)) { $("tip").textContent = "⚠️ 月供不足以覆盖当期利息，无解"; $("res").innerHTML = ""; return null; }
+  var ceilN = Math.ceil(n - 1e-9);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>本金 " + P + " 元，月供 " + M + " 元，年利率 " + rate + "%</div>" +
+    "<div>所需期数：<b style='color:#5b5bd6;font-size:16px;'>" + __xfRound2(n) + " 期</b>（取整 " + ceilN + " 期）</div>" +
+    "<div>折合年数：约 " + __xfRound2(n / 12) + " 年（" + Math.floor(n / 12) + " 年 " + Math.round(n % 12) + " 个月）</div>" +
+    "<div>累计还款总额：" + __xfRound2(M * n) + " 元，其中利息约 " + __xfRound2(M * n - P) + " 元</div>";
+  return n;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

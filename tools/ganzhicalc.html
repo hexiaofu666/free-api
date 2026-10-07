@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日期天干地支计算器 - 词海工具箱</title>
+<meta name="description" content="在线日期天干地支计算器，输入公历日期与时刻即可算出年干支、日干支与时辰干支，附干支序号换算与儒略日参考。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ganzhicalc.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ganzhicalc" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>公历日期</label><input type="text" id="date" value="2026-10-06" placeholder="格式 2026-10-06"></div>
+      <div class="fitem"><label>时刻（24 小时制，选填）</label><input type="text" id="hour" value="10" placeholder="0~23"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算干支</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写日期后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于日期天干地支计算器介绍：</h4>
+    <ol>
+      <li>年干支按公历年份换算，公式为年份减 4 后对 60 取余，余数 0 对应甲子，例如 1984 年为甲子年、2026 年为丙午年。</li>
+      <li>日干支以儒略日数为基准计算，儒略日数加 49 后对 60 取余即为日干支序号，序号 0 对应甲子日。</li>
+      <li>时辰以两小时为一个单位，子时跨度为 23 点至次日 1 点，其余依次为丑时、寅时等，共十二个时辰。</li>
+      <li>严格来说年干支应以立春为界划分，本工具采用公历年份的简化口径，需要精确命理排盘请使用专业排盘工具。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var GAN = "甲乙丙丁戊己庚辛壬癸".split("");
+var ZHI = "子丑寅卯辰巳午未申酉戌亥".split("");
+var HOUR_NAMES = ["子时", "丑时", "寅时", "卯时", "辰时", "巳时", "午时", "未时", "申时", "酉时", "戌时", "亥时"];
+function __xfJdn(y, m, d) {
+  var a = Math.floor((14 - m) / 12);
+  var yy = y + 4800 - a;
+  var mm = m + 12 * a - 3;
+  return d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+}
+function __xfGanZhi(idx) {
+  var n = ((Math.round(idx) % 60) + 60) % 60;
+  return GAN[n % 10] + ZHI[n % 12];
+}
+function __xfYearGanZhi(year) {
+  var y = Math.floor(Number(year));
+  if (!isFinite(y)) return "";
+  return __xfGanZhi(y - 4);
+}
+function __xfDayGanZhi(y, m, d) { return __xfGanZhi(__xfJdn(y, m, d) + 49); }
+function __xfHourZhi(hour) {
+  var h = Math.floor(Number(hour));
+  if (!isFinite(h)) return "";
+  var x = ((h % 24) + 24) % 24;
+  return ZHI[Math.floor(((x + 1) % 24) / 2)];
+}
+function __xfHourGanZhi(y, m, d, hour) {
+  var dayGz = __xfDayGanZhi(y, m, d);
+  var gi = GAN.indexOf(dayGz.charAt(0));
+  var hi = ZHI.indexOf(__xfHourZhi(hour));
+  if (gi < 0 || hi < 0) return "";
+  return GAN[(gi * 2 + hi) % 10] + ZHI[hi];
+}
+function __xfParseDate(s) {
+  var m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(s == null ? "" : s).trim());
+  if (!m) return null;
+  var y = +m[1], mo = +m[2], d = +m[3];
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  return { y: y, m: mo, d: d };
+}
+function run() {
+  var p = __xfParseDate($("date").value);
+  if (!p) { $("tip").textContent = "⚠️ 请按 2026-10-06 的格式填写日期"; $("res").innerHTML = ""; return null; }
+  var jdn = __xfJdn(p.y, p.m, p.d);
+  var yg = __xfYearGanZhi(p.y), dg = __xfDayGanZhi(p.y, p.m, p.d);
+  var hourRaw = String($("hour").value || "").trim();
+  var hasHour = hourRaw !== "" && isFinite(Number(hourRaw));
+  var extra = "";
+  if (hasHour) {
+    var h = Math.floor(Number(hourRaw));
+    extra = "<div>时辰：" + __xfHourZhi(h) + "（" + h + " 时）　时干支：<b style='color:#7a5cf0;'>" + __xfHourGanZhi(p.y, p.m, p.d, h) + "</b></div>";
+  }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>公历日期：" + p.y + " 年 " + p.m + " 月 " + p.d + " 日</div>" +
+    "<div>年干支：<b style='color:#7a5cf0;font-size:16px;'>" + yg + "</b></div>" +
+    "<div>日干支：<b style='color:#7a5cf0;font-size:16px;'>" + dg + "</b></div>" + extra +
+    "<div style='color:#888;'>儒略日数：" + jdn + "　干支序号：" + (((jdn + 49) % 60) + 60) % 60 + "</div>";
+  return dg;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

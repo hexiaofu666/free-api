@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>燃脂心率计算器 - 词海工具箱</title>
+<meta name="description" content="在线燃脂心率计算器，按年龄推算最大心率并划分热身、燃脂、有氧、无氧与极限五个强度区间，帮你把运动心率控制在高效率区间。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/fatburnhr.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="fatburnhr" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>年龄（岁）</label><input type="text" id="age" value="30"></div>
+      <div class="fitem"><label>静息心率（次/分，可留空）</label><input type="text" id="rest" value="70"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算心率区间</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写年龄后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于燃脂心率计算器介绍：</h4>
+    <ol>
+      <li>最大心率常用估算式：220 − 年龄；另一套更精确的 Tanaka 公式为 208 − 0.7×年龄。</li>
+      <li>五档强度区间为最大心率的 50%~60% 热身、60%~70% 燃脂、70%~80% 有氧、80%~90% 无氧、90%~100% 极限。</li>
+      <li>燃脂效率最高的区间是最大心率的 60%~70%，此时脂肪供能比例最高，适合减脂人群长时间有节奏运动。</li>
+      <li>若填写静息心率，可用储备心率法（Karvonen）计算，该方法把个体静息心率纳入考虑，结果更贴合个人体感。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var __xfZones = [
+  { k: "warm", n: "热身区", lo: 0.5, hi: 0.6, d: "适合运动前热身与运动后放松" },
+  { k: "fat", n: "燃脂区", lo: 0.6, hi: 0.7, d: "脂肪供能比例最高，减脂首选" },
+  { k: "aero", n: "有氧区", lo: 0.7, hi: 0.8, d: "提升心肺耐力，消耗总量大" },
+  { k: "anaero", n: "无氧区", lo: 0.8, hi: 0.9, d: "提升爆发力与速度，难以长时间维持" },
+  { k: "max", n: "极限区", lo: 0.9, hi: 1.0, d: "仅适合专业训练，注意安全" }
+];
+function __xfMaxHr(age) { return 220 - age; }
+function __xfMaxHrTanaka(age) { return 208 - 0.7 * age; }
+function __xfLow(age, lo) { return Math.round(__xfMaxHr(age) * lo); }
+function __xfHigh(age, hi) { return Math.round(__xfMaxHr(age) * hi); }
+function __xfBpmRange(age, lo, hi) { return __xfLow(age, lo) + "-" + __xfHigh(age, hi); }
+function __xfZoneLabel(k) {
+  for (var i = 0; i < __xfZones.length; i++) { if (__xfZones[i].k === k) return __xfZones[i].n; }
+  return "";
+}
+function __xfReserveMax(age, rest) { return __xfMaxHr(age) - rest; }
+function __xfKarvonen(age, rest, pct) { return Math.round((__xfMaxHr(age) - rest) * pct + rest); }
+function run() {
+  var age = Number($("age").value), rest = Number($("rest").value);
+  if (!(age > 0) || age > 120) { $("tip").textContent = "⚠️ 请填写 1~120 之间的年龄"; $("res").innerHTML = ""; return null; }
+  var max = __xfMaxHr(age), rows = "";
+  for (var i = 0; i < __xfZones.length; i++) {
+    var z = __xfZones[i];
+    rows += "<div>" + z.n + "（" + Math.round(z.lo * 100) + "%~" + Math.round(z.hi * 100) + "%）：<b style='color:#e0514a;'>" +
+      __xfBpmRange(age, z.lo, z.hi) + "</b> 次/分 <span style='color:#888;'>" + z.d + "</span></div>";
+  }
+  var extra = "";
+  if (rest > 0) {
+    extra = "<div style='margin-top:6px;color:#888;'>储备心率法（静息 " + rest + "）：燃脂区 " +
+      __xfKarvonen(age, rest, 0.6) + "-" + __xfKarvonen(age, rest, 0.7) + " 次/分</div>";
+  }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>最大心率（220−年龄）：<b style='color:#e0514a;font-size:16px;'>" + max + " 次/分</b></div>" +
+    "<div>最大心率（Tanaka 公式）：" + Math.round(__xfMaxHrTanaka(age)) + " 次/分</div>" + rows + extra;
+  return max;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

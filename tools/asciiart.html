@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII线条字生成器 - 词海工具箱</title>
+<meta name="description" content="在线ASCII线条字生成器，把英文字母与数字转换成5行点阵大字，支持自定义填充与空白字符，方便用于设计稿与签名。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/asciiart.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="asciiart" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>文字（仅支持英文与数字）</label><input type="text" id="src" value="ABC"></div>
+      <div class="fitem"><label>填充字符</label><input type="text" id="fill" value="#" maxlength="1"></div>
+      <div class="fitem"><label>空白字符</label><input type="text" id="blank" value=" " maxlength="1"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成大字</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入文字后点击生成</strong></div>
+      <textarea id="res" rows="7" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;font-family:Consolas,monospace;line-height:1.2;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于ASCII线条字生成器介绍：</h4>
+    <ol>
+      <li>点阵采用 5 行 5 列的经典字模，字母之间用一列空白分隔，可读性较好。</li>
+      <li>支持 A 至 Z 二十六个英文字母与 0 至 9 十个数字，空格表示字间空位。</li>
+      <li>填充字符可改为 # 星号 或方块等，空白字符可改为点号，输出风格多样。</li>
+      <li>生成结果可直接复制到代码注释、论坛签名或设计说明中使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var FONT5 = {"0":[".###.","#..##","#.#.#","##..#",".###."],"1":["..#..",".##..","..#..","..#..",".###."],"2":[".###.","#...#","..##.",".#...","#####"],"3":["####.","....#",".###.","....#","####."],"4":["#...#","#...#","#####","....#","....#"],"5":["#####","#....","####.","....#","####."],"6":[".###.","#....","####.","#...#",".###."],"7":["#####","....#","...#.","..#..",".#..."],"8":[".###.","#...#",".###.","#...#",".###."],"9":[".###.","#...#",".####","....#",".###."],"A":[".###.","#...#","#####","#...#","#...#"],"B":["####.","#...#","####.","#...#","####."],"C":[".####","#....","#....","#....",".####"],"D":["####.","#...#","#...#","#...#","####."],"E":["#####","#....","####.","#....","#####"],"F":["#####","#....","####.","#....","#...."],"G":[".####","#....","#..##","#...#",".###."],"H":["#...#","#...#","#####","#...#","#...#"],"I":["#####","..#..","..#..","..#..","#####"],"J":["....#","....#","....#","#...#",".###."],"K":["#...#","#..#.","###..","#..#.","#...#"],"L":["#....","#....","#....","#....","#####"],"M":["#...#","##.##","#.#.#","#...#","#...#"],"N":["#...#","##..#","#.#.#","#..##","#...#"],"O":[".###.","#...#","#...#","#...#",".###."],"P":["####.","#...#","####.","#....","#...."],"Q":[".###.","#...#","#.#.#","#..#.",".##.#"],"R":["####.","#...#","####.","#..#.","#...#"],"S":[".####","#....",".###.","....#","####."],"T":["#####","..#..","..#..","..#..","..#.."],"U":["#...#","#...#","#...#","#...#",".###."],"V":["#...#","#...#","#...#",".#.#.","..#.."],"W":["#...#","#...#","#.#.#","##.##","#...#"],"X":["#...#",".#.#.","..#..",".#.#.","#...#"],"Y":["#...#",".#.#.","..#..","..#..","..#.."],"Z":["#####","...#.","..#..",".#...","#####"]," ":[".....",".....",".....",".....","....."]};
+function __xfAsciiArt(text, fill, blank) {
+  var f = fill || "#", b = blank === undefined ? " " : blank;
+  var chars = String(text).toUpperCase().split("");
+  var rows = ["", "", "", "", ""];
+  for (var i = 0; i < chars.length; i++) {
+    var g = FONT5[chars[i]];
+    if (!g) { g = ["?..?.", "..#..", "..#..", ".....", "..#.."]; }
+    if (i > 0) { for (var r1 = 0; r1 < 5; r1++) rows[r1] += b; }
+    for (var r = 0; r < 5; r++) {
+      rows[r] += g[r].split("").map(function (c) { return c === "#" ? f : b; }).join("");
+    }
+  }
+  return rows.join("\n");
+}
+function __xfSupportChars() { return Object.keys(FONT5).length; }
+function run() {
+  var text = $("src").value.trim();
+  if (!text) { $("tip").textContent = "⚠️ 请输入英文或数字"; $("res").value = ""; return null; }
+  var fill = $("fill").value || "#", blank = $("blank").value;
+  var out = __xfAsciiArt(text, fill, blank === "" ? " " : blank);
+  $("res").value = out;
+  $("tip").textContent = "✅ 已生成 5 行大字（支持 " + __xfSupportChars() + " 个字符）";
+  return out;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").value = ""; };
+run();
+</script>
+</body>
+</html>

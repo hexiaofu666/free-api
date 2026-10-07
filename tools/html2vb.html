@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML与VBNET互转工具 - 词海工具箱</title>
+<meta name="description" content="在线HTML与VBNET代码互转工具，把HTML源码逐行包装成VB.NET的Response.Write输出语句，也能从代码中还原出HTML结构。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/html2vb.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="html2vb" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>源码</label><textarea id="src" rows="7">&lt;div class="box"&gt;
+  &lt;h1&gt;标题&lt;/h1&gt;
+  &lt;p&gt;正文内容&lt;/p&gt;
+&lt;/div&gt;</textarea></div>
+      <div class="fitem"><label>输出方式</label>
+        <select id="mode"><option value="line">逐行输出语句</option><option value="whole">整体一条语句</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">HTML 转 VB.NET</button>
+      <button class="fbtn blue" id="backBtn">VB.NET 转回 HTML</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">VB.NET 代码结果</strong></div>
+      <textarea id="res" rows="10" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;font-family:Consolas,monospace;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于HTML与VBNET互转工具介绍：</h4>
+    <ol>
+      <li>VB.NET 使用 Response.Write 输出 HTML，字符串中的双引号需写成两个连续双引号转义。</li>
+      <li>逐行模式会把每一行 HTML 包装成一条输出语句，便于定位与修改。</li>
+      <li>整体模式把所有 HTML 合并为一条语句，输出体积更小但可读性略低。</li>
+      <li>反向转换会提取语句中的字符串内容并还原转义，忽略变量与循环语句。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSplitLines(text) { return String(text).replace(/\r\n?/g, "\n").split("\n"); }
+function __xfVbQuote(s) { return '"' + String(s).replace(/"/g, '""') + '"'; }
+function __xfVbSegments(s) {
+  return String(s).split("\n").map(__xfVbQuote).join(" & vbLf & ");
+}
+function __xfToVb(html, mode) {
+  var s = String(html).replace(/\r\n?/g, "\n");
+  if (mode === "whole") return "Response.Write(" + __xfVbSegments(s) + ")";
+  return __xfSplitLines(s).map(function (l) { return "Response.Write(" + __xfVbQuote(l) + ")"; }).join("\n");
+}
+function __xfFromVb(code) {
+  var lines = [], arr = String(code).replace(/\r\n?/g, "\n").split("\n");
+  for (var i = 0; i < arr.length; i++) {
+    var idx = arr[i].indexOf("Response.Write(");
+    if (idx < 0) continue;
+    var inner = arr[i].slice(idx + 15), reStr = /"((?:""|[^"])*)"/g, mm, parts = [];
+    while ((mm = reStr.exec(inner)) !== null) parts.push(mm[1].replace(/""/g, '"'));
+    if (parts.length) lines.push(parts.join("\n"));
+  }
+  return lines.join("\n");
+}
+function run() {
+  var o = __xfToVb($("src").value, $("mode").value || "line");
+  $("res").value = o;
+  $("tip").textContent = "✅ 已生成 " + __xfSplitLines(o).length + " 行 VB.NET 代码";
+  return o;
+}
+function runBack() {
+  var o = __xfFromVb($("src").value);
+  $("res").value = o;
+  $("tip").textContent = o ? "✅ 已还原 HTML" : "⚠️ 未识别到 Response.Write 语句";
+  return o;
+}
+$("runBtn").onclick = run;
+$("backBtn").onclick = runBack;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").value = ""; };
+run();
+</script>
+</body>
+</html>

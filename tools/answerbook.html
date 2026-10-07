@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>答案之书 - 词海工具箱</title>
+<meta name="description" content="在线答案之书，心里默念一个问题后点击翻书即可得到一个随机答案，同一问题与种子可获得相同结果。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/answerbook.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="answerbook" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>你的问题（可留空）</label><input type="text" id="q" value="" placeholder="心里默念也行"></div>
+      <div class="fitem"><label>随机种子（可留空）</label><input type="text" id="seed" value="" placeholder="同一问题同一种子结果一致"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">翻开答案之书</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">静下心来，点击翻书</strong></div>
+      <div id="res" style="padding:16px 15px;line-height:2;font-size:15px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于答案之书介绍：</h4>
+    <ol>
+      <li>答案之书源于同名的占卜游戏玩法，为问题提供一个随机的心理暗示式回答，属于娱乐内容。</li>
+      <li>同一个问题搭配相同的随机种子会得到完全一致的答案，方便重复验证或留存记录。</li>
+      <li>答案由纯前端随机算法产生，不涉及任何预测或玄学成分，请勿据此做重大决策。</li>
+      <li>如果答案让你犹豫，不妨换一种心情再翻一次，很多时候答案其实早已在你心里。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var ANSWERS = ["毫无疑问，答案是肯定的。","现在就可以去做，别犹豫。","先放一放，时机还没到。","答案就在你自己心里。","换个角度想，结果会更好。","是的，但需要你再多一点耐心。","不，现在还不是时候。","相信直觉，它很少骗你。","先把眼前这件事做完再说。","问问身边最了解你的人。","会有意外的惊喜出现。","结果取决于你付出多少。","再等一等，答案会自己浮现。","勇敢一点，你比想象中更强。","这件事值得你认真对待。","大概率是好的，放心去做。","可能会遇到一点小波折。","别想太多，顺其自然就好。","你需要先解决另一个问题。","答案是肯定的，但要低调。","暂时不要下结论。","换个方向，也许更快到达。","把注意力放回自己身上。","这次不行，下次一定可以。","你已经知道该怎么做了。","会有贵人相助，大胆开口。","慢一点，稳一点，不会错。","结果比你预期的还要好。","先做好最坏的打算，再出发。","答案是否定的，另寻他路吧。"];
+function __xfHash(str) {
+  var h = 2166136261;
+  var s = String(str == null ? "" : str);
+  for (var i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+function __xfAnswer(seed, question) {
+  var mix = (__xfHash(question) ^ (seed >>> 0)) >>> 0;
+  return ANSWERS[mix % ANSWERS.length];
+}
+function run() {
+  var q = $("q").value;
+  var seedRaw = String($("seed").value || "").trim();
+  var seed = seedRaw === "" ? (Date.now() & 0x7fffffff) : (Number(seedRaw) || 0);
+  var a = __xfAnswer(seed, q);
+  $("tip").textContent = "✅ 答案之书已翻开";
+  $("res").innerHTML = (q ? "<div style='color:#999;font-size:13px;'>你的问题：" + q + "</div>" : "") +
+    "<div style='margin-top:8px;font-size:17px;color:#5b5bd6;font-weight:bold;'>" + a + "</div>" +
+    "<div style='color:#999;font-size:12px;margin-top:8px;'>答案池共 " + ANSWERS.length + " 条，内容仅供娱乐</div>";
+  return a;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

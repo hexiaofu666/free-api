@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>随机点名工具 - 词海工具箱</title>
+<meta name="description" content="在线随机点名工具，把名单按行粘贴进来即可随机抽取一名或多名，支持不重复抽取，适合课堂点名与活动抽奖。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/randianming.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="randianming" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>名单（每行一个）</label><textarea id="src" rows="7">小明
+小红
+小刚
+小美
+小强</textarea></div>
+      <div class="fitem"><label>抽取人数</label><input type="text" id="count" value="1"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">随机抽取</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击按钮开始抽取</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:15px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于随机点名工具介绍：</h4>
+    <ol>
+      <li>名单每行一个，空行会被自动忽略，重复姓名会按多次机会参与抽取。</li>
+      <li>抽取多人时采用不重复抽取，同一轮内同一人不会被抽中两次。</li>
+      <li>抽取人数超过名单总人数时会提示错误，请调整人数或名单。</li>
+      <li>结果区会同时显示抽取顺序，方便课堂提问按顺序进行。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfParseNames(text) {
+  return String(text).split(/\r?\n/).map(function (l) { return l.trim(); }).filter(function (l) { return l !== ""; });
+}
+function __xfPick(list, rnd) {
+  if (!list || !list.length) return null;
+  var r = rnd === undefined ? Math.random() : rnd;
+  var i = Math.floor(r * list.length);
+  if (i >= list.length) i = list.length - 1;
+  if (i < 0) i = 0;
+  return list[i];
+}
+function __xfPickMany(list, n, rnd) {
+  if (!list || n <= 0 || n > list.length) return null;
+  var pool = list.slice(), out = [], rand = rnd === undefined ? Math.random : rnd;
+  for (var i = 0; i < n; i++) {
+    var idx = Math.floor(rand() * pool.length);
+    if (idx >= pool.length) idx = pool.length - 1;
+    out.push(pool[idx]);
+    pool.splice(idx, 1);
+  }
+  return out;
+}
+function run() {
+  var names = __xfParseNames($("src").value);
+  var n = parseInt($("count").value, 10) || 1;
+  if (!names.length) { $("tip").textContent = "⚠️ 请先输入名单"; $("res").innerHTML = ""; return null; }
+  if (n < 1 || n > names.length) { $("tip").textContent = "⚠️ 抽取人数需在 1 到 " + names.length + " 之间"; $("res").innerHTML = ""; return null; }
+  var picked = __xfPickMany(names, n);
+  $("tip").textContent = "✅ 从 " + names.length + " 人中抽出 " + n + " 人";
+  $("res").innerHTML = picked.map(function (p, i) { return "<div>第 " + (i + 1) + " 位：<b style='color:#4d8bb8;font-size:18px;'>" + p + "</b></div>"; }).join("");
+  return picked;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

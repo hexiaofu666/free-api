@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>纸张标准尺寸列表 - 词海工具箱</title>
+<meta name="description" content="在线纸张标准尺寸列表，完整收录 A、B、C 系列国际标准纸张与常用开本的尺寸毫米数，并支持面积与长宽比计算。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/zhizhanglist.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="zhizhanglist" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="输入规格或尺寸，如 A4、787"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 31 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于纸张标准尺寸列表介绍：</h4>
+    <ol>
+      <li>国际标准 A 系列纸张的长宽比固定为根号 2 比 1，沿长边对折后长宽比保持不变，因此不同规格可以无缝缩放。</li>
+      <li>A0 面积为 1 平方米，A1 是 A0 的一半，依此类推，A4 约为 A0 的十六分之一，面积约 62370 平方毫米。</li>
+      <li>B 系列同样是根号 2 长宽比，但基准尺寸更大，B4 比 A4 略大，常用于书籍与试卷印刷。</li>
+      <li>国内传统开本以正度全开 787 × 1092 毫米与大度全开 889 × 1194 毫米为基准，16 开与 32 开都由此裁切而成。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"A0","v":"841 × 1189 mm","d":"A 系列基准规格，面积约 1 平方米"},{"k":"A1","v":"594 × 841 mm","d":"A0 对折一次"},{"k":"A2","v":"420 × 594 mm","d":"A0 对折两次"},{"k":"A3","v":"297 × 420 mm","d":"A0 对折三次，常用于图纸与报纸"},{"k":"A4","v":"210 × 297 mm","d":"最通用的办公打印与复印纸张"},{"k":"A5","v":"148 × 210 mm","d":"常见于笔记本与手册"},{"k":"A6","v":"105 × 148 mm","d":"明信片与口袋书的常用尺寸"},{"k":"A7","v":"74 × 105 mm","d":""},{"k":"A8","v":"52 × 74 mm","d":""},{"k":"A9","v":"37 × 52 mm","d":""},{"k":"A10","v":"26 × 37 mm","d":"A 系列最小规格"},{"k":"B0","v":"1000 × 1414 mm","d":"B 系列基准规格"},{"k":"B1","v":"707 × 1000 mm","d":"B0 对折一次"},{"k":"B2","v":"500 × 707 mm","d":"B0 对折两次"},{"k":"B3","v":"353 × 500 mm","d":"B0 对折三次"},{"k":"B4","v":"250 × 353 mm","d":"常见于书籍与试卷"},{"k":"B5","v":"176 × 250 mm","d":"常见于笔记本与读物"},{"k":"B6","v":"125 × 176 mm","d":"口袋书常用尺寸"},{"k":"C0","v":"917 × 1297 mm","d":"C 系列为信封规格基准"},{"k":"C1","v":"648 × 917 mm","d":""},{"k":"C2","v":"458 × 648 mm","d":""},{"k":"C3","v":"324 × 458 mm","d":""},{"k":"C4","v":"229 × 324 mm","d":"可装入 A4 纸不折叠的信封"},{"k":"C5","v":"162 × 229 mm","d":"可装入 A5 纸的信封"},{"k":"C6","v":"114 × 162 mm","d":"可装入 A6 纸的信封"},{"k":"16 开（正度）","v":"185 × 260 mm","d":"以正度全开 787 × 1092 mm 裁切"},{"k":"16 开（大度）","v":"210 × 285 mm","d":"以大度全开 889 × 1194 mm 裁切"},{"k":"32 开（正度）","v":"130 × 185 mm","d":"常见于小说与教材"},{"k":"32 开（大度）","v":"140 × 203 mm","d":""},{"k":"正度全开","v":"787 × 1092 mm","d":"国内传统开本基准尺寸"},{"k":"大度全开","v":"889 × 1194 mm","d":"国内常用大开本基准尺寸"}];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#4a5568;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+function __xfArea(w, h) { return w * h; }
+function __xfRatio(w, h) { return Math.round(h / w * 100) / 100; }
+function __xfIsIsoA(w, h) { return Math.abs(h / w - Math.SQRT2) < 0.02; }
+function __xfSize(key) {
+  var k = String(key == null ? "" : key).trim().toUpperCase();
+  for (var i = 0; i < DATA.length; i++) {
+    if (DATA[i].k.toUpperCase() === k) {
+      var m = /(\d+) × (\d+) mm/.exec(DATA[i].v);
+      if (!m) return null;
+      return { k: DATA[i].k, w: +m[1], h: +m[2] };
+    }
+  }
+  return null;
+}
+function __xfAllIso() {
+  return DATA.filter(function (it) { return /^[ABC]\d+$/.test(it.k); }).length;
+}
+</script>
+</body>
+</html>

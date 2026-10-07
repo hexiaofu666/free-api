@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鸡兔同笼计算器 - 词海工具箱</title>
+<meta name="description" content="在线鸡兔同笼问题求解器，输入头数与脚数即可算出鸡和兔各有多少只，并给出计算过程与无解原因说明。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jitu.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jitu" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>头数（总只数）</label><input type="text" id="heads" value="35"></div>
+      <div class="fitem"><label>脚数（总腿数）</label><input type="text" id="legs" value="94"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">求解</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写头数与脚数后点击求解</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于鸡兔同笼计算器介绍：</h4>
+    <ol>
+      <li>解题思路为假设法：假设全是鸡，则脚数应为头数的两倍，多出来的脚数每两只对应一只兔，由此兔数等于脚数的一半减头数。</li>
+      <li>计算公式：兔的只数 =（总脚数 − 2 × 总头数）÷ 2，鸡的只数 = 总头数 − 兔的只数。</li>
+      <li>总脚数必须是偶数且介于头数的 2 倍与 4 倍之间，否则在鸡兔同笼的前提下无解。</li>
+      <li>这是中国古代数学名著《孙子算经》中的经典问题，本质是二元一次方程组的应用题。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfSolve(heads, legs) {
+  var h = Number(heads), l = Number(legs);
+  if (!isFinite(h) || !isFinite(l) || h < 0 || l < 0) return { ok: false, reason: "头数与脚数必须是非负数字" };
+  if (h === 0 && l === 0) return { ok: true, chicken: 0, rabbit: 0 };
+  if (l % 2 !== 0) return { ok: false, reason: "脚数必须为偶数，鸡有 2 只脚、兔有 4 只脚，总数不可能为奇数" };
+  if (l < h * 2) return { ok: false, reason: "脚数少于头数的两倍，不足以保证每只动物至少 2 只脚" };
+  if (l > h * 4) return { ok: false, reason: "脚数多于头数的四倍，超过了全部为兔时的最大脚数" };
+  var rabbit = (l - 2 * h) / 2;
+  var chicken = h - rabbit;
+  return { ok: true, chicken: chicken, rabbit: rabbit };
+}
+function __xfVerify(heads, chicken, rabbit) { return chicken + rabbit === Number(heads); }
+function __xfLegs(chicken, rabbit) { return chicken * 2 + rabbit * 4; }
+function run() {
+  var h = Number($("heads").value), l = Number($("legs").value);
+  if (!isFinite(h) || !isFinite(l) || $("heads").value === "" || $("legs").value === "") { $("tip").textContent = "⚠️ 请填写头数与脚数"; $("res").innerHTML = ""; return null; }
+  var r = __xfSolve(h, l);
+  if (!r.ok) {
+    $("tip").textContent = "⚠️ 该组合无解";
+    $("res").innerHTML = "<div>头数 " + h + "，脚数 " + l + "</div><div style='color:#c0392b;'>" + r.reason + "</div>";
+    return null;
+  }
+  $("tip").textContent = "✅ 求解完成";
+  $("res").innerHTML = "<div>头数 " + h + "，脚数 " + l + "</div>" +
+    "<div>鸡：<b style='color:#2f9e6e;font-size:16px;'>" + r.chicken + " 只</b></div>" +
+    "<div>兔：<b style='color:#2f9e6e;font-size:16px;'>" + r.rabbit + " 只</b></div>" +
+    "<div style='color:#888;'>验算：" + r.chicken + " × 2 + " + r.rabbit + " × 4 = " + __xfLegs(r.chicken, r.rabbit) + " 只脚，共 " + (r.chicken + r.rabbit) + " 只</div>";
+  return r;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

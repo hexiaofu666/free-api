@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中国历史朝代对照表 - 词海工具箱</title>
+<meta name="description" content="在线中国历史朝代对照表，按时间顺序列出各朝代起止年份与都城，支持关键词筛选并可计算任意两个朝代的存续年数。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/chaodai.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="chaodai" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="输入朝代名或年份筛选"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 23 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于中国历史朝代对照表介绍：</h4>
+    <ol>
+      <li>中国历史朝代表按时间顺序列出主要王朝，其中夏商周年代采用夏商周断代工程的通行结论，部分早期年代为约数。</li>
+      <li>春秋与战国均属东周时期，学界一般以公元前 476 年或前 475 年为分界，本表采用常见的分界口径。</li>
+      <li>三国、南北朝、五代十国均为多个政权并立的时期，表中以整体起止时间表示，实际各政权存续年份互有交错。</li>
+      <li>朝代存续年数按起止年份直接相减计算，因早期年代本身存在误差，计算结果仅供参考，不宜作为精确史学依据。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"夏","v":"约公元前 2070 年 — 约公元前 1600 年｜都城 阳城","d":"中国历史上第一个世袭制王朝"},{"k":"商","v":"约公元前 1600 年 — 公元前 1046 年｜都城 亳、殷","d":"甲骨文与青铜器高度发达的时期"},{"k":"西周","v":"公元前 1046 年 — 公元前 771 年｜都城 镐京","d":"分封制与礼乐制度确立"},{"k":"春秋","v":"公元前 770 年 — 公元前 476 年｜都城 洛邑","d":"东周前期，诸侯争霸，百家争鸣开端"},{"k":"战国","v":"公元前 475 年 — 公元前 221 年｜都城 洛邑","d":"东周后期，七雄并立直至秦统一"},{"k":"秦朝","v":"公元前 221 年 — 公元前 206 年｜都城 咸阳","d":"中国历史上第一个中央集权大一统王朝"},{"k":"西汉","v":"公元前 202 年 — 公元 8 年｜都城 长安","d":"文景之治与汉武帝开疆拓土"},{"k":"新朝","v":"公元 9 年 — 公元 23 年｜都城 常安","d":"王莽建立，短暂统一后被绿林军推翻"},{"k":"东汉","v":"公元 25 年 — 公元 220 年｜都城 洛阳","d":"光武中兴，蔡伦改进造纸术"},{"k":"三国","v":"公元 220 年 — 公元 280 年｜魏蜀吴鼎立","d":"曹魏、蜀汉、东吴三分天下"},{"k":"西晋","v":"公元 265 年 — 公元 316 年｜都城 洛阳","d":"短暂统一后陷入八王之乱"},{"k":"东晋","v":"公元 317 年 — 公元 420 年｜都城 建康","d":"偏安江南，与十六国对峙"},{"k":"南北朝","v":"公元 420 年 — 公元 589 年｜南北分治","d":"南朝宋齐梁陈与北朝诸政权并存"},{"k":"隋朝","v":"公元 581 年 — 公元 618 年｜都城 大兴","d":"重新统一全国，开创科举制"},{"k":"唐朝","v":"公元 618 年 — 公元 907 年｜都城 长安","d":"贞观之治与开元盛世，国力鼎盛"},{"k":"五代十国","v":"公元 907 年 — 公元 960 年｜政权更迭频繁","d":"中原五代与南方十国割据"},{"k":"北宋","v":"公元 960 年 — 公元 1127 年｜都城 开封","d":"经济文化高度繁荣，活字印刷术出现"},{"k":"南宋","v":"公元 1127 年 — 公元 1279 年｜都城 临安","d":"与金朝对峙，海上贸易兴盛"},{"k":"元朝","v":"公元 1271 年 — 公元 1368 年｜都城 大都","d":"中国历史上首个由少数民族建立的大一统王朝"},{"k":"明朝","v":"公元 1368 年 — 公元 1644 年｜都城 南京、北京","d":"郑和下西洋，修纂永乐大典"},{"k":"清朝","v":"公元 1636 年 — 公元 1912 年｜都城 北京","d":"康乾盛世，晚期逐步沦为半殖民地半封建社会"},{"k":"中华民国","v":"公元 1912 年 — 公元 1949 年｜都城 南京","d":"辛亥革命后建立的政权，1949 年结束在大陆的统治"},{"k":"中华人民共和国","v":"公元 1949 年 10 月 1 日 — 至今｜首都 北京","d":"中国人民从此站起来了，进入社会主义建设新时期"}];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#9c4221;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+function __xfParseYear(s) {
+  var str = String(s);
+  var m = /(-?\d+)\s*年/.exec(str);
+  if (!m) return null;
+  var y = +m[1];
+  return str.indexOf("公元前") >= 0 ? -y : y;
+}
+function __xfSpanYears(startY, endY) { return Math.abs(endY - startY); }
+function __xfFind(name) {
+  var k = String(name == null ? "" : name).trim();
+  return DATA.filter(function (it) {
+    return it.k.indexOf(k) >= 0 || it.v.indexOf(k) >= 0 || String(it.d || "").indexOf(k) >= 0;
+  });
+}
+function __xfDynastyYears(name) {
+  var list = __xfFind(name);
+  if (!list.length) return null;
+  var parts = String(list[0].v).split("—");
+  if (parts.length < 2) return null;
+  var a = __xfParseYear(parts[0]), b = __xfParseYear(parts[1]);
+  if (a == null || b == null) return null;
+  return __xfSpanYears(a, b);
+}
+</script>
+</body>
+</html>

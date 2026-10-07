@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文胸尺码对照表 - 词海工具箱</title>
+<meta name="description" content="在线文胸尺码对照表，输入下胸围与上胸围自动算出罩杯与尺码，并列出各尺码对应的上下胸围参考范围。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/wenxiong.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="wenxiong" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>下胸围（cm）</label><input type="text" id="under" value="75"></div>
+      <div class="fitem"><label>上胸围（cm）</label><input type="text" id="over" value="88"></div>
+      <div class="fitem"><label>搜索尺码表</label><input type="text" id="kw" placeholder="输入尺码筛选"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算我的尺码</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写上下胸围后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+      <div id="table" style="padding:0 0 10px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文胸尺码对照表介绍：</h4>
+    <ol>
+      <li>下胸围决定尺码数字，68 至 72 厘米对应 70、73 至 77 厘米对应 75，之后每 5 厘米为一档，依次为 80、85、90、95。</li>
+      <li>罩杯由上胸围减下胸围的差值决定：约 7.5 厘米为 AA 杯、10 厘米为 A 杯、12.5 厘米为 B 杯、15 厘米为 C 杯、17.5 厘米为 D 杯。</li>
+      <li>测量时保持自然呼吸放松状态，上胸围取乳房最丰满处水平一周，下胸围取乳房下缘水平一周。</li>
+      <li>不同品牌杯型深浅不一，若介于两个杯型之间，建议选较大杯型以免压胸，肩带可调节弥补空隙。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var WENX = [
+  { k: "70A", v: "下胸围 68~72cm｜上胸围 78~82cm", d: "差值约 10cm" },
+  { k: "70B", v: "下胸围 68~72cm｜上胸围 80.5~84.5cm", d: "差值约 12.5cm" },
+  { k: "75A", v: "下胸围 73~77cm｜上胸围 83~87cm", d: "差值约 10cm" },
+  { k: "75B", v: "下胸围 73~77cm｜上胸围 85.5~89.5cm", d: "差值约 12.5cm" },
+  { k: "75C", v: "下胸围 73~77cm｜上胸围 88~92cm", d: "差值约 15cm" },
+  { k: "80A", v: "下胸围 78~82cm｜上胸围 88~92cm", d: "差值约 10cm" },
+  { k: "80B", v: "下胸围 78~82cm｜上胸围 90.5~94.5cm", d: "差值约 12.5cm" },
+  { k: "80C", v: "下胸围 78~82cm｜上胸围 93~97cm", d: "差值约 15cm" },
+  { k: "85B", v: "下胸围 83~87cm｜上胸围 95.5~99.5cm", d: "差值约 12.5cm" },
+  { k: "85C", v: "下胸围 83~87cm｜上胸围 98~102cm", d: "差值约 15cm" },
+  { k: "90C", v: "下胸围 88~92cm｜上胸围 103~107cm", d: "差值约 15cm" }
+];
+function __xfBand(under) {
+  if (!(under > 0)) return null;
+  var n = Math.round((under - 70) / 5) * 5 + 70;
+  if (n < 70 || n > 110) return null;
+  return n;
+}
+var __xfCupTable = [["AA", 7.5], ["A", 10], ["B", 12.5], ["C", 15], ["D", 17.5], ["E", 20], ["F", 22.5]];
+function __xfCupDiff(d) {
+  var best = __xfCupTable[0], bi = 1e9;
+  for (var i = 0; i < __xfCupTable.length; i++) {
+    var gap = Math.abs(__xfCupTable[i][1] - d);
+    if (gap < bi) { bi = gap; best = __xfCupTable[i]; }
+  }
+  return best[0];
+}
+function __xfBraSize(under, over) {
+  var b = __xfBand(under);
+  if (b == null) return "";
+  return b + __xfCupDiff(over - under);
+}
+function __xfOverRange(under, cup) {
+  var b = __xfBand(under);
+  if (b == null) return "";
+  for (var i = 0; i < __xfCupTable.length; i++) {
+    if (__xfCupTable[i][0] === cup) {
+      return (b + __xfCupTable[i][1] - 2) + "~" + (b + __xfCupTable[i][1] + 2) + "cm";
+    }
+  }
+  return "";
+}
+function renderTable(kw) {
+  var k = String(kw || "").trim().toLowerCase();
+  var list = WENX.filter(function (it) {
+    if (!k) return true;
+    return (it.k + " " + it.v + " " + it.d).toLowerCase().indexOf(k) >= 0;
+  });
+  var box = $("table");
+  if (!box) return list;
+  box.innerHTML = list.length ? list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#d1718f;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div></div>";
+  }).join("") : "<div style='padding:14px 15px;color:#999;'>没有匹配尺码</div>";
+  return list;
+}
+function run() {
+  var under = Number($("under").value), over = Number($("over").value);
+  if (!(under > 0) || !(over > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的下胸围与上胸围"; $("res").innerHTML = ""; return null; }
+  var b = __xfBand(under), diff = Math.round((over - under) * 10) / 10, cup = __xfCupDiff(diff), size = __xfBraSize(under, over);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>下胸围 " + under + " cm，上胸围 " + over + " cm，差值 " + diff + " cm</div>" +
+    "<div>推荐尺码：<b style='color:#d1718f;font-size:16px;'>" + (size || "—") + "</b></div>" +
+    "<div>尺码数字：" + (b == null ? "超出范围" : b) + "　罩杯：" + cup + "</div>" +
+    (b == null ? "" : "<div style='color:#888;'>该尺码上胸围参考区间：" + __xfOverRange(under, cup) + "</div>");
+  return size;
+}
+renderTable("");
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; $("kw").value = ""; return renderTable(""); };
+$("kw").oninput = function () { return renderTable($("kw").value); };
+</script>
+</body>
+</html>

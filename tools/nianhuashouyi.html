@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>年化收益率计算器 - 词海工具箱</title>
+<meta name="description" content="在线年化收益率计算器，把一段时间内的总收益率折算为年化收益，也可由年化收益率反推指定天数的实际收益。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/nianhuashouyi.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="nianhuashouyi" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>计算方向</label>
+        <select id="mode"><option value="toYear">总收益率 → 年化</option><option value="toReal">年化 → 期间收益</option></select>
+      </div>
+      <div class="fitem"><label>收益率（%）</label><input type="text" id="rate" value="5"></div>
+      <div class="fitem"><label>持有天数</label><input type="text" id="days" value="180"></div>
+      <div class="fitem"><label>本金（元，可选）</label><input type="text" id="p" value="100000"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于年化收益率计算器介绍：</h4>
+    <ol>
+      <li>年化收益率 = (1 + 期间总收益率) 的 365 除以持有天数 次方 减去 1，体现复利效应。</li>
+      <li>短期高收益产品折算年化后数值可能很夸张，需结合风险与期限综合判断。</li>
+      <li>反向计算按年化收益率与持有天数折算出实际期间收益，便于对比短期理财。</li>
+      <li>计算结果为理论值，未考虑申购赎回费用与净值波动。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfAnnualized(totalPct, days) {
+  if (days <= 0) return 0;
+  return (Math.pow(1 + totalPct / 100, 365 / days) - 1) * 100;
+}
+function __xfPeriodReturn(annualPct, days) {
+  if (days <= 0) return 0;
+  return (Math.pow(1 + annualPct / 100, days / 365) - 1) * 100;
+}
+function __xfSimpleAnnualized(totalPct, days) {
+  if (days <= 0) return 0;
+  return totalPct / days * 365;
+}
+function __xfRound4(v) { return Math.round(v * 10000) / 10000; }
+function run() {
+  var mode = $("mode").value || "toYear";
+  var rate = Number($("rate").value), days = Number($("days").value), p = Number($("p").value) || 0;
+  if (!isFinite(rate) || !(days > 0)) { $("tip").textContent = "⚠️ 请填写有效的收益率与持有天数"; $("res").innerHTML = ""; return null; }
+  if (mode === "toYear") {
+    var y = __xfAnnualized(rate, days);
+    $("tip").textContent = "✅ 已折算为年化收益率";
+    $("res").innerHTML = "<div>期间总收益率 " + rate + "% ，持有 " + days + " 天</div>" +
+      "<div>年化收益率：<b style='color:#c9a227;font-size:16px;'>" + __xfRound4(y) + "%</b></div>" +
+      "<div style='color:#888;'>简单折算口径为 " + __xfRound4(__xfSimpleAnnualized(rate, days)) + "%</div>" +
+      (p > 0 ? "<div style='color:#888;'>本金 " + p + " 元对应期间收益约 " + __xfRound4(p * rate / 100) + " 元</div>" : "");
+    return y;
+  }
+  var r = __xfPeriodReturn(rate, days);
+  $("tip").textContent = "✅ 已折算为期间收益率";
+  $("res").innerHTML = "<div>年化收益率 " + rate + "% ，持有 " + days + " 天</div>" +
+    "<div>期间收益率：<b style='color:#c9a227;font-size:16px;'>" + __xfRound4(r) + "%</b></div>" +
+    (p > 0 ? "<div>期间收益约：" + __xfRound4(p * r / 100) + " 元</div>" : "");
+  return r;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

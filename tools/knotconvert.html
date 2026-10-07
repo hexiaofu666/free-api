@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>航速单位换算器 - 词海工具箱</title>
+<meta name="description" content="在线航速单位换算器，支持节、公里每小时、米每秒、英里每小时、英尺每秒之间的换算，是航海与航空常用工具。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/knotconvert.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="knotconvert" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="1"></div>
+      <div class="fitem"><label>源单位</label>
+        <select id="unit">
+          <option value="kn" selected>节 kn</option>
+          <option value="kmh">公里每小时 km/h</option>
+          <option value="ms">米每秒 m/s</option>
+          <option value="mph">英里每小时 mph</option>
+          <option value="fts">英尺每秒 ft/s</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入数值后点击换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于航速单位换算器介绍：</h4>
+    <ol>
+      <li>节（knot）是航海与航空的专用速度单位，1 节 = 1 海里每小时 = 1.852 公里每小时。</li>
+      <li>换算基准为米每秒：1 节约等于 0.514444 米每秒，1 公里每小时约等于 0.277778 米每秒。</li>
+      <li>飞机空速、船舶航速通常以节表示，汽车与高铁速度习惯用公里每小时。</li>
+      <li>换算结果保留六位小数，长距离航程换算也不会有明显累积误差。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var TO_MS = { kn: 0.5144444444444445, kmh: 0.2777777777777778, ms: 1, mph: 0.44704, fts: 0.3048 };
+var NAMES = { kn: "节 kn", kmh: "公里每小时 km/h", ms: "米每秒 m/s", mph: "英里每小时 mph", fts: "英尺每秒 ft/s" };
+function __xfRound6(v) { return Math.round(v * 1e6) / 1e6; }
+function __xfKnotConvert(v, unit) {
+  if (!(unit in TO_MS)) return null;
+  var m = v * TO_MS[unit];
+  return { ms: __xfRound6(m), kn: __xfRound6(m / TO_MS.kn), kmh: __xfRound6(m / TO_MS.kmh), mph: __xfRound6(m / TO_MS.mph), fts: __xfRound6(m / TO_MS.fts) };
+}
+function run() {
+  var v = Number($("val").value), unit = $("unit").value || "kn";
+  if (!isFinite(v)) { $("tip").textContent = "⚠️ 请输入数字"; $("res").innerHTML = ""; return null; }
+  var o = __xfKnotConvert(v, unit);
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = ["kn", "kmh", "ms", "mph", "fts"]
+    .map(function (k) { return "<div>" + NAMES[k] + "：<b style='color:#4d8bb8;'>" + o[k] + "</b></div>"; }).join("");
+  return o;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("val").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

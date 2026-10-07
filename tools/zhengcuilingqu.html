@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>整存零取计算器 - 词海工具箱</title>
+<meta name="description" content="在线整存零取利息计算器，一次存入本金后按期等额支取，用月积数法算出每期可取金额与到期应得利息。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/zhengcuilingqu.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="zhengcuilingqu" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>存入本金（元）</label><input type="text" id="amt" value="120000"></div>
+      <div class="fitem"><label>年利率（%）</label><input type="text" id="rate" value="1.35"></div>
+      <div class="fitem"><label>支取期数（月）</label>
+        <select id="months"><option>6</option><option selected>12</option><option>24</option><option>36</option><option>60</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算利息</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于整存零取计算器介绍：</h4>
+    <ol>
+      <li>整存零取指一次存入较大本金，之后按约定期间等额支取本金，利息在到期结清时一次性支付。</li>
+      <li>由于本金逐期递减，平均占用资金约为本金的一半，因此利息明显低于同期整存整取。</li>
+      <li>利息采用月积数法计算：利息 = 本金 × 月利率 × (期数 + 1) ÷ 2，期数越多总利息越高。</li>
+      <li>整存零取适合有大额资金且需要分期用款安排的人群，例如按月补充养老金或按月支付固定开销。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfPerPeriod(amt, months) { return amt / months; }
+function __xfZclqInterest(amt, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return amt * i * (months + 1) / 2;
+}
+function __xfZclqTotal(amt, ratePct, months) {
+  return amt + __xfZclqInterest(amt, ratePct, months);
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var amt = Number($("amt").value), rate = Number($("rate").value);
+  var months = Number($("months").value) || 12;
+  if (!(amt > 0) || !(rate >= 0) || !(months > 0)) { $("tip").textContent = "⚠️ 请填写有效的本金、利率与期数"; $("res").innerHTML = ""; return null; }
+  var per = __xfPerPeriod(amt, months), interest = __xfZclqInterest(amt, rate, months);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>存入本金 " + amt + " 元，分 " + months + " 期支取，年利率 " + rate + "%</div>" +
+    "<div>每期支取本金：<b style='color:#3b82c4;font-size:16px;'>" + __xfRound2(per) + " 元</b></div>" +
+    "<div>到期利息：<b style='color:#3b82c4;font-size:16px;'>" + __xfRound2(interest) + " 元</b></div>" +
+    "<div>本息合计：" + __xfRound2(amt + interest) + " 元</div>" +
+    "<div style='color:#888;'>平均占用资金约 " + __xfRound2(amt * (months + 1) / (2 * months)) + " 元</div>";
+  return interest;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

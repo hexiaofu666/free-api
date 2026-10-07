@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>肺龄计算器 - 词海工具箱</title>
+<meta name="description" content="在线肺龄计算器，输入身高性别与实际一秒用力呼气量 FEV1，用回归公式算出预计值并反推肺功能对应的生理年龄，判断肺功能是否优于同龄人。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/lungage.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="lungage" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>性别</label>
+        <select id="sex"><option value="m">男</option><option value="f">女</option></select>
+      </div>
+      <div class="fitem"><label>身高（cm）</label><input type="text" id="h" value="175"></div>
+      <div class="fitem"><label>实际年龄（岁）</label><input type="text" id="age" value="40"></div>
+      <div class="fitem"><label>实测 FEV1（升）</label><input type="text" id="fev" value="3.5"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算肺龄</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于肺龄计算器介绍：</h4>
+    <ol>
+      <li>预计 FEV1 回归式：男性 = 0.0412×身高cm − 0.0244×年龄 − 2.19；女性 = 0.0342×身高cm − 0.0215×年龄 − 1.578（单位升）。</li>
+      <li>肺龄即把实测 FEV1 代入回归式反解出的年龄，若算出的肺龄小于实际年龄，说明肺功能优于同龄人。</li>
+      <li>FEV1 为一秒用力呼气量，需在医院肺功能仪上规范测定，本工具仅作快速估算，不能替代医学诊断。</li>
+      <li>吸烟、长期粉尘暴露与慢性咳嗽都会让肺龄明显大于实际年龄，及早戒烟与规律有氧运动可改善肺功能。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfPredFev1(sex, h, age) {
+  if (sex === "f") return 0.0342 * h - 0.0215 * age - 1.578;
+  return 0.0412 * h - 0.0244 * age - 2.19;
+}
+function __xfLungAge(sex, h, fev1) {
+  if (sex === "f") return (0.0342 * h - 1.578 - fev1) / 0.0215;
+  return (0.0412 * h - 2.19 - fev1) / 0.0244;
+}
+function __xfPctPred(sex, h, age, fev1) {
+  var pred = __xfPredFev1(sex, h, age);
+  if (!(pred > 0)) return NaN;
+  return fev1 / pred * 100;
+}
+function __xfDiff(age, lungAge) { return lungAge - age; }
+function __xfVerdict(diff) {
+  if (diff <= -5) return "肺功能优秀，明显优于同龄人";
+  if (diff < 5) return "肺功能与同龄人相当";
+  if (diff < 15) return "肺功能略低于同龄人，建议加强锻炼";
+  return "肺功能明显低于同龄人，建议尽早就医检查";
+}
+function __xfRound1(v) { return Math.round(v * 10) / 10; }
+function run() {
+  var sex = $("sex").value || "m";
+  var h = Number($("h").value), age = Number($("age").value), fev = Number($("fev").value);
+  if (!(h > 0) || !(age > 0) || !(fev > 0)) { $("tip").textContent = "⚠️ 请填写有效的身高、年龄与 FEV1"; $("res").innerHTML = ""; return null; }
+  var pred = __xfPredFev1(sex, h, age), la = __xfLungAge(sex, h, fev);
+  if (!(pred > 0) || la < 0) { $("tip").textContent = "⚠️ 输入超出适用范围，请检查身高与实测值"; $("res").innerHTML = ""; return null; }
+  var pct = __xfPctPred(sex, h, age, fev), diff = __xfDiff(age, la);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>" + (sex === "f" ? "女" : "男") + "性 " + h + " cm，" + age + " 岁，实测 FEV1 " + fev + " 升</div>" +
+    "<div>预计 FEV1：" + __xfRound1(pred) + " 升（实测占预计 " + __xfRound1(pct) + "%）</div>" +
+    "<div>估算肺龄：<b style='color:#6b8e23;font-size:16px;'>" + __xfRound1(la) + " 岁</b></div>" +
+    "<div>与实际年龄相差：" + __xfRound1(diff) + " 岁</div>" +
+    "<div>评估结论：" + __xfVerdict(diff) + "</div>";
+  return la;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

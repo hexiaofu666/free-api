@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>定活两便利息计算器 - 词海工具箱</title>
+<meta name="description" content="在线定活两便利息计算器，按定活两便计息规则与存期档次算出利息，不足三个月按活期计息并有明确提示。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/dinghuoliangbian.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="dinghuoliangbian" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>本金（元）</label><input type="text" id="p" value="50000"></div>
+      <div class="fitem"><label>一年期定期利率（%）</label><input type="text" id="rate" value="1.75"></div>
+      <div class="fitem"><label>实际存期（月）</label><input type="text" id="months" value="8"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算利息</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于定活两便利息计算器介绍：</h4>
+    <ol>
+      <li>定活两便是一种不约定存期、一次存入后可随时支取的存款方式。</li>
+      <li>计息规则：存期满三个月以上的，按一年以内定期整存整取同档次利率打六折计息。</li>
+      <li>实际存期不足三个月的，按活期利率计息，本工具会同时给出两种口径的对比。</li>
+      <li>各银行执行细则略有差异，本工具按通用规则估算，结果仅供参考。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DEMAND = 0.3;
+function __xfDinghuoRate(ratePct, months) { return months >= 3 ? ratePct * 0.6 : DEMAND; }
+function __xfDinghuoInterest(p, ratePct, months) {
+  var y = months / 12;
+  return p * __xfDinghuoRate(ratePct, months) / 100 * y;
+}
+function __xfDemandInterest(p, months) { return p * DEMAND / 100 * months / 12; }
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var p = Number($("p").value), rate = Number($("rate").value), months = Number($("months").value);
+  if (!(p > 0) || !(rate > 0) || !(months > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的本金、利率与存期"; $("res").innerHTML = ""; return null; }
+  var eff = __xfDinghuoRate(rate, months);
+  var interest = __xfDinghuoInterest(p, rate, months);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>本金 " + p + " 元，存期 " + months + " 个月</div>" +
+    "<div>适用利率：" + eff + "%（" + (months >= 3 ? "定期同档次利率打六折" : "不足三个月，按活期") + "）</div>" +
+    "<div>应得利息：<b style='color:#3f9e5a;font-size:16px;'>" + __xfRound2(interest) + " 元</b></div>" +
+    "<div>本息合计：" + __xfRound2(p + interest) + " 元</div>" +
+    "<div style='color:#888;'>若全程按活期计息仅为 " + __xfRound2(__xfDemandInterest(p, months)) + " 元</div>";
+  return interest;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

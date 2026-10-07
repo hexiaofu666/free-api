@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>随机英文名生成器 - 词海工具箱</title>
+<meta name="description" content="在线随机英文名生成器，可从常见英文男女名字库中随机取出英文名并附中文译名与含义，支持批量生成与可复现抽取。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/englishname.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="englishname" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>性别</label>
+        <select id="sex"><option value="m">男孩/男士</option><option value="f">女孩/女士</option><option value="a">不限</option></select>
+      </div>
+      <div class="fitem"><label>生成数量（1~30）</label><input type="text" id="num" value="8"></div>
+      <div class="fitem"><label>随机种子（可留空）</label><input type="text" id="seed" value="" placeholder="填相同数字可复现"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成英文名</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击生成英文名</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:14px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于随机英文名生成器介绍：</h4>
+    <ol>
+      <li>名字库收录常见英文名及其中文译名与含义，男孩名与女孩名分开存放，选择不限时会混合抽取。</li>
+      <li>英文名首字母大写，其余小写，格式统一，可直接用于注册账号或英文简历。</li>
+      <li>同名英文名在不同文化中含义可能不同，正式使用前建议再核对一次名字的文化含义与发音。</li>
+      <li>填入相同随机种子可复现同一批结果，方便为同一批测试账号生成配套英文名。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRng(seed) {
+  var s = ((seed >>> 0) || 1) >>> 0;
+  return function () {
+    s = (s * 1664525 + 1013904223) % 4294967296;
+    return s / 4294967296;
+  };
+}
+var NAMES_M = [
+  ["Aaron", "艾伦", "高山，受尊崇的人"], ["Adam", "亚当", "土地，人类"], ["Alan", "艾伦", "英俊的"],
+  ["Albert", "艾伯特", "高贵而显赫"], ["Andrew", "安德鲁", "勇敢的"], ["Arthur", "亚瑟", "熊，高贵"],
+  ["Benjamin", "本杰明", "幸运之子"], ["Brian", "布莱恩", "强壮有力"], ["Charles", "查尔斯", "自由人"],
+  ["Chris", "克里斯", "信仰基督的人"], ["Daniel", "丹尼尔", "上帝是审判者"], ["David", "大卫", "被爱的"],
+  ["Edward", "爱德华", "富有的守护者"], ["Eric", "埃里克", "永恒的统治者"], ["Frank", "弗兰克", "坦率的"],
+  ["George", "乔治", "农夫"], ["Henry", "亨利", "家中的主人"], ["Jack", "杰克", "上帝的恩惠"],
+  ["James", "詹姆斯", "取代者"], ["John", "约翰", "上帝的恩赐"], ["Kevin", "凯文", "温和可爱"],
+  ["Leo", "利奥", "狮子"], ["Mark", "马克", "尚武的"], ["Michael", "迈克尔", "像上帝一样的人"],
+  ["Nick", "尼克", "胜利的民众"], ["Oliver", "奥利弗", "橄榄树"], ["Peter", "彼得", "岩石"],
+  ["Robert", "罗伯特", "光辉的声誉"], ["Ryan", "瑞安", "小国王"], ["Sam", "萨姆", "听者"],
+  ["Steven", "史蒂文", "王冠"], ["Thomas", "托马斯", "双胞胎"], ["Tony", "托尼", "值得赞美的"],
+  ["Victor", "维克托", "胜利者"], ["William", "威廉", "意志坚定的守护者"]
+];
+var NAMES_F = [
+  ["Alice", "爱丽丝", "高贵真理"], ["Amanda", "阿曼达", "值得被爱"], ["Amy", "艾米", "被深爱的"],
+  ["Anna", "安娜", "优雅的"], ["Catherine", "凯瑟琳", "纯洁的"], ["Christina", "克里斯蒂娜", "基督徒"],
+  ["Cindy", "辛迪", "月亮女神"], ["Diana", "黛安娜", "月亮与狩猎女神"], ["Elizabeth", "伊丽莎白", "上帝的誓约"],
+  ["Emily", "艾米丽", "勤劳的"], ["Emma", "艾玛", "完整的，世界的"], ["Grace", "格蕾丝", "优雅恩典"],
+  ["Helen", "海伦", "光明的"], ["Jane", "简", "上帝是仁慈的"], ["Jennifer", "珍妮弗", "白色的波浪"],
+  ["Jessica", "杰西卡", "财富"], ["Julia", "朱莉娅", "年轻的"], ["Karen", "凯伦", "纯洁的"],
+  ["Laura", "劳拉", "月桂树"], ["Linda", "琳达", "美丽的"], ["Lisa", "丽莎", "献身于上帝的人"],
+  ["Lucy", "露西", "光明"], ["Maria", "玛丽亚", "海的苦涩"], ["Nancy", "南希", "优雅"],
+  ["Nicole", "妮可", "胜利的人民"], ["Olivia", "奥利维亚", "橄榄树"], ["Rebecca", "丽贝卡", "迷人的"],
+  ["Rose", "罗斯", "玫瑰"], ["Sarah", "莎拉", "公主"], ["Sophia", "索菲亚", "智慧"],
+  ["Susan", "苏珊", "百合花"], ["Tina", "蒂娜", "娇小"], ["Vivian", "薇薇安", "活泼的"],
+  ["Wendy", "温迪", "朋友"], ["Zoe", "佐伊", "生命"]
+];
+function __xfNamePool(sex) {
+  if (sex === "f") return NAMES_F;
+  if (sex === "m") return NAMES_M;
+  return NAMES_M.concat(NAMES_F);
+}
+function __xfGenEn(seed, count, sex) {
+  var rnd = __xfRng(seed), pool = __xfNamePool(sex), out = [];
+  for (var i = 0; i < count; i++) out.push(pool[Math.floor(rnd() * pool.length)]);
+  return out;
+}
+function __xfClampNum(v, max) {
+  var n = Math.floor(Number(v));
+  if (!isFinite(n) || n < 1) return 1;
+  if (n > max) return max;
+  return n;
+}
+function run() {
+  var sex = $("sex").value || "a";
+  var num = __xfClampNum($("num").value, 30);
+  var seedRaw = String($("seed").value || "").trim();
+  var seed = seedRaw === "" ? (Date.now() & 0x7fffffff) : (Number(seedRaw) || 1);
+  var list = __xfGenEn(seed, num, sex);
+  $("tip").textContent = "✅ 已生成 " + list.length + " 个英文名（种子 " + seed + "）";
+  $("res").innerHTML = list.map(function (it) {
+    return "<div style='padding:6px 0;border-bottom:1px solid #f5f5f5;'>" +
+      "<b style='color:#3b82c4;font-family:Consolas,monospace;font-size:15px;'>" + it[0] + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it[1] + "</span>" +
+      "<span style='margin-left:10px;color:#999;font-size:12px;'>" + it[2] + "</span></div>";
+  }).join("");
+  return list;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

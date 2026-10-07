@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>增程车油电费用计算器 - 词海工具箱</title>
+<meta name="description" content="在线增程车油电费用计算器，按纯电续航、电池容量与亏电油耗测算一段行程的电费油费，直观比较用油与用电的成本差异。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/erevcost.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="erevcost" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>本次行程总里程（km）</label><input type="text" id="total" value="500"></div>
+      <div class="fitem"><label>纯电续航里程（km）</label><input type="text" id="range" value="200"></div>
+      <div class="fitem"><label>电池容量（kWh）</label><input type="text" id="kwh" value="40"></div>
+      <div class="fitem"><label>充电电价（元/kWh）</label><input type="text" id="price" value="0.6"></div>
+      <div class="fitem"><label>亏电油耗（L/100km）</label><input type="text" id="fuel" value="8"></div>
+      <div class="fitem"><label>油价（元/L）</label><input type="text" id="oil" value="8"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算费用</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于增程车油电费用计算器介绍：</h4>
+    <ol>
+      <li>计算模型：行程不超过纯电续航时全部用电，超出部分按亏电油耗用油。</li>
+      <li>纯电百公里电耗 = 电池容量 ÷ 纯电续航 × 100，据此得出每公里电费。</li>
+      <li>电费占比会直观显示用电与用油各承担多少成本，占比越高说明充电越划算。</li>
+      <li>实际电耗与油耗受气温、载重与驾驶习惯影响，结果仅供参考。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfErevCost(o) {
+  var total = Math.max(0, o.total);
+  var evKm = Math.min(total, o.range);
+  var fuelKm = Math.max(0, total - o.range);
+  var kwhPer100 = o.range > 0 ? o.kwh / o.range * 100 : 0;
+  var evCost = evKm / 100 * kwhPer100 * o.price;
+  var fuelCost = fuelKm / 100 * o.fuel * o.oilPrice;
+  var sum = evCost + fuelCost;
+  return {
+    evKm: evKm, fuelKm: fuelKm, kwhPer100: kwhPer100,
+    evCost: evCost, fuelCost: fuelCost, total: sum,
+    evRatio: sum > 0 ? evCost / sum * 100 : 0
+  };
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var o = {
+    total: Number($("total").value), range: Number($("range").value),
+    kwh: Number($("kwh").value), price: Number($("price").value),
+    fuel: Number($("fuel").value), oilPrice: Number($("oil").value)
+  };
+  for (var k in o) { if (!isFinite(o[k])) { $("tip").textContent = "⚠️ 请输入完整的数字参数"; $("res").innerHTML = ""; return null; } }
+  if (o.range <= 0) { $("tip").textContent = "⚠️ 纯电续航必须大于 0"; $("res").innerHTML = ""; return null; }
+  var r = __xfErevCost(o);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>纯电行驶 " + __xfRound2(r.evKm) + " km，耗电 " + __xfRound2(r.kwhPer100) + " kWh/100km</div>" +
+    "<div>燃油行驶 " + __xfRound2(r.fuelKm) + " km</div>" +
+    "<div>电费：" + __xfRound2(r.evCost) + " 元；油费：" + __xfRound2(r.fuelCost) + " 元</div>" +
+    "<div>合计：<b style='color:#5b8c5a;font-size:16px;'>" + __xfRound2(r.total) + " 元</b>，电费占比 " + __xfRound2(r.evRatio) + "%</div>";
+  return r;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

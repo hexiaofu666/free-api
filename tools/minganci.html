@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>敏感词检测工具 - 词海工具箱</title>
+<meta name="description" content="在线敏感词检测工具，内置通用违规词库并支持自定义词表，快速标出内容中的敏感词并统计出现次数，便于发文前自查。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/minganci.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="minganci" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>待检测内容</label><textarea id="src" rows="6">这是一段用于测试的文本，内容里包含了赌博与诈骗等违规示例词。</textarea></div>
+      <div class="fitem"><label>自定义词表（每行一个，留空则用内置词库）</label><textarea id="words" rows="3"></textarea></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">开始检测</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击按钮开始检测</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于敏感词检测工具介绍：</h4>
+    <ol>
+      <li>内置词库收录常见违规通用词，涵盖涉赌、涉毒、涉诈等类型，仅供发文自查参考。</li>
+      <li>自定义词表每行一个词，填写后将只使用自定义词表进行检测。</li>
+      <li>检测结果会列出命中的词与出现次数，并在原文中高亮标注位置。</li>
+      <li>本工具在浏览器本地完成检测，输入内容不会上传到任何服务器。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var BUILTIN = ["赌博", "博彩", "赌场", "涉毒", "毒品", "枪支", "诈骗", "传销", "高利贷", "色情", "暴力", "走私", "洗钱", "假币", "私彩"];
+function __xfFindSensitive(text, words) {
+  var out = [];
+  for (var i = 0; i < words.length; i++) {
+    var w = String(words[i]).trim();
+    if (!w) continue;
+    var count = 0, idx = 0;
+    while (true) {
+      var p = text.indexOf(w, idx);
+      if (p < 0) break;
+      count++; idx = p + w.length;
+    }
+    if (count > 0) out.push({ word: w, count: count });
+  }
+  return out;
+}
+function __xfHighlight(text, words) {
+  var out = text;
+  for (var i = 0; i < words.length; i++) {
+    var w = String(words[i]).trim();
+    if (!w) continue;
+    var parts = out.split(w);
+    out = parts.join("<mark>" + w + "</mark>");
+  }
+  return out;
+}
+function __xfTotalCount(hits) {
+  var n = 0;
+  for (var i = 0; i < hits.length; i++) n += hits[i].count;
+  return n;
+}
+function __xfParseWords(text) {
+  return String(text).split(/\r?\n/).map(function (l) { return l.trim(); }).filter(function (l) { return l !== ""; });
+}
+function run() {
+  var text = $("src").value;
+  var custom = __xfParseWords($("words").value);
+  var words = custom.length ? custom : BUILTIN;
+  var hits = __xfFindSensitive(text, words);
+  $("tip").textContent = hits.length ? "⚠️ 检测到 " + hits.length + " 个敏感词，共 " + __xfTotalCount(hits) + " 处" : "✅ 未检测到敏感词";
+  $("res").innerHTML = hits.length
+    ? hits.map(function (h) { return "<div>命中：<b style='color:#b8504d;'>" + h.word + "</b>，出现 " + h.count + " 次</div>"; }).join("") +
+      "<div style='margin-top:8px;padding-top:8px;border-top:1px dashed #ddd;'>" + __xfHighlight(text, words) + "</div>"
+    : "<div>内容未命中词库中的任何词汇。</div>";
+  return hits;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

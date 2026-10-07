@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日饮水量计算器 - 词海工具箱</title>
+<meta name="description" content="在线每日饮水量计算器，按体重、运动强度与气温环境估算成年人每天建议饮水毫升数与杯数，帮助科学安排补水节奏。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/drinkwater.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="drinkwater" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>体重（kg）</label><input type="text" id="kg" value="60"></div>
+      <div class="fitem"><label>当日运动强度</label>
+        <select id="level">
+          <option value="none">几乎不运动</option>
+          <option value="light" selected>轻度运动（散步/拉伸）</option>
+          <option value="medium">中度运动（慢跑/游泳 30 分钟）</option>
+          <option value="high">高强度运动（大强度 1 小时以上）</option>
+        </select>
+      </div>
+      <div class="fitem"><label>环境气温</label>
+        <select id="temp">
+          <option value="cold">寒冷（低于 10℃）</option>
+          <option value="normal" selected>常温（10~25℃）</option>
+          <option value="hot">炎热（高于 25℃）</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算饮水量</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写体重后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于每日饮水量计算器介绍：</h4>
+    <ol>
+      <li>基础补水量按体重每公斤 33 毫升估算，例如 60 公斤成人基础约 1980 毫升。</li>
+      <li>运动量越大出汗越多，轻度运动加 350 毫升、中度加 700 毫升、高强度加 1200 毫升。</li>
+      <li>气温高于 25℃ 时基础量乘以 1.15，低于 10℃ 时乘以 0.95，炎热环境需主动补充更多水分。</li>
+      <li>以上不含食物中的水分，肾脏疾病、心功能不全等患者应遵医嘱控制饮水量。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var __xfSportAddMap = { none: 0, light: 350, medium: 700, high: 1200 };
+var __xfTempMap = { cold: 0.95, normal: 1, hot: 1.15 };
+var __xfSportName = { none: "几乎不运动", light: "轻度运动", medium: "中度运动", high: "高强度运动" };
+var __xfTempName = { cold: "寒冷", normal: "常温", hot: "炎热" };
+function __xfBaseWater(kg) { return kg * 33; }
+function __xfSportAdd(level) {
+  var v = __xfSportAddMap[level];
+  return v == null ? 0 : v;
+}
+function __xfTempFactor(t) {
+  var v = __xfTempMap[t];
+  return v == null ? 1 : v;
+}
+function __xfDailyWater(kg, level, t) {
+  return __xfBaseWater(kg) * __xfTempFactor(t) + __xfSportAdd(level);
+}
+function __xfCups(ml) { return ml / 250; }
+function __xfRound50(v) { return Math.round(v / 50) * 50; }
+function __xfRound1(v) { return Math.round(v * 10) / 10; }
+function run() {
+  var kg = Number($("kg").value);
+  var level = $("level").value || "light";
+  var t = $("temp").value || "normal";
+  if (!(kg > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的体重"; $("res").innerHTML = ""; return null; }
+  var base = __xfBaseWater(kg), ml = __xfDailyWater(kg, level, t);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>" + kg + " kg，" + __xfSportName[level] + "，" + __xfTempName[t] + "环境</div>" +
+    "<div>建议每日饮水：<b style='color:#2f9e6e;font-size:16px;'>" + __xfRound50(ml) + " 毫升</b></div>" +
+    "<div>约合 " + __xfRound1(__xfCups(ml)) + " 杯（每杯 250 毫升）</div>" +
+    "<div style='color:#888;'>其中基础量 " + __xfRound50(base) + " 毫升，运动补偿 " + __xfSportAdd(level) + " 毫升，气温系数 " + __xfTempFactor(t) + "</div>";
+  return ml;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

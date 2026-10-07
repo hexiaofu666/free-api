@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>节日大全查询表 - 词海工具箱</title>
+<meta name="description" content="在线节日大全查询表，汇总中国法定节日、传统农历节日与国际纪念日，标注公历或农历日期与节日由来简介。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jierilist.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jierilist" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="输入节日名或月份，如 春节、12 月"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 36 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于节日大全查询表介绍：</h4>
+    <ol>
+      <li>中国法定节假日包括元旦、春节、清明节、劳动节、端午节、中秋节与国庆节，具体放假安排每年由国务院办公厅发文确定。</li>
+      <li>春节、元宵、端午、七夕、中秋、重阳等节日按农历计算，对应公历日期每年都会变化，查询时需结合当年农历。</li>
+      <li>清明节是唯一一个既是节气又是节日的日子，公历日期通常在 4 月 4 日至 6 日之间浮动。</li>
+      <li>部分国际纪念日并非法定假日，如世界水日、世界读书日等，主要用于宣传与主题活动。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"元旦","v":"公历 1 月 1 日","d":"公历新年的第一天，中国法定节假日"},{"k":"腊八节","v":"农历十二月初八","d":"传统民俗节日，有喝腊八粥的习俗"},{"k":"小年","v":"农历十二月廿三","d":"祭灶扫尘，开启春节序幕"},{"k":"除夕","v":"农历十二月最后一天","d":"辞旧迎新的团圆之夜，中国法定节假日"},{"k":"春节","v":"农历正月初一","d":"中国最重要的传统节日，法定节假日"},{"k":"情人节","v":"公历 2 月 14 日","d":"源自西方的爱情节日"},{"k":"元宵节","v":"农历正月十五","d":"赏花灯、吃元宵，春节的尾声"},{"k":"龙抬头","v":"农历二月初二","d":"民间有剃龙头、吃龙食的习俗"},{"k":"妇女节","v":"公历 3 月 8 日","d":"国际劳动妇女节，部分公民放假半天"},{"k":"植树节","v":"公历 3 月 12 日","d":"中国法定植树节日"},{"k":"消费者权益日","v":"公历 3 月 15 日","d":"国际消费者权益日"},{"k":"世界水日","v":"公历 3 月 22 日","d":"联合国设立的全球水日"},{"k":"愚人节","v":"公历 4 月 1 日","d":"源自西方的民间玩笑节日"},{"k":"清明节","v":"公历 4 月 4 日至 6 日之间","d":"扫墓祭祖、踏青赏春，中国法定节假日"},{"k":"世界地球日","v":"公历 4 月 22 日","d":"全球环境保护纪念日"},{"k":"世界读书日","v":"公历 4 月 23 日","d":"联合国教科文组织设立的世界图书与版权日"},{"k":"劳动节","v":"公历 5 月 1 日","d":"国际劳动节，中国法定节假日"},{"k":"青年节","v":"公历 5 月 4 日","d":"纪念五四运动，部分公民放假半天"},{"k":"护士节","v":"公历 5 月 12 日","d":"国际护士节"},{"k":"端午节","v":"农历五月初五","d":"纪念屈原，赛龙舟吃粽子，中国法定节假日"},{"k":"儿童节","v":"公历 6 月 1 日","d":"国际儿童节，不满 14 周岁少年儿童放假一天"},{"k":"世界环境日","v":"公历 6 月 5 日","d":"联合国环境规划署设立"},{"k":"建党节","v":"公历 7 月 1 日","d":"中国共产党成立纪念日"},{"k":"建军节","v":"公历 8 月 1 日","d":"中国人民解放军建军纪念日"},{"k":"七夕节","v":"农历七月初七","d":"牛郎织女相会的传说节日"},{"k":"中元节","v":"农历七月十五","d":"民间祭祀祖先的传统节日"},{"k":"教师节","v":"公历 9 月 10 日","d":"中国法定教师节日"},{"k":"中秋节","v":"农历八月十五","d":"赏月团圆吃月饼，中国法定节假日"},{"k":"国庆节","v":"公历 10 月 1 日","d":"中华人民共和国成立纪念日，法定节假日"},{"k":"重阳节","v":"农历九月初九","d":"登高赏菊敬老的传统节日"},{"k":"万圣节","v":"公历 10 月 31 日","d":"源自西方的传统节日"},{"k":"光棍节","v":"公历 11 月 11 日","d":"网络购物节的由来"},{"k":"感恩节","v":"公历 11 月第四个星期四","d":"源自美国的传统节日"},{"k":"世界艾滋病日","v":"公历 12 月 1 日","d":"世界卫生组织设立的纪念日"},{"k":"平安夜","v":"公历 12 月 24 日","d":"圣诞节前夕"},{"k":"圣诞节","v":"公历 12 月 25 日","d":"源自西方的宗教与民俗节日"}];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#c0392b;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+function __xfFestival(name) {
+  var k = String(name == null ? "" : name).trim();
+  for (var i = 0; i < DATA.length; i++) { if (DATA[i].k === k) return DATA[i]; }
+  return null;
+}
+function __xfIsLunar(name) {
+  var r = __xfFestival(name);
+  return r ? String(r.v).indexOf("农历") === 0 : false;
+}
+function __xfIsSolar(name) {
+  var r = __xfFestival(name);
+  return r ? String(r.v).indexOf("公历") === 0 : false;
+}
+function __xfMonthFestivals(m) {
+  var pat = "公历 " + m + " 月";
+  return DATA.filter(function (it) { return String(it.v).indexOf(pat) >= 0; });
+}
+function __xfLegalCount() {
+  var legal = ["元旦", "春节", "清明节", "劳动节", "端午节", "中秋节", "国庆节"];
+  return DATA.filter(function (it) { return legal.indexOf(it.k) >= 0 && String(it.d).indexOf("法定节假日") >= 0; }).length;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蚂蚁文生成器 - 词海工具箱</title>
+<meta name="description" content="在线蚂蚁文生成器，一键给文字加上下点、重音、下划线等组合符号，生成蚂蚁文菊花文等特殊昵称效果文字。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/anttext.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="anttext" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原始文字</label><textarea id="src" rows="4">词海工具箱</textarea></div>
+      <div class="fitem"><label>符号样式</label>
+        <select id="style">
+          <option value="ant">蚂蚁文（下加点）</option>
+          <option value="ju">菊花文（重音符）</option>
+          <option value="under">下划线</option>
+          <option value="strike">删除线</option>
+          <option value="dot">上加点</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击生成查看效果</strong></div>
+      <textarea id="res" rows="5" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:14px;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于蚂蚁文生成器介绍：</h4>
+    <ol>
+      <li>蚂蚁文是在每个字下方加一个组合点符号，视觉上像一排蚂蚁，常用于社交昵称与个性签名。</li>
+      <li>菊花文是在字上方加重音符号，看起来像一朵小花，适合做软萌风格的昵称。</li>
+      <li>组合符号会附加在前一个字符上，因此复制到部分应用后显示效果可能有差异。</li>
+      <li>空格与换行不会被加符号，保证排版结构不变。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var MARKS = { ant: 0x0359, ju: 0x0300, under: 0x0332, strike: 0x0336, dot: 0x0307 };
+function __xfCombine(text, code) {
+  var mark = String.fromCharCode(code);
+  var out = "";
+  for (var i = 0; i < text.length; i++) {
+    var ch = text.charAt(i);
+    out += ch;
+    if (ch !== " " && ch !== "\n" && ch !== "\r" && ch !== "\t") out += mark;
+  }
+  return out;
+}
+function run() {
+  var style = $("style").value || "ant";
+  var code = MARKS[style];
+  if (code === undefined) { $("tip").textContent = "⚠️ 样式无效"; return null; }
+  var out = __xfCombine($("src").value, code);
+  $("res").value = out;
+  $("tip").textContent = "✅ 已生成，共 " + $("src").value.length + " 个字符";
+  return out;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").value = ""; };
+run();
+</script>
+</body>
+</html>

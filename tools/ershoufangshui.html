@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>二手房税费计算器 - 词海工具箱</title>
+<meta name="description" content="在线二手房税费计算器，按房屋面积与家庭住房套数计算契税，并结合持有年限与是否满五唯一算出增值税与个人所得税总额。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/ershoufangshui.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="ershoufangshui" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>成交价（元）</label><input type="text" id="price" value="1000000"></div>
+      <div class="fitem"><label>建筑面积（㎡）</label><input type="text" id="area" value="89"></div>
+      <div class="fitem"><label>房屋持有年限（年）</label><input type="text" id="years" value="3"></div>
+      <div class="fitem"><label>家庭住房套数</label>
+        <select id="first"><option value="1">家庭唯一住房</option><option value="2">家庭第二套住房</option><option value="3">第三套及以上</option></select>
+      </div>
+      <div class="fitem"><label>是否满五唯一</label>
+        <select id="only"><option value="0">否</option><option value="1">是</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算税费</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于二手房税费计算器介绍：</h4>
+    <ol>
+      <li>契税口径（自 2024 年 12 月 1 日起执行，依据财政部 税务总局 住房城乡建设部公告 2024 年第 16 号）：家庭唯一住房面积 140 ㎡ 及以下减按 1%、超过 140 ㎡ 减按 1.5%；家庭第二套住房 140 ㎡ 及以下减按 1%、超过 140 ㎡ 减按 2%；第三套及以上不享受优惠，按法定税率 3% 估算。</li>
+      <li>此前以 90 ㎡ 为分界的旧口径（财税〔2016〕23 号）已随上述公告同步废止，本工具按现行政策计算，不再使用旧分界。</li>
+      <li>增值税口径：个人将购买 2 年以上（含 2 年）的住房对外销售免征增值税，未满 2 年按成交价的 5.6% 计征（含附加税费的简化口径）。</li>
+      <li>个人所得税口径：满五唯一免征，否则按成交价的 1% 计征（实际可按差额 20% 计，本工具取简化的核定征收口径）。</li>
+      <li>各地执行细则与税率可能存在差异，结果仅供参考，实际以当地税务部门核定为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfDeedRate(area, type) {
+  var t = String(type == null ? "1" : type);
+  if (t === "1") return area <= 140 ? 0.01 : 0.015;
+  if (t === "2") return area <= 140 ? 0.01 : 0.02;
+  return 0.03;
+}
+function __xfDeedTax(price, area, type) {
+  return price * __xfDeedRate(area, type);
+}
+function __xfTypeName(type) {
+  var t = String(type == null ? "1" : type);
+  if (t === "1") return "家庭唯一住房";
+  if (t === "2") return "家庭第二套住房";
+  return "第三套及以上";
+}
+function __xfVatTax(price, years) { return years >= 2 ? 0 : price * 0.056; }
+function __xfIncomeTax(price, years, isOnly) {
+  if (years >= 5 && isOnly) return 0;
+  return price * 0.01;
+}
+function __xfTotalTax(price, area, years, type, isOnly) {
+  return __xfDeedTax(price, area, type) + __xfVatTax(price, years) + __xfIncomeTax(price, years, isOnly);
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var price = Number($("price").value), area = Number($("area").value), years = Number($("years").value);
+  var type = $("first").value || "1", isOnly = ($("only").value || "0") === "1";
+  if (!(price > 0) || !(area > 0) || !(years >= 0)) { $("tip").textContent = "⚠️ 请填写有效的价格、面积与年限"; $("res").innerHTML = ""; return null; }
+  var rate = __xfDeedRate(area, type);
+  var deed = __xfDeedTax(price, area, type), vat = __xfVatTax(price, years), inc = __xfIncomeTax(price, years, isOnly);
+  var total = deed + vat + inc;
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>契税（" + __xfTypeName(type) + "，" + area + " ㎡，税率 " + __xfRound2(rate * 100) + "%）：" + __xfRound2(deed) + " 元</div>" +
+    "<div>增值税（" + (vat === 0 ? "满二年免征" : "未满二年 5.6%") + "）：" + __xfRound2(vat) + " 元</div>" +
+    "<div>个人所得税（" + (inc === 0 ? "满五唯一免征" : "核定 1%") + "）：" + __xfRound2(inc) + " 元</div>" +
+    "<div>税费合计：<b style='color:#b87f4d;font-size:16px;'>" + __xfRound2(total) + " 元</b></div>" +
+    "<div style='color:#888;'>占成交价 " + __xfRound2(total / price * 100) + "%</div>";
+  return total;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

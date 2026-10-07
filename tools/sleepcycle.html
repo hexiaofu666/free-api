@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>睡眠周期计算器 - 词海工具箱</title>
+<meta name="description" content="在线睡眠周期计算器，按 90 分钟一个睡眠周期推算入睡时间或起床时间，帮助在浅睡阶段自然醒来，减少起床后的昏沉感。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/sleepcycle.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="sleepcycle" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>计算方向</label>
+        <select id="dir"><option value="wake">已知起床时间，算入睡时间</option><option value="bed">已知入睡时间，算起床时间</option></select>
+      </div>
+      <div class="fitem"><label>时间（HH:MM）</label><input type="text" id="tm" value="07:00" placeholder="格式 07:00"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算睡眠时间</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写时间后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于睡眠周期计算器介绍：</h4>
+    <ol>
+      <li>一个完整睡眠周期约 90 分钟，依次经历浅睡、深睡与快速眼动睡眠，成年人每晚通常完成 4 到 6 个周期。</li>
+      <li>入睡通常需要约 15 分钟，因此计算时会额外预留这段潜伏时间，让实际入睡点落在周期起点。</li>
+      <li>把闹钟设在周期结束时（浅睡阶段）更容易自然醒来，通常建议睡 5 到 6 个周期，即 7.5 到 9 小时。</li>
+      <li>周期长度因人而异，本工具按 90 分钟标准值估算，可根据自身睡眠感受适当提前或延后 10 分钟。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var __xfCYCLE = 90;
+var __xfFALL = 15;
+function __xfParseT(s) {
+  var m = /^(\d{1,2}):(\d{2})$/.exec(String(s == null ? "" : s).trim());
+  if (!m) return null;
+  var h = +m[1], mi = +m[2];
+  if (h > 23 || mi > 59) return null;
+  return h * 60 + mi;
+}
+function __xfFmtT(min) {
+  var x = ((min % 1440) + 1440) % 1440;
+  var h = Math.floor(x / 60), mi = x % 60;
+  return (h < 10 ? "0" + h : h) + ":" + (mi < 10 ? "0" + mi : mi);
+}
+function __xfBedFor(wake, cycles) {
+  var t = __xfParseT(wake);
+  if (t == null) return "";
+  return __xfFmtT(t - cycles * __xfCYCLE - __xfFALL);
+}
+function __xfWakeFor(bed, cycles) {
+  var t = __xfParseT(bed);
+  if (t == null) return "";
+  return __xfFmtT(t + cycles * __xfCYCLE + __xfFALL);
+}
+function __xfCycleMinutes(cycles) { return cycles * __xfCYCLE; }
+function __xfHoursText(cycles) {
+  var total = __xfCycleMinutes(cycles) + __xfFALL;
+  return Math.floor(total / 60) + " 小时 " + (total % 60) + " 分钟";
+}
+function __xfRound1(v) { return Math.round(v * 10) / 10; }
+function run() {
+  var dir = $("dir").value || "wake";
+  var tm = $("tm").value;
+  if (__xfParseT(tm) == null) { $("tip").textContent = "⚠️ 请按 07:00 的格式填写时间"; $("res").innerHTML = ""; return null; }
+  var rows = "";
+  var arr = [4, 5, 6];
+  for (var i = 0; i < arr.length; i++) {
+    var c = arr[i];
+    var v = dir === "wake" ? __xfBedFor(tm, c) : __xfWakeFor(tm, c);
+    rows += "<div>" + c + " 个周期（" + __xfHoursText(c) + "）：<b style='color:#5b5bd6;'>" + v + "</b> " +
+      (dir === "wake" ? "入睡" : "起床") + "</div>";
+  }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>" + (dir === "wake" ? "每天早上 " + tm + " 起床" : "每晚 " + tm + " 入睡") + "</div>" + rows +
+    "<div style='color:#888;'>按每周期 " + __xfCYCLE + " 分钟、入睡潜伏 " + __xfFALL + " 分钟估算</div>";
+  return dir === "wake" ? __xfBedFor(tm, 5) : __xfWakeFor(tm, 5);
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字前置补0格式化工具 - 词海工具箱</title>
+<meta name="description" content="在线数字前置补零工具，把一批数字批量补齐到指定长度，适用于生成流水号、编号、日期时间等固定位数场景。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/padzero.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="padzero" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>目标位数</label><input type="text" id="len" value="4"></div>
+      <div class="fitem"><label>数字列表（每行一个）</label><textarea id="src" rows="6">1
+22
+333
+2026</textarea></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">批量补零</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击按钮开始补零</strong></div>
+      <textarea id="res" rows="6" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;font-family:Consolas,monospace;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于数字前置补0格式化工具介绍：</h4>
+    <ol>
+      <li>补零在原数字左侧添加 0，用于保证编号长度一致，例如 7 补到 4 位得到 0007。</li>
+      <li>数字位数已经达到或超过目标位数时保持原样，不会截断。</li>
+      <li>支持负数与小数的整数部分补零，例如 -7 补 4 位得到 -0007。</li>
+      <li>批量处理时每行一个数字，空行会被自动忽略。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfPadZero(s, len) {
+  var t = String(s).trim();
+  if (!t) return "";
+  var sign = "";
+  if (t.charAt(0) === "-" || t.charAt(0) === "+") { sign = t.charAt(0); t = t.slice(1); }
+  var dot = t.indexOf(".");
+  if (dot < 0) { while (t.length < len) t = "0" + t; return sign + t; }
+  var ip = t.slice(0, dot), fp = t.slice(dot + 1);
+  while (ip.length < len) ip = "0" + ip;
+  return sign + ip + "." + fp;
+}
+function __xfPadZeroBatch(text, len) {
+  return String(text).split(/\r?\n/).filter(function (l) { return l.trim() !== ""; })
+    .map(function (l) { return __xfPadZero(l, len); });
+}
+function run() {
+  var len = parseInt($("len").value, 10);
+  if (!(len > 0) || len > 50) { $("tip").textContent = "⚠️ 目标位数需在 1 到 50 之间"; return null; }
+  var out = __xfPadZeroBatch($("src").value, len);
+  $("res").value = out.join("\n");
+  $("tip").textContent = "✅ 已处理 " + out.length + " 行";
+  return out;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").value = ""; };
+run();
+</script>
+</body>
+</html>

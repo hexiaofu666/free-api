@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生肖三合贵人速查 - 词海工具箱</title>
+<meta name="description" content="在线生肖三合贵人速查工具，选择生肖即可查得其三合生肖、六合生肖、相冲相害对象与对应年份，快速看懂生肖关系。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/shengxiao3he.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="shengxiao3he" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>选择生肖</label>
+        <select id="z"><option>鼠</option><option>牛</option><option>虎</option><option>兔</option><option>龙</option><option>蛇</option><option>马</option><option>羊</option><option>猴</option><option>鸡</option><option>狗</option><option>猪</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">查询贵人</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">选择生肖后点击查询</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+      <div id="table" style="padding:0 0 10px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于生肖三合贵人速查介绍：</h4>
+    <ol>
+      <li>三合是指三个生肖组成一组相互助力，共四组：猴鼠龙、猪兔羊、虎马狗、蛇鸡牛，同组生肖互为贵人。</li>
+      <li>六合是指两个生肖最为相合，共六组：鼠牛、虎猪、兔狗、龙鸡、蛇猴、马羊，民间常视为最佳搭档组合。</li>
+      <li>相冲与相害是传统上认为容易产生摩擦的关系，了解这些差异有助于在合作与相处中提前做好沟通准备。</li>
+      <li>生肖关系源自传统命理文化，属于民俗参考内容，实际相处仍以性格、价值观与沟通方式为决定因素。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var ZODIAC = "鼠牛虎兔龙蛇马羊猴鸡狗猪".split("");
+var HE6 = [["鼠", "牛"], ["虎", "猪"], ["兔", "狗"], ["龙", "鸡"], ["蛇", "猴"], ["马", "羊"]];
+var SANHE = [["猴", "鼠", "龙"], ["猪", "兔", "羊"], ["虎", "马", "狗"], ["蛇", "鸡", "牛"]];
+var CHONG = [["鼠", "马"], ["牛", "羊"], ["虎", "猴"], ["兔", "鸡"], ["龙", "狗"], ["蛇", "猪"]];
+var HAI = [["鼠", "羊"], ["牛", "马"], ["虎", "蛇"], ["兔", "龙"], ["猴", "猪"], ["鸡", "狗"]];
+function __xfPartner(list, a) {
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].length === 2) {
+      if (list[i][0] === a) return list[i][1];
+      if (list[i][1] === a) return list[i][0];
+    }
+  }
+  return "";
+}
+function __xfGroup(list, a) {
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].indexOf(a) >= 0) return list[i].filter(function (x) { return x !== a; });
+  }
+  return [];
+}
+function __xfYears(animal, from, to) {
+  var out = [];
+  for (var y = from; y <= to; y++) {
+    if (ZODIAC[(((y - 4) % 12) + 12) % 12] === animal) out.push(y);
+  }
+  return out;
+}
+function __xfInfo(a) {
+  return {
+    animal: a,
+    sanhe: __xfGroup(SANHE, a),
+    he6: __xfPartner(HE6, a),
+    chong: __xfPartner(CHONG, a),
+    hai: __xfPartner(HAI, a)
+  };
+}
+function renderTable() {
+  var box = $("table");
+  if (!box) return;
+  box.innerHTML = ZODIAC.map(function (a) {
+    var i = __xfInfo(a);
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#9c4221;font-family:Consolas,monospace;'>" + a + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>三合 " + i.sanhe.join("、") + "｜六合 " + i.he6 + "</span>" +
+      "<span style='margin-left:10px;color:#999;font-size:12px;'>相冲 " + i.chong + "｜相害 " + i.hai + "</span></div>";
+  }).join("");
+}
+function run() {
+  var a = $("z").value || "鼠";
+  var i = __xfInfo(a);
+  $("tip").textContent = "✅ 查询完成";
+  $("res").innerHTML = "<div>生肖：" + a + "</div>" +
+    "<div>三合贵人：<b style='color:#9c4221;font-size:16px;'>" + i.sanhe.join("、") + "</b></div>" +
+    "<div>六合贵人：<b style='color:#9c4221;font-size:16px;'>" + i.he6 + "</b></div>" +
+    "<div style='color:#888;'>相冲生肖：" + i.chong + "　相害生肖：" + i.hai + "</div>" +
+    "<div style='color:#888;'>近年年份：" + __xfYears(a, 1990, 2030).join("、") + "</div>";
+  return i;
+}
+renderTable();
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

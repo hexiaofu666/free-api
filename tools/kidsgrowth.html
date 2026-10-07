@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>儿童标准身高体重参考表 - 词海工具箱</title>
+<meta name="description" content="在线儿童标准身高体重参考表，按年龄列出男孩与女孩的身高中位数与体重中位数，并可评估孩子身高在同龄人中的位置。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/kidsgrowth.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="kidsgrowth" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="输入年龄或性别筛选"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 12 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于儿童标准身高体重参考表介绍：</h4>
+    <ol>
+      <li>表中数据为同龄儿童身高中位数与体重中位数，仅作参考，实际生长受遗传、营养、睡眠与运动共同影响。</li>
+      <li>评估孩子生长情况应看长期生长曲线趋势，若身高连续低于同龄中位数 5% 以上或生长速度明显变慢，建议咨询儿科医生。</li>
+      <li>青春期启动时间个体差异很大，女孩一般 10 至 12 岁、男孩 12 至 14 岁进入生长突增期，过早或过晚都需关注。</li>
+      <li>保证每天充足睡眠与适量纵向运动（跳绳、篮球、游泳）有利于生长激素分泌，比单纯补钙更有效。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"1 岁","v":"男孩 76.5cm / 10.1kg｜女孩 75.0cm / 9.4kg","d":"此阶段以营养摄入与睡眠质量影响最大"},{"k":"1.5 岁","v":"男孩 82.5cm / 11.2kg｜女孩 81.2cm / 10.6kg","d":"开始尝试自主进食，注意补充蛋白质与钙"},{"k":"2 岁","v":"男孩 88.5cm / 12.5kg｜女孩 87.2cm / 11.9kg","d":"身高增长约每年 10cm，关注户外活动时间"},{"k":"2.5 岁","v":"男孩 93.0cm / 13.6kg｜女孩 91.8cm / 13.0kg","d":"语言与运动能力快速发展期"},{"k":"3 岁","v":"男孩 96.8cm / 14.6kg｜女孩 95.6cm / 14.1kg","d":"入园阶段，注意规律作息与均衡饮食"},{"k":"4 岁","v":"男孩 103.9cm / 16.8kg｜女孩 102.8cm / 16.2kg","d":"每年身高增长约 6~7cm"},{"k":"5 岁","v":"男孩 110.4cm / 18.9kg｜女孩 109.4cm / 18.2kg","d":"可增加跳绳、球类等纵向运动"},{"k":"6 岁","v":"男孩 116.6cm / 21.0kg｜女孩 115.6cm / 20.2kg","d":"入学阶段，保证每天 10 小时睡眠"},{"k":"7 岁","v":"男孩 122.5cm / 23.5kg｜女孩 121.6cm / 22.5kg","d":"每年身高增长约 5~6cm"},{"k":"8 岁","v":"男孩 128.5cm / 26.0kg｜女孩 127.5cm / 24.9kg","d":"注意坐姿与视力保护"},{"k":"9 岁","v":"男孩 133.9cm / 28.6kg｜女孩 133.0cm / 27.4kg","d":"女孩可能开始出现生长加速迹象"},{"k":"10 岁","v":"男孩 139.4cm / 31.5kg｜女孩 139.5cm / 30.5kg","d":"青春期前的身高储备关键期"}];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#2f9e6e;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+function __xfKidsMedians() {
+  return DATA.map(function (it) {
+    var m = /([\d.]+)cm \/ ([\d.]+)kg｜女孩 ([\d.]+)cm \/ ([\d.]+)kg/.exec(it.v);
+    if (!m) return null;
+    return { age: parseFloat(it.k), boyH: +m[1], boyW: +m[2], girlH: +m[3], girlW: +m[4] };
+  }).filter(function (x) { return x; });
+}
+function __xfNearestAge(age) {
+  var list = __xfKidsMedians(), best = list[0], bi = 1e9;
+  for (var i = 0; i < list.length; i++) {
+    if (Math.abs(list[i].age - age) < bi) { bi = Math.abs(list[i].age - age); best = list[i]; }
+  }
+  return best;
+}
+function __xfKidMedianH(sex, age) { var r = __xfNearestAge(age); return sex === "f" ? r.girlH : r.boyH; }
+function __xfKidMedianW(sex, age) { var r = __xfNearestAge(age); return sex === "f" ? r.girlW : r.boyW; }
+function __xfKidEval(sex, age, h) {
+  var med = __xfKidMedianH(sex, age);
+  var r = (h - med) / med;
+  if (r <= -0.05) return "偏矮，建议关注生长曲线";
+  if (r >= 0.05) return "偏高，生长情况良好";
+  return "正常，处于同龄中位水平附近";
+}
+</script>
+</body>
+</html>

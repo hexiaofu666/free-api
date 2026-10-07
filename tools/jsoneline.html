@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript一行代码大全 - 词海工具箱</title>
+<meta name="description" content="在线JavaScript一行代码大全，收录数组去重、日期格式化、随机取值等常用单行代码片段，支持关键词搜索并一键复制。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jsoneline.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jsoneline" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索片段</label><input type="text" id="kw" placeholder="例如：数组、日期、随机"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">收录 36 个常用片段</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于JavaScript一行代码大全介绍：</h4>
+    <ol>
+      <li>收录日常开发频率最高的单行代码片段，涵盖数组、字符串、日期、数字与浏览器五类场景。</li>
+      <li>支持按中文用途或英文方法名搜索，输入数组、去重、random 等词都能命中所需片段。</li>
+      <li>每段代码都是可直接粘贴使用的表达式，复制后替换变量名即可运行。</li>
+      <li>片段以原生 JavaScript 实现，不依赖任何第三方库。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [
+  { k: "数组去重", v: "[...new Set(arr)]", d: "利用 Set 特性一次完成去重" },
+  { k: "数组求和", v: "arr.reduce((a, b) => a + b, 0)", d: "初始值传 0 可避免空数组报错" },
+  { k: "数组最大值", v: "Math.max(...arr)", d: "数组过长时建议改用循环" },
+  { k: "数组最小值", v: "Math.min(...arr)", d: "与最大值写法一致" },
+  { k: "数组扁平化", v: "arr.flat(Infinity)", d: "Infinity 表示展开任意深度" },
+  { k: "数组随机取值", v: "arr[Math.floor(Math.random() * arr.length)]", d: "常用于抽奖与随机推荐" },
+  { k: "数组洗牌", v: "arr.sort(() => Math.random() - 0.5)", d: "简单随机打乱，大数据量精度略降" },
+  { k: "数组分组计数", v: "arr.reduce((m, k) => (m[k] = (m[k] || 0) + 1, m), {})", d: "统计每个元素出现次数" },
+  { k: "取数组交集", v: "a.filter(x => b.includes(x))", d: "得到两个数组共有的元素" },
+  { k: "取数组差集", v: "a.filter(x => !b.includes(x))", d: "得到只在 a 中出现的元素" },
+  { k: "按字段排序对象", v: "list.sort((a, b) => a.id - b.id)", d: "按数值字段升序排列" },
+  { k: "按字段分组", v: "list.reduce((m, o) => ((m[o.type] = m[o.type] || []).push(o), m), {})", d: "按属性归类为对象" },
+  { k: "生成 1 到 n 数组", v: "Array.from({ length: n }, (_, i) => i + 1)", d: "避免手写循环" },
+  { k: "字符串反转", v: "[...str].reverse().join('')", d: "用展开运算符正确处理中文与表情" },
+  { k: "首字母大写", v: "str.charAt(0).toUpperCase() + str.slice(1)", d: "适合英文标题美化" },
+  { k: "驼峰转短横线", v: "str.replace(/[A-Z]/g, m => '-' + m.toLowerCase())", d: "CSS 类名转换常用" },
+  { k: "短横线转驼峰", v: "str.replace(/-([a-z])/g, (_, c) => c.toUpperCase())", d: "与上一段互为逆操作" },
+  { k: "去除全部空格", v: "str.replace(/\\s+/g, '')", d: "包含空格与制表符" },
+  { k: "统计字符出现次数", v: "[...str].reduce((m, c) => (m[c] = (m[c] || 0) + 1, m), {})", d: "得到字符频次对象" },
+  { k: "判断回文字符串", v: "s === [...s].reverse().join('')", d: "正读反读一致即为回文" },
+  { k: "截断文本加省略号", v: "str.length > n ? str.slice(0, n) + '…' : str", d: "列表摘要常用" },
+  { k: "转义 HTML 特殊字符", v: "str.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))", d: "把实体符号转为 HTML 实体，防止插入内容破坏页面结构" },
+  { k: "格式化日期为 YYYY-MM-DD", v: "new Date().toISOString().slice(0, 10)", d: "使用 UTC 时区的简易写法" },
+  { k: "日期加天数", v: "new Date(Date.now() + n * 864e5)", d: "864e5 即一天的毫秒数" },
+  { k: "计算日期相差天数", v: "Math.round((d2 - d1) / 864e5)", d: "两日期对象相减得到毫秒差" },
+  { k: "判断是否同一天", v: "d1.toDateString() === d2.toDateString()", d: "忽略具体时刻" },
+  { k: "获取当年第几周", v: "Math.ceil((((d - new Date(d.getFullYear(), 0, 1)) / 864e5) + 1) / 7)", d: "粗略算法，跨年首周易偏差" },
+  { k: "秒数格式化为时分秒", v: "new Date(sec * 1000).toISOString().slice(11, 19)", d: "适合音视频进度展示" },
+  { k: "保留指定小数位", v: "Number(num.toFixed(2))", d: "避免得到字符串类型" },
+  { k: "生成随机整数", v: "Math.floor(Math.random() * (max - min + 1)) + min", d: "含两端边界" },
+  { k: "数值千分位", v: "num.toLocaleString('zh-CN')", d: "金额展示常用" },
+  { k: "字节数转可读大小", v: "n < 1024 ? n + 'B' : (n / 1024).toFixed(1) + 'KB'", d: "文件大小展示常见写法" },
+  { k: "获取 URL 参数", v: "new URLSearchParams(location.search).get('id')", d: "现代浏览器原生支持" },
+  { k: "复制文本到剪贴板", v: "navigator.clipboard.writeText(text)", d: "返回 Promise，需要用户手势触发" },
+  { k: "平滑滚动到顶部", v: "window.scrollTo({ top: 0, behavior: 'smooth' })", d: "带回顶按钮常用" },
+  { k: "防抖函数", v: "const debounce = (fn, t = 300) => { let i; return (...a) => { clearTimeout(i); i = setTimeout(() => fn(...a), t); }; }", d: "限制高频事件触发频率" },
+  { k: "睡眠等待", v: "const sleep = ms => new Promise(r => setTimeout(r, ms))", d: "配合 await 使用" }
+];
+function __xfJsList() { return DATA; }
+function __xfSearchJs(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) { return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0; });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的片段</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#b8a04d;'>" + it.k + "</b>" +
+      "<div style='margin-top:6px;font-family:Consolas,monospace;font-size:12px;background:#f7f7f7;padding:8px 10px;border-radius:4px;word-break:break-all;'>" + it.v + "</div>" +
+      "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div></div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearchJs(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 个片段" : "收录 " + DATA.length + " 个常用片段";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+</script>
+</body>
+</html>

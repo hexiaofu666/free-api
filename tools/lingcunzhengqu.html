@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>零存整取计算器 - 词海工具箱</title>
+<meta name="description" content="在线零存整取利息计算器，按月存入固定金额、到期一次支取本息，用月积数法算出利息与到期本息合计。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/lingcunzhengqu.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="lingcunzhengqu" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>每月存入金额（元）</label><input type="text" id="amt" value="1000"></div>
+      <div class="fitem"><label>年利率（%）</label><input type="text" id="rate" value="1.35"></div>
+      <div class="fitem"><label>存期（月）</label>
+        <select id="months"><option>3</option><option>6</option><option selected>12</option><option>24</option><option>36</option><option>60</option></select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算利息</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于零存整取计算器介绍：</h4>
+    <ol>
+      <li>零存整取指定期每月存入固定金额、到期一次性支取本息的储蓄方式，一般有三个月、半年、一年、三年、五年等存期。</li>
+      <li>利息采用月积数法计算：利息 = 每月存入金额 × 累计月积数 × 月利率，其中累计月积数 = 存期月数 × (存期月数 + 1) ÷ 2。</li>
+      <li>同样的总金额，越早存入越早计息，月积数越大。若中途漏存，部分银行规定只能补存一次，否则按活期计息。</li>
+      <li>零存整取利率通常低于同期整存整取，适合强制储蓄，收益并非最优选择，追求收益可考虑其他方式。</li>
+      <li>利率请按银行最新挂牌利率或存单约定填写，本工具只做公式计算，结果仅供参考。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfDepositMonths(n) { return n * (n + 1) / 2; }
+function __xfLingcunInterest(amt, ratePct, months) {
+  var i = ratePct / 100 / 12;
+  return amt * __xfDepositMonths(months) * i;
+}
+function __xfLingcunTotal(amt, ratePct, months) {
+  return amt * months + __xfLingcunInterest(amt, ratePct, months);
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var amt = Number($("amt").value), rate = Number($("rate").value);
+  var months = Number($("months").value) || 12;
+  if (!(amt > 0) || !(rate >= 0) || !(months > 0)) { $("tip").textContent = "⚠️ 请填写有效的金额、利率与存期"; $("res").innerHTML = ""; return null; }
+  var principal = amt * months, interest = __xfLingcunInterest(amt, rate, months);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>每月存入 " + amt + " 元，存期 " + months + " 个月，年利率 " + rate + "%</div>" +
+    "<div>累计月积数：" + __xfDepositMonths(months) + "</div>" +
+    "<div>存入本金合计：" + __xfRound2(principal) + " 元</div>" +
+    "<div>利息：<b style='color:#2f9e6e;font-size:16px;'>" + __xfRound2(interest) + " 元</b></div>" +
+    "<div>到期本息合计：<b style='color:#2f9e6e;font-size:16px;'>" + __xfRound2(principal + interest) + " 元</b></div>" +
+    "<div style='color:#888;'>实际年化收益约 " + __xfRound2(interest / principal * 12 / months * 100) + "%（因资金分批存入）</div>";
+  return interest;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

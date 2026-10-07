@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内裤尺码表 - 词海工具箱</title>
+<meta name="description" content="在线内裤尺码对照表，按性别与腰围自动推荐 M 至 4XL 尺码，并给出各尺码对应的腰围区间与适合体重参考。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/neiku.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="neiku" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>性别</label>
+        <select id="sex"><option value="m">男</option><option value="f">女</option></select>
+      </div>
+      <div class="fitem"><label>腰围（cm）</label><input type="text" id="waist" value="76"></div>
+      <div class="fitem"><label>体重（kg，可选）</label><input type="text" id="kg" value="65"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">推荐尺码</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写腰围后点击推荐</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+      <div id="table" style="padding:0 0 10px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于内裤尺码表介绍：</h4>
+    <ol>
+      <li>男士内裤主要按腰围选码：70 至 77 厘米为 M、77 至 83 厘米为 L、83 至 90 厘米为 XL、90 至 97 厘米为 2XL。</li>
+      <li>女士内裤按臀围与腰围综合判断，多数情况下可参考身高体重选择，腰围 60 至 67 厘米对应 M 码。</li>
+      <li>内裤属贴身衣物，建议选择略有余量而非紧绷的尺码，棉质面料更有弹性，莫代尔与冰丝面料回弹较弱可适当放大。</li>
+      <li>各品牌版型差异明显，平角裤与三角裤的腰围余量也不同，购买前最好确认商品详情页的具体尺寸表。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var MEN = [
+  { s: "M", lo: 66, hi: 77, kg: "50~62kg" },
+  { s: "L", lo: 77, hi: 83, kg: "60~72kg" },
+  { s: "XL", lo: 83, hi: 90, kg: "70~82kg" },
+  { s: "2XL", lo: 90, hi: 97, kg: "80~92kg" },
+  { s: "3XL", lo: 97, hi: 104, kg: "90~102kg" },
+  { s: "4XL", lo: 104, hi: 115, kg: "100~115kg" }
+];
+var WOMEN = [
+  { s: "M", lo: 56, hi: 67, kg: "40~52kg" },
+  { s: "L", lo: 67, hi: 73, kg: "50~60kg" },
+  { s: "XL", lo: 73, hi: 80, kg: "58~68kg" },
+  { s: "2XL", lo: 80, hi: 88, kg: "66~78kg" },
+  { s: "3XL", lo: 88, hi: 96, kg: "76~88kg" }
+];
+function __xfPick(tbl, cm) {
+  for (var i = 0; i < tbl.length; i++) { if (cm < tbl[i].hi) return tbl[i]; }
+  return tbl[tbl.length - 1];
+}
+function __xfNeikuSize(sex, waist) { return __xfPick(sex === "f" ? WOMEN : MEN, waist).s; }
+function __xfNeikuKg(sex, waist) { return __xfPick(sex === "f" ? WOMEN : MEN, waist).kg; }
+function renderTable() {
+  var box = $("table");
+  if (!box) return;
+  box.innerHTML = MEN.concat(WOMEN).map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#7a5cf0;font-family:Consolas,monospace;'>" + it.s + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>腰围 " + it.lo + "~" + it.hi + "cm</span>" +
+      "<span style='margin-left:10px;color:#999;'>适合体重 " + it.kg + "</span></div>";
+  }).join("");
+}
+function run() {
+  var sex = $("sex").value || "m";
+  var waist = Number($("waist").value), kg = Number($("kg").value);
+  if (!(waist > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的腰围"; $("res").innerHTML = ""; return null; }
+  var size = __xfNeikuSize(sex, waist), ref = __xfNeikuKg(sex, waist);
+  $("tip").textContent = "✅ 推荐完成";
+  $("res").innerHTML = "<div>" + (sex === "f" ? "女" : "男") + "士，腰围 " + waist + " cm" + (kg > 0 ? "，体重 " + kg + " kg" : "") + "</div>" +
+    "<div>推荐尺码：<b style='color:#7a5cf0;font-size:16px;'>" + size + "</b></div>" +
+    "<div style='color:#888;'>该尺码适合体重约 " + ref + "，腰围偏大或偏小时建议上下调一码</div>";
+  return size;
+}
+renderTable();
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cURL转jQuery代码工具 - 词海工具箱</title>
+<meta name="description" content="在线cURL转jQuery代码工具，把浏览器复制出来的cURL命令解析为jQuery的ajax调用代码，自动还原请求方法、请求头与请求体。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/curl2jquery.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="curl2jquery" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>cURL 命令</label><textarea id="src" rows="6">curl 'https://api.example.com/user' -X POST -H 'Content-Type: application/json' -d '{"id":1}'</textarea></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">转 jQuery 代码</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">粘贴 cURL 后点击转换</strong></div>
+      <textarea id="res" rows="10" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;font-family:Consolas,monospace;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于cURL转jQuery代码工具介绍：</h4>
+    <ol>
+      <li>在浏览器开发者工具的请求上右键选择复制为 cURL，即可直接粘贴到此处。</li>
+      <li>支持解析 -X 请求方法、-H 请求头、-d 请求体与 URL 四类核心参数。</li>
+      <li>未显式指定方法时，带请求体自动判定为 POST，否则为 GET。</li>
+      <li>生成的代码基于 jQuery 的 ajax 方法，可直接放进前端项目中使用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfTokenize(cmd) {
+  var out = [], cur = "", q = null;
+  var s = String(cmd).replace(/\r?\n/g, " ").trim();
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charAt(i);
+    if (q) { if (c === q) { q = null; } else { cur += c; } }
+    else if (c === '"' || c === "'") { q = c; }
+    else if (c === " " || c === "\t") { if (cur !== "") { out.push(cur); cur = ""; } }
+    else { cur += c; }
+  }
+  if (cur !== "") out.push(cur);
+  return out;
+}
+function __xfParseCurl(cmd) {
+  var t = __xfTokenize(cmd);
+  if (t.length && t[0] === "curl") t = t.slice(1);
+  var o = { url: "", method: "", headers: [], data: "" };
+  for (var i = 0; i < t.length; i++) {
+    var a = t[i];
+    if (a === "-X" || a === "--request") { o.method = String(t[++i] || "").toUpperCase(); }
+    else if (a === "-H" || a === "--header") { o.headers.push(t[++i] || ""); }
+    else if (a === "-d" || a === "--data" || a === "--data-raw" || a === "--data-binary") { o.data = t[++i] || ""; }
+    else if (a.charAt(0) !== "-") { if (!o.url) o.url = a; }
+  }
+  if (!o.method) o.method = o.data ? "POST" : "GET";
+  return o;
+}
+function __xfHeaderPairs(headers) {
+  return headers.map(function (h) {
+    var p = String(h).split(":");
+    var k = p.shift().trim();
+    return { k: k, v: p.join(":").trim() };
+  });
+}
+function __xfToJquery(o) {
+  var L = [];
+  L.push("$.ajax({");
+  L.push("  url: '" + o.url + "',");
+  L.push("  type: '" + o.method + "',");
+  var pairs = __xfHeaderPairs(o.headers);
+  if (pairs.length) {
+    L.push("  headers: {");
+    for (var i = 0; i < pairs.length; i++) L.push("    '" + pairs[i].k + "': '" + pairs[i].v + "'" + (i < pairs.length - 1 ? "," : ""));
+    L.push("  },");
+  }
+  if (o.data) L.push("  data: " + o.data + ",");
+  L.push("  success: function (res) { console.log(res); },");
+  L.push("  error: function (xhr) { console.error(xhr.status); }");
+  L.push("});");
+  return L.join("\n");
+}
+function run() {
+  var cmd = $("src").value.trim();
+  if (!cmd) { $("tip").textContent = "⚠️ 请先粘贴 cURL 命令"; $("res").value = ""; return null; }
+  var o = __xfParseCurl(cmd);
+  if (!o.url) { $("tip").textContent = "⚠️ 未解析到请求地址，请检查命令是否包含 URL"; $("res").value = ""; return null; }
+  var code = __xfToJquery(o);
+  $("res").value = code;
+  $("tip").textContent = "✅ 已生成 " + o.method + " 请求代码，含 " + o.headers.length + " 个请求头";
+  return code;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").value = ""; };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>半球体总表面积计算器 - 词海工具箱</title>
+<meta name="description" content="在线半球体总表面积计算器，按球面加底面公式 S = 3πr² 计算半球体完整表面积，支持半径与直径输入。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/hemispheresurface.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="hemispheresurface" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>已知量</label>
+        <select id="mode"><option value="r">半径 r</option><option value="d">直径 d</option></select>
+      </div>
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="3"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算总表面积</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入半径或直径后计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于半球体总表面积计算器介绍：</h4>
+    <ol>
+      <li>半球总表面积 = 球面部分 2πr² + 底面圆 πr² = 3πr²。</li>
+      <li>若只需要球面部分的面积，请使用半球体曲面面积计算器。</li>
+      <li>结果为理论值，实际用料需再加上工艺损耗。</li>
+      <li>计算结果保留四位小数，方便直接套用到工程量清单。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var PI = Math.PI;
+function __xfHemiTotal(r) { return 3 * PI * r * r; }
+function __xfHemiTotalFromDiameter(d) { return __xfHemiTotal(d / 2); }
+function __xfHemiBase(r) { return PI * r * r; }
+function __xfRound4(v) { return Math.round(v * 10000) / 10000; }
+function run() {
+  var mode = $("mode").value;
+  var x = Number($("val").value);
+  if (!isFinite(x) || x <= 0) { $("tip").textContent = "⚠️ 请输入大于 0 的数值"; $("res").innerHTML = ""; return; }
+  var r = mode === "d" ? x / 2 : x;
+  var s = __xfHemiTotal(r);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>半径 r = " + __xfRound4(r) + "</div>" +
+    "<div>公式：S = 2πr² + πr² = 3πr²</div>" +
+    "<div>球面部分 = " + __xfRound4(2 * PI * r * r) + "，底面圆 = " + __xfRound4(__xfHemiBase(r)) + "</div>" +
+    "<div>半球总表面积 = <b style='color:#7b68a6;font-size:16px;'>" + __xfRound4(s) + "</b></div>";
+  return s;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("val").value = ""; $("res").innerHTML = ""; $("tip").textContent = "输入半径或直径后计算"; };
+run();
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>民间借贷利率换算器 - 词海工具箱</title>
+<meta name="description" content="在线民间借贷利率换算器，把月利率百分比与民间习惯的分厘说法互相转换，并同时给出对应的年利率与利息参考。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/minjianlilv.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="minjianlilv" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>换算方向</label>
+        <select id="mode"><option value="p2f">百分比 → 分厘</option><option value="f2p">分厘 → 百分比</option></select>
+      </div>
+      <div class="fitem"><label>月利率（%）</label><input type="text" id="pct" value="1.2"></div>
+      <div class="fitem"><label>分 / 厘</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="fen" value="1" style="flex:1;"><input type="text" id="li" value="2" style="flex:1;">
+        </div>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">选择方向后点击换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于民间借贷利率换算器介绍：</h4>
+    <ol>
+      <li>民间常说的一分利指月利率 1%，一厘指月利率 0.1%，十厘等于一分。</li>
+      <li>换算关系：月利率百分比 = 分 × 1 + 厘 × 0.1，例如一分二厘即月利率 1.2%。</li>
+      <li>月利率乘十二得到年利率，一分利对应的年化利率为 12%。</li>
+      <li>借贷利率需符合法律规定的上限，超出部分不受法律保护，请谨慎甄别。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfFromFenLi(fen, li) { return fen * 1 + li * 0.1; }
+function __xfToFenLi(pct) {
+  var fen = Math.floor(pct);
+  var li = Math.round((pct - fen) * 10 * 100) / 100;
+  if (li >= 10) { fen += 1; li -= 10; }
+  return { fen: fen, li: li, text: fen + "分" + (li > 0 ? li + "厘" : "") };
+}
+function __xfMonthToYearRate(pct) { return pct * 12; }
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var mode = $("mode").value || "p2f";
+  if (mode === "p2f") {
+    var pct = Number($("pct").value);
+    if (!isFinite(pct) || pct < 0) { $("tip").textContent = "⚠️ 请输入有效的月利率"; $("res").innerHTML = ""; return null; }
+    var o = __xfToFenLi(pct);
+    $("tip").textContent = "✅ 已转换为民间说法";
+    $("res").innerHTML = "<div>月利率 " + pct + "% 即 " + o.text + "</div>" +
+      "<div>折合年利率：<b style='color:#b87f4d;font-size:16px;'>" + __xfRound2(__xfMonthToYearRate(pct)) + "%</b></div>" +
+      "<div style='color:#888;'>借 10 万元一年，按月利率估算利息约 " + __xfRound2(100000 * pct / 100 * 12) + " 元</div>";
+    return o;
+  }
+  var fen = Number($("fen").value) || 0, li = Number($("li").value) || 0;
+  var p = __xfFromFenLi(fen, li);
+  $("tip").textContent = "✅ 已转换为百分比";
+  $("res").innerHTML = "<div>" + fen + " 分 " + li + " 厘 = 月利率 <b style='color:#b87f4d;font-size:16px;'>" + __xfRound2(p) + "%</b></div>" +
+    "<div>折合年利率：" + __xfRound2(__xfMonthToYearRate(p)) + "%</div>";
+  return p;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("pct").value = ""; $("fen").value = ""; $("li").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

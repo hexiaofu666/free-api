@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预产期计算器 - 词海工具箱</title>
+<meta name="description" content="在线预产期计算器，输入末次月经第一天自动加 280 天推算出预产期，同时给出当前孕周、剩余天数与所处孕期阶段。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/duedate.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="duedate" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>末次月经第一天</label><input type="text" id="lmp" value="2026-03-10" placeholder="格式 2026-03-10"></div>
+      <div class="fitem"><label>当前日期（可留空为今天）</label><input type="text" id="today" value="" placeholder="格式 2026-06-01"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算预产期</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写末次月经后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于预产期计算器介绍：</h4>
+    <ol>
+      <li>预产期按内格勒法则以末次月经第一天加 280 天（40 周）计算，这是临床最常用的估算方式。</li>
+      <li>内格勒法则的速记方法是末次月经月份减 3（不足则加 9）、日期加 7，两者结果可能相差一两天，本工具统一采用加 280 天。</li>
+      <li>孕周从末次月经第一天算起，满 12 周前为孕早期、13 至 27 周为孕中期、28 周及以后为孕晚期。</li>
+      <li>实际分娩日期受排卵时间与个体差异影响，仅有约 5% 的产妇正好在预产期当天分娩，前后两周均属正常范围。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfParseD(s) {
+  var m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(s == null ? "" : s).trim());
+  if (!m) return null;
+  var y = +m[1], mo = +m[2], da = +m[3];
+  if (mo < 1 || mo > 12 || da < 1 || da > 31) return null;
+  var d = new Date(Date.UTC(y, mo - 1, da));
+  if (isNaN(d.getTime())) return null;
+  if (d.getUTCMonth() !== mo - 1 || d.getUTCDate() !== da) return null;
+  return d;
+}
+function __xfFmtD(d) {
+  var y = d.getUTCFullYear(), mo = d.getUTCMonth() + 1, da = d.getUTCDate();
+  return y + "-" + (mo < 10 ? "0" + mo : mo) + "-" + (da < 10 ? "0" + da : da);
+}
+function __xfAddDays(s, n) {
+  var d = __xfParseD(s);
+  if (!d) return "";
+  d.setUTCDate(d.getUTCDate() + n);
+  return __xfFmtD(d);
+}
+function __xfDaysBetween(a, b) {
+  var x = __xfParseD(a), y = __xfParseD(b);
+  if (!x || !y) return NaN;
+  return Math.round((y.getTime() - x.getTime()) / 86400000);
+}
+function __xfDueDate(lmp) { return __xfAddDays(lmp, 280); }
+function __xfGestDays(lmp, today) { return __xfDaysBetween(lmp, today); }
+function __xfGestText(lmp, today) {
+  var n = __xfGestDays(lmp, today);
+  if (!isFinite(n) || n < 0) return "";
+  return Math.floor(n / 7) + "周" + (n % 7) + "天";
+}
+function __xfTrimester(day) {
+  var w = day / 7;
+  if (w < 13) return "孕早期";
+  if (w < 28) return "孕中期";
+  return "孕晚期";
+}
+function __xfDaysLeft(lmp, today) { return 280 - __xfGestDays(lmp, today); }
+function __xfTodayStr() {
+  var d = new Date();
+  return __xfFmtD(new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())));
+}
+function run() {
+  var lmp = $("lmp").value;
+  var today = $("today").value || __xfTodayStr();
+  if (!__xfParseD(lmp)) { $("tip").textContent = "⚠️ 请按 2026-03-10 的格式填写末次月经第一天"; $("res").innerHTML = ""; return null; }
+  if (!__xfParseD(today)) { $("tip").textContent = "⚠️ 当前日期格式不正确"; $("res").innerHTML = ""; return null; }
+  var due = __xfDueDate(lmp), gd = __xfGestDays(lmp, today), left = __xfDaysLeft(lmp, today);
+  if (left < 0) {
+    $("tip").textContent = "✅ 计算完成";
+    $("res").innerHTML = "<div>末次月经 " + lmp + "</div><div>预产期：" + due + "</div>" +
+      "<div style='color:#888;'>距预产期已过 " + Math.abs(left) + " 天，如已分娩请忽略本结果</div>";
+    return due;
+  }
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>末次月经：" + lmp + "　当前日期：" + today + "</div>" +
+    "<div>预产期：<b style='color:#d1718f;font-size:16px;'>" + due + "</b></div>" +
+    "<div>当前孕周：" + __xfGestText(lmp, today) + "（" + __xfTrimester(gd) + "）</div>" +
+    "<div>距预产期还有：" + left + " 天</div>" +
+    "<div style='color:#888;'>已怀孕 " + gd + " 天，孕期共 280 天，进度 " + Math.round(gd / 280 * 100) + "%</div>";
+  return due;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

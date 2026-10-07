@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文字仿古文竖排排版 - 词海工具箱</title>
+<meta name="description" content="在线文字仿古文竖排排版工具，把横排文字按每列字数转换为从右到左的竖排版式，可直接复制用于仿古文案与诗词排版。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/verticaltext.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="verticaltext" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>原文</label><textarea id="src" rows="5">词海工具箱是一个免费在线工具集合站点</textarea></div>
+      <div class="fitem"><label>每列字数</label><input type="text" id="per" value="8"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">竖排排版</button>
+      <button class="fbtn blue" id="vBtn">竖排（标点转竖排符号）</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击按钮开始排版</strong></div>
+      <textarea id="res" rows="8" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:14px;font-family:Consolas,monospace;line-height:1.6;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于文字仿古文竖排排版介绍：</h4>
+    <ol>
+      <li>古文竖排从右向左阅读，因此输出的第一列是最右列，每列自上而下为一个字。</li>
+      <li>每列字数决定版面高度，字数越少则列数越多，可按需要调整为六到十个字。</li>
+      <li>标点转换模式下，逗号句号会替换为竖排专用符号，更接近古籍版式观感。</li>
+      <li>结果以等宽字体呈现，复制到支持等宽的编辑器里可保持对齐效果。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var VPUNC = { "，": "︐", "。": "︒", "、": "︑", "：": "︓", "；": "︔", "！": "︕", "？": "︖" };
+function __xfVertical(text, perCol) {
+  var chars = String(text).replace(/\s/g, "").split("");
+  var cols = [];
+  for (var i = 0; i < chars.length; i += perCol) cols.push(chars.slice(i, i + perCol).join(""));
+  return cols.join("\n");
+}
+function __xfVerticalPunc(text, perCol) {
+  var t = String(text).replace(/\s/g, "");
+  var out = "";
+  for (var i = 0; i < t.length; i++) {
+    var c = t.charAt(i);
+    out += (VPUNC[c] || c);
+  }
+  return __xfVertical(out, perCol);
+}
+function __xfColCount(text, perCol) {
+  var n = String(text).replace(/\s/g, "").length;
+  return Math.ceil(n / perCol);
+}
+function run(usePunc) {
+  var per = parseInt($("per").value, 10);
+  if (!(per > 0) || per > 50) { $("tip").textContent = "⚠️ 每列字数需在 1 到 50 之间"; return null; }
+  var text = $("src").value;
+  var out = usePunc ? __xfVerticalPunc(text, per) : __xfVertical(text, per);
+  $("res").value = out;
+  $("tip").textContent = "✅ 已排版为 " + __xfColCount(text, per) + " 列，每列 " + per + " 字";
+  return out;
+}
+$("runBtn").onclick = function () { return run(false); };
+$("vBtn").onclick = function () { return run(true); };
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").value = ""; };
+run(false);
+</script>
+</body>
+</html>

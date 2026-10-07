@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>幸运数字计算器 - 词海工具箱</title>
+<meta name="description" content="在线幸运数字计算器，根据出生日期推算生命灵数与生肖，给出对应的幸运数字、幸运颜色与适合的方位参考。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/xingyunnum.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="xingyunnum" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>出生日期</label><input type="text" id="birth" value="1990-05-20" placeholder="格式 1990-05-20"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算幸运数字</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写出生日期后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于幸运数字计算器介绍：</h4>
+    <ol>
+      <li>生命灵数由出生日期中的所有数字逐位相加，反复求和直到得到一位数（11 与 22 作为特殊数字保留）。</li>
+      <li>生肖由出生年份推算，公式为用年份减 4 后对 12 取余，余数依次对应鼠、牛、虎、兔、龙、蛇、马、羊、猴、鸡、狗、猪。</li>
+      <li>幸运数字与幸运颜色源自数字能量学说，属于民俗娱乐内容，不具科学依据，请理性看待。</li>
+      <li>本工具只使用出生日期做数学运算，不会上传或保存任何个人信息。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var ZODIAC = "鼠牛虎兔龙蛇马羊猴鸡狗猪".split("");
+var NUM_INFO = {
+  "1": { color: "红色、橙色", luck: "1、6、10", dir: "正南", trait: "独立、有主见、行动力强" },
+  "2": { color: "淡黄、米白", luck: "2、7、11", dir: "西南", trait: "温和、善解人意、重视合作" },
+  "3": { color: "橙色、金色", luck: "3、8、12", dir: "正东", trait: "乐观、有创意、表达力强" },
+  "4": { color: "绿色、青色", luck: "4、9、13", dir: "东南", trait: "踏实、守规则、执行力强" },
+  "5": { color: "蓝色、灰色", luck: "5、10、14", dir: "正中", trait: "灵活、爱自由、适应力强" },
+  "6": { color: "粉红、玫红", luck: "6、11、15", dir: "正北", trait: "有责任感、重家庭、懂得照顾人" },
+  "7": { color: "紫色、银色", luck: "7、12、16", dir: "西北", trait: "理性、爱思考、追求深度" },
+  "8": { color: "金色、深蓝", luck: "8、13、17", dir: "东北", trait: "目标感强、有野心、善于经营" },
+  "9": { color: "白色、大红", luck: "9、14、18", dir: "正西", trait: "热心、有理想、乐于付出" },
+  "11": { color: "银色、淡紫", luck: "11、22、2", dir: "正北", trait: "直觉敏锐、有感召力、情绪细腻" },
+  "22": { color: "深蓝、金色", luck: "22、11、4", dir: "正中", trait: "格局大、能把理想落地、抗压能力强" }
+};
+function __xfDigitSum(n) {
+  var s = String(Math.abs(Math.floor(n)));
+  var t = 0;
+  for (var i = 0; i < s.length; i++) t += +s.charAt(i);
+  return t;
+}
+function __xfLifeNum(birth) {
+  var m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(birth == null ? "" : birth).trim());
+  if (!m) return 0;
+  var total = 0;
+  for (var i = 0; i < m[1].length; i++) total += +m[1].charAt(i);
+  total += __xfDigitSum(+m[2]) + __xfDigitSum(+m[3]);
+  while (total > 9 && total !== 11 && total !== 22) total = __xfDigitSum(total);
+  return total;
+}
+function __xfZodiac(year) {
+  var y = Math.floor(Number(year));
+  if (!isFinite(y)) return "";
+  return ZODIAC[(((y - 4) % 12) + 12) % 12];
+}
+function __xfNumInfo(n) {
+  var s = String(n);
+  return NUM_INFO[s] == null ? NUM_INFO["9"] : NUM_INFO[s];
+}
+function __xfParseBirth(birth) {
+  var m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(birth == null ? "" : birth).trim());
+  if (!m) return null;
+  return { y: +m[1], mo: +m[2], d: +m[3] };
+}
+function run() {
+  var birth = $("birth").value;
+  var p = __xfParseBirth(birth);
+  if (!p || p.mo < 1 || p.mo > 12 || p.d < 1 || p.d > 31) { $("tip").textContent = "⚠️ 请按 1990-05-20 的格式填写出生日期"; $("res").innerHTML = ""; return null; }
+  var life = __xfLifeNum(birth), info = __xfNumInfo(life);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>出生日期：" + birth + "　生肖：" + __xfZodiac(p.y) + "</div>" +
+    "<div>生命灵数：<b style='color:#e08a2e;font-size:16px;'>" + life + "</b></div>" +
+    "<div>性格特质：" + info.trait + "</div>" +
+    "<div>幸运数字：" + info.luck + "</div>" +
+    "<div>幸运颜色：" + info.color + "　幸运方位：" + info.dir + "</div>" +
+    "<div style='color:#888;'>内容源自数字能量民俗说法，仅供娱乐参考</div>";
+  return life;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

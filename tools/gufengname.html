@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>古风名字生成器 - 词海工具箱</title>
+<meta name="description" content="在线古风名字生成器，结合古风姓氏与诗意意象字随机组合出有韵味的古风姓名，适合小说写作与角色取名参考。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/gufengname.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="gufengname" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>姓氏类型</label>
+        <select id="sur"><option value="any">不限</option><option value="single">单字姓</option><option value="double">复姓</option></select>
+      </div>
+      <div class="fitem"><label>生成数量（1~50）</label><input type="text" id="num" value="12"></div>
+      <div class="fitem"><label>随机种子（可留空）</label><input type="text" id="seed" value="" placeholder="填相同数字可复现"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">生成古风名</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击生成古风名字</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2.2;font-size:15px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于古风名字生成器介绍：</h4>
+    <ol>
+      <li>姓氏库包含慕容、上官、司徒、南宫、独孤、轩辕等复姓，以及墨、顾、沈、苏、萧等常见古风单字姓。</li>
+      <li>名字用字取自云、霜、雪、月、竹、鹤、辞、卿、笙、琴等意象字，组合后自带古典韵味。</li>
+      <li>填入相同随机种子可复现同一批名字，方便在写小说时为同一角色反复挑选。</li>
+      <li>生成结果可作为角色名灵感来源，正式选用前建议核对读音是否顺口、是否有不雅谐音。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfRng(seed) {
+  var s = ((seed >>> 0) || 1) >>> 0;
+  return function () {
+    s = (s * 1664525 + 1013904223) % 4294967296;
+    return s / 4294967296;
+  };
+}
+var SUR_GU = ["慕容","上官","司徒","南宫","东方","独孤","夏侯","诸葛","欧阳","司马","轩辕","上官","夜","墨","白","苏","顾","沈","叶","温","江","秦","陆","萧","林","谢","柳","裴","霍","宋","季","容","裴","卫","商","楚"];
+var POOL_GU = ["云","霜","风","雪","月","华","清","泠","烟","波","沧","澜","竹","梅","兰","菊","松","鹤","羽","青","墨","白","玄","素","苍","绯","紫","琉","梦","辞","卿","尘","歌","笙","琴","剑","萤","花","落","雨","雾","溪","涧","岳","岚","曦","暮","朝","轩","宸","珩","琬","玥","瑾","瑄","砚","鸢","棠","栀","梧","栀","南","书","砚","辞"];
+function __xfIsDouble(s) { return String(s).length >= 2; }
+function __xfSurPool(type) {
+  if (type === "double") return SUR_GU.filter(__xfIsDouble);
+  if (type === "single") return SUR_GU.filter(function (s) { return !__xfIsDouble(s); });
+  return SUR_GU.slice();
+}
+function __xfGenGu(seed, count, type) {
+  var rnd = __xfRng(seed), pool = __xfSurPool(type), out = [];
+  for (var i = 0; i < count; i++) {
+    var s = pool[Math.floor(rnd() * pool.length)];
+    var n = "";
+    var len = rnd() < 0.2 ? 1 : 2;
+    for (var j = 0; j < len; j++) n += POOL_GU[Math.floor(rnd() * POOL_GU.length)];
+    out.push(s + n);
+  }
+  return out;
+}
+function __xfClampNum(v) {
+  var n = Math.floor(Number(v));
+  if (!isFinite(n) || n < 1) return 1;
+  if (n > 50) return 50;
+  return n;
+}
+function run() {
+  var type = $("sur").value || "any";
+  var num = __xfClampNum($("num").value);
+  var seedRaw = String($("seed").value || "").trim();
+  var seed = seedRaw === "" ? (Date.now() & 0x7fffffff) : (Number(seedRaw) || 1);
+  var list = __xfGenGu(seed, num, type);
+  $("tip").textContent = "✅ 已生成 " + list.length + " 个古风名（种子 " + seed + "）";
+  $("res").innerHTML = list.map(function (n) { return "<span style='display:inline-block;min-width:110px;'>" + n + "</span>"; }).join("");
+  return list;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

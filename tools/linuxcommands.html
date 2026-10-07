@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linux命令大全速查 - 词海工具箱</title>
+<meta name="description" content="在线Linux命令大全速查表，涵盖文件管理、文本处理、进程管理、磁盘与服务运维等常用命令，支持关键词即时筛选。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/linuxcommands.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="linuxcommands" data-cat="dev">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>搜索</label><input type="text" id="kw" placeholder="例如：文件、磁盘、日志"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="allBtn">显示全部</button>
+      <button class="fbtn plain" id="clrBtn">清空搜索</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">共 30 条，输入关键词可即时筛选</strong></div>
+      <div id="res" style="padding:6px 0;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于Linux命令大全速查介绍：</h4>
+    <ol>
+      <li>按运维场景整理高频 Linux 命令，含常用参数组合而非只列命令名。</li>
+      <li>搜索同时匹配命令与中文用途，输入磁盘可筛出磁盘相关全部命令。</li>
+      <li>标注为危险的命令（如 rm -rf）在实际执行前务必核对路径。</li>
+      <li>命令在绝大多数主流发行版通用，个别参数差异请以系统手册为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var DATA = [{"k":"ls -al","v":"列出目录详细内容","d":"-a 显示隐藏文件，-l 显示详细信息"},{"k":"cd <dir>","v":"切换目录","d":"cd .. 返回上级，cd - 回到上一个目录"},{"k":"pwd","v":"显示当前路径","d":"输出当前工作目录的绝对路径"},{"k":"cp -r <src> <dst>","v":"递归复制","d":"-r 用于复制整个目录"},{"k":"mv <src> <dst>","v":"移动或重命名","d":"同目录内移动即为重命名"},{"k":"rm -rf <dir>","v":"强制递归删除","d":"危险命令，删除前务必确认路径"},{"k":"mkdir -p <dir>","v":"创建目录","d":"-p 自动创建不存在的父目录"},{"k":"touch <file>","v":"创建空文件","d":"也用于更新文件时间戳"},{"k":"cat <file>","v":"查看文件内容","d":"适合查看小文件"},{"k":"less <file>","v":"分页查看文件","d":"按 q 退出，支持上下翻页与搜索"},{"k":"tail -f <file>","v":"实时跟踪日志","d":"持续输出文件新增内容，看日志常用"},{"k":"head -n 20 <file>","v":"查看文件前若干行","d":"-n 指定行数"},{"k":"grep -rn <kw> <dir>","v":"递归搜索文本","d":"-r 递归，-n 显示行号"},{"k":"find <dir> -name <pat>","v":"按名称查找文件","d":"支持通配符，如 *.log"},{"k":"chmod 755 <file>","v":"修改文件权限","d":"755 表示属主读写执行，其他读执行"},{"k":"chown user:group <file>","v":"修改属主与属组","d":"需要 root 权限"},{"k":"ps aux","v":"查看全部进程","d":"显示所有用户的进程与资源占用"},{"k":"top","v":"实时查看资源占用","d":"按 q 退出，按 M 按内存排序"},{"k":"kill -9 <pid>","v":"强制结束进程","d":"-9 为不可捕获的终止信号"},{"k":"df -h","v":"查看磁盘使用","d":"-h 以人类可读单位显示"},{"k":"du -sh <dir>","v":"统计目录大小","d":"-s 只显示汇总值"},{"k":"tar -czvf a.tar.gz <dir>","v":"打包并压缩","d":"c 创建、z gzip、v 显示过程、f 指定文件名"},{"k":"tar -xzvf a.tar.gz","v":"解压 tar.gz","d":"x 解包，常用参数组合"},{"k":"unzip <file.zip>","v":"解压 zip","d":"-d 指定解压目录"},{"k":"systemctl status <svc>","v":"查看服务状态","d":"start、stop、restart 分别控制启停"},{"k":"journalctl -u <svc> -f","v":"跟踪服务日志","d":"systemd 环境下查看服务日志"},{"k":"crontab -e","v":"编辑定时任务","d":"crontab -l 查看已有任务"},{"k":"netstat -tunlp","v":"查看端口监听","d":"显示 TCP UDP 端口与对应进程"},{"k":"curl -I <url>","v":"查看响应头","d":"-I 只发 HEAD 请求"},{"k":"sed -i 's/a/b/g' <file>","v":"批量替换文本","d":"-i 直接修改文件，注意先备份"}];
+var COLS = ["快捷方式","功能说明"];
+function __xfList() { return DATA; }
+function __xfSearch(kw) {
+  var k = String(kw == null ? "" : kw).trim().toLowerCase();
+  if (!k) return DATA.slice();
+  return DATA.filter(function (it) {
+    return (it.k + " " + it.v + " " + (it.d || "")).toLowerCase().indexOf(k) >= 0;
+  });
+}
+function __xfRender(list, kw) {
+  if (!list.length) return "<div style='padding:14px 15px;color:#999;'>没有匹配「" + kw + "」的条目</div>";
+  return list.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#4d8bb8;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var kw = $("kw").value;
+  var list = __xfSearch(kw);
+  $("res").innerHTML = __xfRender(list, kw);
+  $("tip").textContent = kw ? "筛选到 " + list.length + " 条" : "共 " + DATA.length + " 条，输入关键词可即时筛选";
+  return list;
+}
+$("kw").oninput = run;
+$("allBtn").onclick = function () { $("kw").value = ""; return run(); };
+$("clrBtn").onclick = function () { $("kw").value = ""; return run(); };
+run();
+</script>
+</body>
+</html>

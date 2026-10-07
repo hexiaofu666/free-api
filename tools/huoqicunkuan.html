@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>活期存款利息计算器 - 词海工具箱</title>
+<meta name="description" content="在线活期存款利息计算器，输入本金、活期年利率与存款天数，按银行活期计息口径算出应得利息与到期本息合计。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/huoqicunkuan.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="huoqicunkuan" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>本金（元）</label><input type="text" id="p" value="50000"></div>
+      <div class="fitem"><label>活期年利率（%）</label><input type="text" id="rate" value="0.3"></div>
+      <div class="fitem"><label>存款天数</label><input type="text" id="days" value="180"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算利息</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于活期存款利息计算器介绍：</h4>
+    <ol>
+      <li>银行活期计息通常按年利率除以 360 天折算日利率，再乘以实际存款天数。</li>
+      <li>本工具采用本金 × 年利率 × 天数 ÷ 360 的口径，与多数银行活期结息方式一致。</li>
+      <li>活期利率较低，长期闲置资金建议考虑定期或通知存款等方式。</li>
+      <li>实际结息按季进行并可能产生复利，本结果按单次计息估算。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfDemandInterest(p, ratePct, days) { return p * ratePct / 100 * days / 360; }
+function __xfDailyRate(ratePct) { return ratePct / 100 / 360; }
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var p = Number($("p").value), rate = Number($("rate").value), days = Number($("days").value);
+  if (!(p > 0) || !(rate > 0) || !(days > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的本金、利率与天数"; $("res").innerHTML = ""; return null; }
+  var interest = __xfDemandInterest(p, rate, days);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>本金 " + p + " 元，年利率 " + rate + "%，存期 " + days + " 天</div>" +
+    "<div>日利率：" + (__xfDailyRate(rate) * 100).toFixed(6) + "%</div>" +
+    "<div>应得利息：<b style='color:#3f9e5a;font-size:16px;'>" + __xfRound2(interest) + " 元</b></div>" +
+    "<div>本息合计：" + __xfRound2(p + interest) + " 元</div>";
+  return interest;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

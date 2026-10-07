@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功率单位换算器 - 词海工具箱</title>
+<meta name="description" content="在线功率单位换算器，支持瓦、千瓦、兆瓦、米制马力、英制马力、卡每秒、英热单位每小时之间的精确互换。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/powerconvert.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="powerconvert" data-cat="math">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="1"></div>
+      <div class="fitem"><label>源单位</label>
+        <select id="unit">
+          <option value="w">瓦 W</option>
+          <option value="kw" selected>千瓦 kW</option>
+          <option value="mw">兆瓦 MW</option>
+          <option value="ps">米制马力 PS</option>
+          <option value="hp">英制马力 hp</option>
+          <option value="cals">卡每秒 cal/s</option>
+          <option value="btuh">英热单位每小时 BTU/h</option>
+        </select>
+      </div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">输入数值后点击换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于功率单位换算器介绍：</h4>
+    <ol>
+      <li>1 千瓦 = 1000 瓦，1 兆瓦 = 1000 千瓦 = 1000000 瓦。</li>
+      <li>米制马力（PS）1 马力约等于 735.49875 瓦；英制马力（hp）1 马力约等于 745.69987 瓦，两者不可混用。</li>
+      <li>汽车发动机铭牌上的功率多以千瓦标注，换算成马力时请确认是米制还是英制。</li>
+      <li>换算结果保留六位有效小数，各常用单位一次性全部列出，便于直接取用。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var TO_W = { w: 1, kw: 1000, mw: 1000000, ps: 735.49875, hp: 745.6998715822702, cals: 4.1868, btuh: 0.2930710701722222 };
+var NAMES = { w: "瓦 W", kw: "千瓦 kW", mw: "兆瓦 MW", ps: "米制马力 PS", hp: "英制马力 hp", cals: "卡每秒 cal/s", btuh: "英制马力 BTU/h" };
+function __xfRound6(v) { return Math.round(v * 1e6) / 1e6; }
+function __xfPowerConvert(v, unit) {
+  if (!(unit in TO_W)) return null;
+  var w = v * TO_W[unit];
+  return { w: __xfRound6(w), kw: __xfRound6(w / 1000), mw: __xfRound6(w / 1e6), ps: __xfRound6(w / TO_W.ps), hp: __xfRound6(w / TO_W.hp), cals: __xfRound6(w / TO_W.cals), btuh: __xfRound6(w / TO_W.btuh) };
+}
+function run() {
+  var v = Number($("val").value), unit = $("unit").value || "kw";
+  if (!isFinite(v)) { $("tip").textContent = "⚠️ 请输入数字"; $("res").innerHTML = ""; return null; }
+  var o = __xfPowerConvert(v, unit);
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = ["w", "kw", "mw", "ps", "hp", "cals", "btuh"]
+    .map(function (k) { return "<div>" + NAMES[k] + "：<b style='color:#4d8bb8;'>" + o[k] + "</b></div>"; }).join("");
+  return o;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("val").value = ""; $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

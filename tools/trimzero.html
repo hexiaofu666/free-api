@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批量去除数字前导零工具 - 词海工具箱</title>
+<meta name="description" content="在线批量去除数字前导零工具，一键清理编号或数据中的多余前导零，保留必要的单个零与小数数值不被破坏。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/trimzero.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="trimzero" data-cat="office">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>数据（每行一个）</label><textarea id="src" rows="6">007
+000123
+000
+0088.5
+-0042</textarea></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">去除前导零</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">点击按钮开始处理</strong></div>
+      <textarea id="res" rows="6" readonly style="width:100%;box-sizing:border-box;border:0;background:transparent;padding:12px 15px;font-size:13px;font-family:Consolas,monospace;"></textarea>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于批量去除数字前导零工具介绍：</h4>
+    <ol>
+      <li>前导零指数字最左侧没有意义的零，例如 007 实际等于 7，可去掉两个前导零。</li>
+      <li>全部为零的数字会保留一个零，结果为 0 而不是空。</li>
+      <li>负数会先保留负号再去掉数字部分的前导零，例如 -0042 得到 -42。</li>
+      <li>小数只处理整数部分，0088.5 处理为 88.5，小数位不受影响。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfTrimZero(s) {
+  var t = String(s).trim();
+  if (!t) return "";
+  var sign = "";
+  if (t.charAt(0) === "-" || t.charAt(0) === "+") { sign = t.charAt(0) === "-" ? "-" : ""; t = t.slice(1); }
+  if (t.indexOf(".") < 0) {
+    var v = t.replace(/^0+/, "");
+    return sign + (v === "" ? "0" : v);
+  }
+  var parts = t.split(".");
+  var ip = parts[0].replace(/^0+/, "");
+  if (ip === "") ip = "0";
+  return sign + ip + "." + parts[1];
+}
+function __xfTrimZeroBatch(text) {
+  return String(text).split(/\r?\n/).filter(function (l) { return l.trim() !== ""; }).map(__xfTrimZero);
+}
+function run() {
+  var out = __xfTrimZeroBatch($("src").value);
+  $("res").value = out.join("\n");
+  $("tip").textContent = "✅ 已处理 " + out.length + " 行";
+  return out;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("src").value = ""; $("res").value = ""; };
+run();
+</script>
+</body>
+</html>

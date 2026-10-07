@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鞋子尺码对照表 - 词海工具箱</title>
+<meta name="description" content="在线鞋子尺码对照表，按脚长毫米数换算欧码、美码男、美码女与英码，并给出各尺码对应的脚长区间参考。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/xiema.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="xiema" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>换算方式</label>
+        <select id="mode">
+          <option value="mm">已知脚长（mm），算尺码</option>
+          <option value="eu">已知欧码，算脚长</option>
+        </select>
+      </div>
+      <div class="fitem"><label>数值</label><input type="text" id="val" value="250"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">换算鞋码</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写数值后点击换算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+      <div id="table" style="padding:0 0 10px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于鞋子尺码对照表介绍：</h4>
+    <ol>
+      <li>欧码与脚长的换算关系为欧码约等于脚长厘米数乘以 2 再减 10，例如脚长 25 厘米对应欧码 40。</li>
+      <li>量脚长请在下午或傍晚测量，此时脚部略微充血膨胀，量出的尺寸更接近实际穿鞋状态。</li>
+      <li>运动鞋建议预留 0.5 至 1 厘米的空间，皮鞋则以脚趾顶到鞋头时后跟能插入一根手指为宜。</li>
+      <li>不同品牌楦型差异较大，本表为通用参考值，选购宽版或窄版鞋型时需相应调整半码。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var XIE = [
+  { k: "脚长 220mm", v: "欧码 34｜美码男 3.5｜美码女 5｜英码 2.5", d: "适合脚长约 22 厘米的儿童或小脚人群" },
+  { k: "脚长 225mm", v: "欧码 35｜美码男 4｜美码女 5.5｜英码 3", d: "" },
+  { k: "脚长 230mm", v: "欧码 36｜美码男 4.5｜美码女 6｜英码 3.5", d: "常见女鞋尺码" },
+  { k: "脚长 235mm", v: "欧码 37｜美码男 5｜美码女 6.5｜英码 4", d: "常见女鞋尺码" },
+  { k: "脚长 240mm", v: "欧码 38｜美码男 6｜美码女 7.5｜英码 5", d: "常见女鞋大码与男鞋小码" },
+  { k: "脚长 245mm", v: "欧码 39｜美码男 6.5｜美码女 8｜英码 5.5", d: "" },
+  { k: "脚长 250mm", v: "欧码 40｜美码男 7｜美码女 8.5｜英码 6", d: "常见男鞋尺码" },
+  { k: "脚长 255mm", v: "欧码 41｜美码男 8｜美码女 9.5｜英码 7", d: "常见男鞋尺码" },
+  { k: "脚长 260mm", v: "欧码 42｜美码男 8.5｜美码女 10｜英码 7.5", d: "常见男鞋尺码" },
+  { k: "脚长 265mm", v: "欧码 43｜美码男 9.5｜美码女 11｜英码 8.5", d: "" },
+  { k: "脚长 270mm", v: "欧码 44｜美码男 10｜美码女 11.5｜英码 9.5", d: "常见男鞋大码" },
+  { k: "脚长 275mm", v: "欧码 45｜美码男 11｜美码女 12.5｜英码 10.5", d: "常见男鞋大码" }
+];
+var US_M = { 34: 3.5, 35: 4, 36: 4.5, 37: 5, 38: 6, 39: 6.5, 40: 7, 41: 8, 42: 8.5, 43: 9.5, 44: 10, 45: 11 };
+var US_W = { 34: 5, 35: 5.5, 36: 6, 37: 6.5, 38: 7.5, 39: 8, 40: 8.5, 41: 9.5, 42: 10, 43: 11, 44: 11.5, 45: 12.5 };
+function __xfEuSize(mm) { return Math.round(mm / 5 - 10); }
+function __xfFootMm(eu) { return (eu + 10) * 5; }
+function __xfUsMen(eu) { return US_M[eu] == null ? null : US_M[eu]; }
+function __xfUsWomen(eu) { return US_W[eu] == null ? null : US_W[eu]; }
+function __xfUk(eu) {
+  var u = __xfUsMen(eu);
+  return u == null ? null : Math.round((u - 1) * 2) / 2;
+}
+function renderTable() {
+  var box = $("table");
+  if (!box) return;
+  box.innerHTML = XIE.map(function (it) {
+    return "<div style='padding:10px 15px;border-bottom:1px solid #f0f0f0;'>" +
+      "<b style='color:#c0392b;font-family:Consolas,monospace;'>" + it.k + "</b>" +
+      "<span style='margin-left:10px;color:#333;'>" + it.v + "</span>" +
+      (it.d ? "<div style='color:#999;font-size:12px;margin-top:4px;'>" + it.d + "</div>" : "") +
+      "</div>";
+  }).join("");
+}
+function run() {
+  var mode = $("mode").value || "mm";
+  var v = Number($("val").value);
+  if (!(v > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的数值"; $("res").innerHTML = ""; return null; }
+  var mm = mode === "eu" ? __xfFootMm(v) : v;
+  var eu = __xfEuSize(mm);
+  var um = __xfUsMen(eu), uw = __xfUsWomen(eu), uk = __xfUk(eu);
+  $("tip").textContent = "✅ 换算完成";
+  $("res").innerHTML = "<div>脚长：<b style='color:#c0392b;font-size:16px;'>" + mm + " mm</b>（" + (mm / 10) + " 厘米）</div>" +
+    "<div>欧码：<b style='color:#c0392b;'>" + eu + "</b>　英码：" + (uk == null ? "—" : uk) + "</div>" +
+    "<div>美码男：" + (um == null ? "—" : um) + "　美码女：" + (uw == null ? "—" : uw) + "</div>" +
+    "<div style='color:#888;'>通用换算：欧码 ≈ 脚长厘米 × 2 − 10</div>";
+  return eu;
+}
+renderTable();
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>

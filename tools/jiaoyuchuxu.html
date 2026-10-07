@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教育储蓄利息计算器 - 词海工具箱</title>
+<meta name="description" content="在线教育储蓄利息计算器，按教育储蓄免税计息规则算出到期利息与本息合计，并展示相对普通存款的免税优势。">
+<link rel="stylesheet" href="../assets/layui/icon.css">
+<script src="../assets/theme.js?v=1.9.0"></script>
+<link rel="stylesheet" href="../assets/style.css?v=1.9.0">
+<script>
+var _hmt = _hmt || [];
+(function() {
+var hm = document.createElement("script");
+hm.src = "https://hm.baidu.com/hm.js?1da30f0e0a9fb8b51ed6762e8753bef1";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<link rel="canonical" href="https://tools.hdemba.cn/tools/jiaoyuchuxu.html">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body data-tool="jiaoyuchuxu" data-cat="life">
+<div class="main"><div class="center"><div class="tools">
+  <div class="tools-cent">
+    <div class="vsetup" style="margin-top:0;">
+      <div class="fitem"><label>每月存入金额（元）</label><input type="text" id="p" value="1000"></div>
+      <div class="fitem"><label>年利率（%）</label><input type="text" id="rate" value="2.75"></div>
+      <div class="fitem"><label>存期（年）</label><input type="text" id="years" value="3"></div>
+    </div>
+    <div class="abar">
+      <button class="fbtn teal" id="runBtn">计算利息</button>
+      <button class="fbtn plain" id="clrBtn">清空</button>
+    </div>
+    <div class="vout on">
+      <div class="vhead"><strong id="tip">填写参数后点击计算</strong></div>
+      <div id="res" style="padding:12px 15px;line-height:2;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="resttips">
+    <h4>关于教育储蓄利息计算器介绍：</h4>
+    <ol>
+      <li>教育储蓄按零存整取方式计息，每月固定存入，到期一次性支取本息。</li>
+      <li>零存整取到期利息常用公式：月存金额 × 存期月数 ×(存期月数 + 1) ÷ 2 × 月利率。</li>
+      <li>教育储蓄利息免征利息税，因此在同等利率下实际收益优于普通存款。</li>
+      <li>每位学生每项教育储蓄本金合计上限为两万元，实际办理以银行规定为准。</li>
+    </ol>
+  </div>
+</div></div></div>
+<script src="../assets/tools-data.js?v=1.9.0"></script>
+<script src="../assets/chrome.js?v=1.9.0"></script>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function __xfEduInterest(monthly, ratePct, years) {
+  var m = years * 12;
+  var monthRate = ratePct / 100 / 12;
+  return monthly * m * (m + 1) / 2 * monthRate;
+}
+function __xfEduPrincipal(monthly, years) { return monthly * years * 12; }
+function __xfSimpleInterest(monthly, ratePct, years) {
+  return __xfEduPrincipal(monthly, years) * ratePct / 100 * years;
+}
+function __xfRound2(v) { return Math.round(v * 100) / 100; }
+function run() {
+  var p = Number($("p").value), rate = Number($("rate").value), years = Number($("years").value);
+  if (!(p > 0) || !(rate > 0) || !(years > 0)) { $("tip").textContent = "⚠️ 请填写大于 0 的金额、利率与存期"; $("res").innerHTML = ""; return null; }
+  var principal = __xfEduPrincipal(p, years);
+  var interest = __xfEduInterest(p, rate, years);
+  $("tip").textContent = "✅ 计算完成";
+  $("res").innerHTML = "<div>每月存入 " + p + " 元，存期 " + years + " 年，年利率 " + rate + "%</div>" +
+    "<div>存入本金合计：" + __xfRound2(principal) + " 元</div>" +
+    "<div>到期利息：<b style='color:#3f9e5a;font-size:16px;'>" + __xfRound2(interest) + " 元</b></div>" +
+    "<div>本息合计：" + __xfRound2(principal + interest) + " 元</div>" +
+    "<div style='color:#888;'>教育储蓄利息免征利息税，实际收益优于普通存款</div>";
+  return interest;
+}
+$("runBtn").onclick = run;
+$("clrBtn").onclick = function () { $("res").innerHTML = ""; };
+run();
+</script>
+</body>
+</html>
